@@ -1,6 +1,6 @@
 import requests
 import simplejson as json
-from coingecko_api import API_ERROR_CODES, API_ENDPOINTS, ID
+from api.coingecko_api import API_ERROR_CODES, API_ENDPOINTS, ID
 
 '''
 Function builds URL to API endpoint, executes GET command and
