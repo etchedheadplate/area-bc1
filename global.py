@@ -1,16 +1,28 @@
 import requests
 import simplejson as json
-from api.coingecko_api import API_ERROR_CODES, API_ENDPOINTS, ID
+from api.coingecko_api import API_ERROR_CODES, API_ENDPOINTS
+
+base = 'https://api.coingecko.com/api/v3/'
+endpoint = '/simple/price'
+endpoint_params = API_ENDPOINTS.get(endpoint)
 
 '''
-Function builds URL to API endpoint, executes GET command and
-returns JSON object if response status code is OK. Otherwise
-returns error code and tries to point to specific problem.
+Function builds URL with specific query parameters to API endpoint.
 '''
 
-def json_contents(endpoint):
-    base = 'https://api.coingecko.com/api/v3'
-    url = base + endpoint
+def build_api_url(base, endpoint, **kwargs):
+    query_parameters = [] # empty list for query parameters
+    for key, value in kwargs.items():
+        query_parameters.append(f"{key}={value}") # parameters are copied from dictionary to list...
+    url = f"{base}{endpoint}?{'&'.join(query_parameters)}" # ...so they can be formated correctly to queries...
+    return url # ... and returned as correct URL to API endpoint 
+
+'''
+Function executes GET command to URL and returns JSON object if response status
+code is OK. Otherwise returns error code and tries to point to specific problem.
+'''
+
+def get_json_data(url):
     response = requests.get(url) # request for JSON object associated with endpoint
     if response.status_code == 200: # if status code is OK... 
         data = response.json() # ...builds JSON object...
@@ -21,19 +33,18 @@ def json_contents(endpoint):
         return response.status_code, 'Unknown error' # if error is unknown returns status code
 
 '''
-Dictionary with availble CoinGecko API endpoints is represented
-as a list, which is printed with associated indexes, so user can
-choose needed endpoint just by entering number of endpoint. JSON
-contents are printed in user-friendly form.
+Function allows to view nested dictionaries in human-readable form.
 '''
 
-endpoints = [(key, value) for key, value in API_ENDPOINTS.items()] # API endpoints as a list
+def view_json_contents(json, indent=0): 
+    for key, value in json.items():
+        if isinstance(value, dict): # if value is nested dictionary
+            print(' ' * indent + f'{key}:') # prints key associated with value as nested dictionary
+            view_json_contents(value, indent + 4) # recursively calls view_json_contents() until no nested dictionaries left
+        else:
+            print(' ' * indent + f'{key}: {value}') # prints key and value
 
-for cnt, endpoint in enumerate(endpoints):
-    print(cnt, endpoint[0]) # prints API endpoints in user-friendly form with associated index
-
-api_number = int(input('Choose API endpoint: ')) # expects integer for list index
-
-endpoint_name = endpoints[api_number][0].replace('{id}', ID) # specifies Bitcoin as asset of interest
-endpoint_contents = json_contents(endpoint_name)
-print(json.dumps(endpoint_contents, sort_keys=True, indent=4 * ' ')) # JSON contents are printed
+test_url = build_api_url(base, endpoint, **endpoint_params)
+test_get_json_data = get_json_data(test_url)
+test_view_json_contents = view_json_contents(test_get_json_data)
+print(test_view_json_contents)
