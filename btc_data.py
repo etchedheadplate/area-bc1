@@ -1,6 +1,6 @@
 import requests
 import simplejson as json
-from api.coingecko_api import API_ERROR_CODES, API_ENDPOINTS
+from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
 base = 'https://api.coingecko.com/api/v3/'
 endpoint = '/simple/price'
@@ -47,4 +47,6 @@ def view_json_contents(json, indent=0):
 test_url = build_api_url(base, endpoint, **endpoint_params)
 test_get_json_data = get_json_data(test_url)
 test_view_json_contents = view_json_contents(test_get_json_data)
-print(test_view_json_contents)
+'''print(test_view_json_contents)'''
+
+data_source = view_json_contents(get_json_data(build_api_url(base, endpoint, **endpoint_params)))
