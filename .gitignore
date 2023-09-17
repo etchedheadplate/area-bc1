@@ -1,5 +1,5 @@
 area-bc1-logo/
-tests/
+tests.py/
 __pycache__/
-api/tgtoken/
+api/tgtoken.py/
 api/__pycache__/
