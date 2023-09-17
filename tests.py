@@ -1,7 +1,7 @@
 import requests
 import time
 import simplejson as json
-from api.coingecko_api import API_ERROR_CODES, API_ENDPOINTS, ID
+from api.coingecko import API_ERROR_CODES, API_ENDPOINTS, ID
 
 for key in API_ENDPOINTS:
     endpoint = key.replace('{id}',ID)

@@ -1,8 +1,8 @@
 import logging
-from telegram import InlineQueryResultArticle, InputTextMessageContent, Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import InlineQueryHandler, filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
-from api.tgtoken import api_token
-from btc_data import build_api_url, get_json_data, view_json_contents, data_source
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, CallbackContext, CallbackQueryHandler
+from api.telegram import api_token
+from bitcoin import data_source
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -13,7 +13,8 @@ logging.basicConfig(
 CURRENT_INFO, PERIOD_CHANGES, SETTINGS = range(3)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! We have started",
+    start_text = "Start text as a variable"
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text,
         reply_markup=main_menu_keyboard())
 
 async def current_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -39,21 +40,23 @@ def main_menu_keyboard():
         [KeyboardButton("Period changes")],
         [KeyboardButton("Settings")],
     ]
-    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
+
+def button_click(update: Update, context: CallbackContext):
+    query = update.callback_query
+    callback_data = query.data
+
+    if callback_data == "current_info":
+        current_info(update, context)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(api_token).build()
     
-    start_handler = CommandHandler('start', start)
-    current_info_handler = CommandHandler('current_info', current_info)
-    period_changes_handler = MessageHandler('period_changes', period_changes)
-    settings_handler = MessageHandler('settings', settings)
-    unknown_handler = MessageHandler(filters.COMMAND, unknown)
-    
-    application.add_handler(start_handler)
-    application.add_handler(current_info_handler)
-    application.add_handler(period_changes_handler)
-    application.add_handler(settings_handler)
-    application.add_handler(unknown_handler)
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CallbackQueryHandler(button_click))
+    application.add_handler(CommandHandler('current_info', current_info))
+    application.add_handler(MessageHandler('period_changes', period_changes))
+    application.add_handler(MessageHandler('settings', settings))
+    application.add_handler(MessageHandler(filters.COMMAND, unknown))
 
     application.run_polling()
