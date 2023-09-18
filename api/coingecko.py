@@ -22,11 +22,11 @@ API_ENDPOINTS = { # Dictionary of all API endpoids available for free by CoinGec
         'precision':'2' # full or any value between 0 - 18 to specify decimal place for currency price value
     },
     'coins/bitcoin':{
-        'localization':'false',
-        'tickers':'false',
-        'market_data':'false',
-        'community_data':'false',
-        'developer_data':'false'
+        'localization':'true',
+        'tickers':'true',
+        'market_data':'true',
+        'community_data':'true',
+        'developer_data':'true'
     },
     'coins/bitcoin/history':{ # Get historical data at a given date for a coin. The data returned is at 00:00:00 UTC.
         'date':'01-01-2010', # dd-mm-yyyy

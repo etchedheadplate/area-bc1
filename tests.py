@@ -1,9 +1,11 @@
 import requests
 import time
+import sys
 import simplejson as json
-from api.coingecko import API_ERROR_CODES, API_ENDPOINTS, ID
+from api.coingecko import API_ERROR_CODES, API_ENDPOINTS, BASE
+from data_fetcher import get_data, view_json_contents
 
-for key in API_ENDPOINTS:
+'''for key in API_ENDPOINTS:
     endpoint = key.replace('{id}',ID)
     print(type(endpoint))
     base = 'https://api.coingecko.com/api/v3/'
@@ -23,7 +25,7 @@ def json_contents(endpoint):
     elif response.status_code in API_ERROR_CODES: # if known error status code is recieved...
         return f'{response.status_code}:{API_ERROR_CODES[response.status_code]}' # ...returns status code and description
     else:
-        return response.status_code, 'Unknown error' # if error is unknown returns status code
+        return response.status_code, 'Unknown error' # if error is unknown returns status code'''
 
 '''
 Dictionary with availble CoinGecko API endpoints is represented
@@ -32,7 +34,7 @@ choose needed endpoint just by entering number of endpoint. JSON
 contents are printed in user-friendly form.
 '''
 
-endpoints = [(key, value) for key, value in API_ENDPOINTS.items()] # API endpoints as a list
+'''endpoints = [(key, value) for key, value in API_ENDPOINTS.items()] # API endpoints as a list
 
 for cnt, endpoint in enumerate(endpoints):
     print(cnt, endpoint[0]) # prints API endpoints in user-friendly form with associated index
@@ -41,4 +43,30 @@ api_number = int(input('Choose API endpoint: ')) # expects integer for list inde
 
 endpoint_name = endpoints[api_number][0].replace('{id}', ID) # specifies Bitcoin as asset of interest
 endpoint_contents = json_contents(endpoint_name)
-print(json.dumps(endpoint_contents, sort_keys=True, indent=4 * ' ')) # JSON contents are printed
+print(json.dumps(endpoint_contents, sort_keys=True, indent=4 * ' ')) # JSON contents are printed'''
+
+
+'''test_dict = get_data(BASE, 'coins/bitcoin')
+with open('output.txt', 'w') as file:
+    sys.stdout = file
+    print(view_json_contents(test_dict))
+sys.stdout = sys.__stdout__'''
+
+'''from currency_symbols import CurrencySymbols
+
+# Создайте объект CurrencySymbols
+currency_symbols = CurrencySymbols()
+
+# Указывайте код валюты для получения символа
+currency_code = 'sats'
+currency_symbol = currency_symbols.get_symbol(currency_code)
+
+if currency_symbol:
+    print(f"The symbol for {currency_code} is {currency_symbol}")
+else:
+    print(f"Symbol not found for {currency_code}")
+'''
+
+from money.money import Money
+m = Money(amount='2.22', currency='EUR')
+print(m)
