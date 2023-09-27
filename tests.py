@@ -3,7 +3,7 @@ import time
 import sys
 import simplejson as json
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS, BASE
-from data_fetcher import get_data, view_json_contents
+from data_tools import get_data, view_json_contents
 
 '''for key in API_ENDPOINTS:
     endpoint = key.replace('{id}',ID)
@@ -45,12 +45,14 @@ endpoint_name = endpoints[api_number][0].replace('{id}', ID) # specifies Bitcoin
 endpoint_contents = json_contents(endpoint_name)
 print(json.dumps(endpoint_contents, sort_keys=True, indent=4 * ' ')) # JSON contents are printed'''
 
-
-'''test_dict = get_data(BASE, 'coins/bitcoin')
-with open('output.txt', 'w') as file:
+'''
+test_dict = get_data(BASE, 'coins/bitcoin/market_chart/range')
+with open('tests/output.txt', 'w') as file:
     sys.stdout = file
     print(view_json_contents(test_dict))
-sys.stdout = sys.__stdout__'''
+sys.stdout = sys.__stdout__
+print(test_dict)
+'''
 
 '''from currency_symbols import CurrencySymbols
 
@@ -67,6 +69,39 @@ else:
     print(f"Symbol not found for {currency_code}")
 '''
 
-from money.money import Money
+'''from money.money import Money
 m = Money(amount='2.22', currency='EUR')
-print(m)
+print(m)'''
+
+'''def length_checker(file_path):
+    file=open(file_path, 'r')
+    file_lines = file.readlines()
+    list_of_lines=[]
+    for line in file_lines:
+        list_of_lines.append(line)
+    print(len(list_of_lines))
+    file.close()'''
+
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+# Создайте график (фигуру)
+fig, ax = plt.subplots()
+
+# Размер графика
+fig.set_size_inches(6, 4)
+
+# Загрузите изображение для фона
+bg_image = mpimg.imread('tests/background.jpg')  # Замените 'background_image.png' на путь к вашему фоновому изображению
+
+# Создайте субграфик (axes)
+ax = fig.add_subplot(111)
+
+# Отобразите фоновое изображение за пределами сетки координат
+ax.imshow(bg_image, aspect='auto', extent=[0, 1, 0, 1], zorder=-1)  # aspect='auto' подстраивает размер изображения под график
+
+# Рисуйте ваш график на сетке координат
+ax.plot([0.2, 0.4, 0.6], [0.2, 0.8, 0.4])
+
+# Отобразите график
+plt.show()

@@ -34,7 +34,7 @@ API_ENDPOINTS = { # Dictionary of all API endpoids available for free by CoinGec
     },
     'coins/bitcoin/market_chart':{ # Get historical market data include price, market cap, and 24h volume (granularity auto)
         'vs_currency':'usd', # The target currency of market data (usd, eur, jpy, etc.)
-        'days':'30', # 1,14,30,max
+        'days':'max', # 1,14,30,max
         'interval':'daily',
         'precision':'2' # full or any value between 0 - 18 to specify decimal place for currency price value
     },

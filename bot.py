@@ -2,7 +2,7 @@ import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, CallbackContext, CallbackQueryHandler
 from api.telegram import api_token
-from coins import data_source
+from market_values import data_source
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

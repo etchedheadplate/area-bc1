@@ -1,6 +1,12 @@
-area-bc1-logo/
-output.txt
+*.pyc
+*.pyo
+*.txt
+*.csv
+*.jpg
+*.png
 tests.py
 __pycache__/
-api/tgtoken.py/
+area-bc1-logo/
+api/telegram.py
 api/__pycache__/
+tests/
