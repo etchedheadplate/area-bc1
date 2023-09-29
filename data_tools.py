@@ -1,5 +1,5 @@
 import requests
-import datetime
+from datetime import datetime
 from currency_symbols import CurrencySymbols
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
@@ -80,7 +80,12 @@ def format_things(number):
     formatted_number = '{:,.0f}'.format(number).replace(',', ' ')
     return formatted_number
 
-def format_time(unix_timestamp):
-    # Converts UNIX time to a datetime object
-    converted_dt = datetime.datetime.fromtimestamp(unix_timestamp)
-    return converted_dt
+def convert_timestamp_to_utc(timestamp):
+    # Converts UNIX timestamp to UTC    
+    try:
+        if len(str(timestamp)) > 10: # if timestamp in milliseconds...
+            timestamp /= 1000 # converts it to seconds
+        utc_datetime = datetime.utcfromtimestamp(timestamp)
+        return utc_datetime
+    except Exception as e:
+        return str(e)

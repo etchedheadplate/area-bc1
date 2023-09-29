@@ -4,6 +4,7 @@
 *.csv
 *.jpg
 *.png
+*.DS_Store
 tests.py
 __pycache__/
 area-bc1-logo/
