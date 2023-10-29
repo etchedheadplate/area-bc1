@@ -1,33 +1,18 @@
-from data_tools import get_data, format_currency, convert_timestamp_to_utc
-from data_config import cryptocurrency, ticker, history_file, history_graph, history_graph_font
-from api.coingecko import BASE
 import pandas as pd
 import matplotlib.pyplot as plt
+from data_tools import format_currency, convert_timestamp_to_utc
+from data_config import ticker, history_file, history_graph, history_graph_font, history_graph_background
+from api.coingecko import BASE
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
+from PIL import Image
 
-list_prices_data = get_data(BASE, f'coins/{cryptocurrency}/market_chart')['prices']  # list
-list_market_caps_data = get_data(BASE, f'coins/{cryptocurrency}/market_chart')['market_caps']  # list
+df = pd.read_csv(history_file) # Load data from the CSV file
+df['Date'] = df['Date'].apply(convert_timestamp_to_utc) # Convert the 'Date' column to UTC
 
-prices_data = pd.DataFrame(list_prices_data, columns=['Date', 'Price'])
-market_cap_data = pd.DataFrame(list_market_caps_data, columns=['Date', 'Market Cap'])
-history_data = prices_data.merge(market_cap_data, on='Date', how='left')
-history_data.to_csv(history_file, index=False)
-
-# Load data from the CSV file
-df = pd.read_csv(history_file)
-
-# Convert the 'Date' column to UTC (Assuming you have implemented the conversion function)
-df['Date'] = df['Date'].apply(convert_timestamp_to_utc)
-
-# Create a figure and axes
-fig, ax1 = plt.subplots(figsize=(10, 6))
-
-# Set the background color inside the plot area to be transparent
-fig.patch.set_alpha(0.0)
-
-# Create a second y-axis on the right side
-ax2 = ax1.twinx()
+fig, ax1 = plt.subplots(figsize=(10, 6)) # Create a figure and axes
+fig.patch.set_alpha(0.0) # Set the background color inside the plot area to be transparent
+ax2 = ax1.twinx() # Create a second y-axis on the right side
 
 # Plot Price on the left axis in orange
 line1, = ax1.plot(df['Date'], df['Price'], color='orange', label='Price')
@@ -58,14 +43,14 @@ ax2.set_ylabel('Market Cap', color='green', fontproperties=prop)
 for label in ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels():
     label.set_fontproperties(prop)
 
-# Add gridlines to the plot
-ax1.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+ax1.grid(True, linestyle='--', linewidth=0.5, alpha=0.7) # Add gridlines to the plot
+fig.patch.set_facecolor('none') # Set transparent background outside the plot area
+dpi_value = 150 # Set DPI for plot image
+plt.savefig(history_graph, bbox_inches='tight', transparent=True, dpi=dpi_value) # Save the plot to a PNG file with a transparent background
 
-# Set transparent background outside the plot area
-fig.patch.set_facecolor('none')
-
-# Save the plot to a PNG file with a transparent background
-plt.savefig(history_graph, bbox_inches='tight', transparent=True)
-
-# Show the plot
-plt.show()
+background = Image.open(history_graph_background) # Open background image
+overlay = Image.open(history_graph) # Open plot image
+x = 750  # X-coordinate for plot image
+y = 85  # Y-coordinate for plot image
+background.paste(overlay, (x, y), overlay) # Paste plot image over background image
+background.save("output.png") # Save the plot with background image
