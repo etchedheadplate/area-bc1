@@ -1,12 +1,16 @@
+'''
+Various functions used in other modules.
+'''
+
+
 import requests
 from datetime import datetime
 from currency_symbols import CurrencySymbols
+from data_config import chart_background_path, chart_background_image
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
 
-'''
-API related functions
-'''
+# API related functions
 
 def build_api_url(base, endpoint, **kwargs):
     # Builds URL with specific query parameters to API endpoint
@@ -36,9 +40,7 @@ def get_data(base, endpoint):
     return endpoint_data
 
 
-'''
-Functions to display or format data
-'''
+# Functions to display or format data
 
 def view_json_contents(json, indent=0):
     # Allows to view nested dictionaries in human-readable form
@@ -89,3 +91,13 @@ def convert_timestamp_to_utc(timestamp):
         return utc_datetime
     except Exception as e:
         return str(e)
+
+
+# Chart related functions
+
+def select_chart_background(price_change_percentage):
+    # Selects chart background based on % of price change in given period and returns path to image
+    for image in chart_background_image:
+        range = image[1]
+        if range[0] <= price_change_percentage <= range[1]:
+            return chart_background_path + image[0]
