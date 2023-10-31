@@ -6,7 +6,7 @@ Various functions used in other modules.
 import requests
 from datetime import datetime
 from currency_symbols import CurrencySymbols
-from data_config import chart_background_path, chart_background_image
+from data_config import plot_background_path, plot_background_image
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
 
@@ -95,9 +95,9 @@ def convert_timestamp_to_utc(timestamp):
 
 # Chart related functions
 
-def select_chart_background(price_change_percentage):
-    # Selects chart background based on % of price change in given period and returns path to image
-    for image in chart_background_image:
+def select_plot_background(price_change_percentage):
+    # Selects plot background based on % of price change in given period and returns path to image
+    for image in plot_background_image:
         range = image[1]
         if range[0] <= price_change_percentage <= range[1]:
-            return chart_background_path + image[0]
+            return plot_background_path + image[0]

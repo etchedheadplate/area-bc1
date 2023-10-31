@@ -12,11 +12,11 @@ ticker = vs_currency.upper()
 # Database related variables
 database_file = 'db/History_market_data.csv'
 
-# Market chart related variables
-chart_path = 'src/images/market_chart.png'
-chart_font = 'src/font/south_park.ttf'
-chart_background_path = 'src/images/backgrounds/'
-chart_background_image = ( # filename, price range in %, DPI, X-coordinate, Y-coordinate
+# Market plot related variables
+plot_path = 'src/images/market_plot.png'
+plot_font = 'src/font/south_park.ttf'
+plot_background_path = 'src/images/backgrounds/'
+plot_background_image = ( # filename, price range in %, DPI, X-coordinate, Y-coordinate
     ('superbad.png', (-float('inf'), -10), 150, 750, 85),
     ('bad.png', (-10, 0), 150, 750, 85),
     ('good.png', (0, 10), 150, 750, 85),
