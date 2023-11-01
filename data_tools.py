@@ -101,3 +101,37 @@ def select_plot_background(price_change_percentage):
         range = image[1]
         if range[0] <= price_change_percentage <= range[1]:
             return plot_background_path + image[0]
+
+def format_money_axis(amount):
+    # Formats money to common abbreviation
+    if amount >= 1_000_000_000_000_000:
+        formatted_amount = "{:.0f} Qn".format(amount / 1_000_000_000_000_000)
+    elif amount >= 1_000_000_000_000:
+        formatted_amount = "{:.0f} T".format(amount / 1_000_000_000_000)
+    elif amount >= 1_000_000_000:
+        formatted_amount = "{:.0f} B".format(amount / 1_000_000_000)
+    elif amount >= 1_000_000:
+        formatted_amount = "{:.0f} M".format(amount / 1_000_000)
+    elif amount >= 1_000:
+        formatted_amount = "{:.0f} K".format(amount / 1_000)
+    else:
+        formatted_amount = "{:.2f}".format(amount)
+    return formatted_amount
+
+def format_time_axis(timestamp, period):
+    # Converts UNIX timestamp to UTC    
+    if len(str(timestamp)) > 10: # if timestamp in milliseconds...
+        timestamp /= 1000 # converts it to seconds 
+    date_object = datetime.utcfromtimestamp(timestamp)
+    if period <= 3:
+        try:           
+            formatted_date = date_object.strftime('%d.%m.%Y %H:%M:%S')
+            return formatted_date
+        except Exception as e:
+            return str(e)
+    elif period > 3:
+        try:
+            formatted_date = date_object.strftime('%d.%m.%Y')
+            return formatted_date
+        except Exception as e:
+            return str(e)

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image
-from data_tools import format_currency, convert_timestamp_to_utc, select_plot_background
+from data_tools import format_money_axis, format_time_axis, select_plot_background
 from data_config import ticker, database_file, plot_path, plot_font, plot_background_image
 
 df = pd.read_csv(database_file) # Load data from the CSV file
@@ -11,24 +11,28 @@ df = pd.read_csv(database_file) # Load data from the CSV file
 # Set the font properties for the text elements on the plot
 custom_font = font_manager.FontProperties(fname=plot_font) # Use the specified font path
 
-start_row = 1
-end_row = 3800
+start_row = 3717
+end_row = 3837
 
-fig, ax1 = plt.subplots(figsize=(10, 6)) # Create a figure and axes
+axis_date = df['Date'][start_row:end_row]
+axis_price = df['Price'][start_row:end_row]
+axis_volume = df['Total Volumes'][start_row:end_row]
+
+fig, ax1 = plt.subplots(figsize=(12, 6)) # Create a figure and axes
 fig.patch.set_alpha(0.0) # Set the background color inside the plot area to be transparent
 ax2 = ax1.twinx() # Create a second y-axis on the right side
 
 # Left y axis
 line1, = ax1.plot( # line 1 creation
-    df['Date'][start_row:end_row], # axis data from start row to end row
-    df['Price'][start_row:end_row], # axis data from start row to end row
+    axis_date, # axis data from start row to end row
+    axis_price, # axis data from start row to end row
     color='orange', # line color
     label='Price', # line label
-    linewidth=0.8, # line width
+    linewidth=1, # line width
     zorder=1 # layer order (higher value puts layer to the front)
     )
-ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: convert_timestamp_to_utc(x))) # x text format
-ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_currency(x, ticker))) # y text format
+ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, len(axis_date)))) # x text format
+ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_money_axis(x))) # y text format
 ax1.tick_params(axis='x', labelcolor='white') # x text color
 ax1.tick_params(axis='y', labelcolor='orange') # y text color
 ax1.set_zorder(2) # layer order (higher value puts layer to the front)
@@ -40,27 +44,27 @@ plt.setp(
 
 # Right y axis
 line2, = ax2.plot( # line 1 creation
-    df['Date'][start_row:end_row], # axis data from start row to end row
-    df['Total Volumes'][start_row:end_row], # axis data from start row to end row
+    axis_date, # axis data from start row to end row
+    axis_volume, # axis data from start row to end row
     color='green', # line color
     label='Total Volumes', # line label
-    alpha=0.5, # line transparency
-    linewidth=0.5, # line width
+    alpha=0.2, # line transparency
+    linewidth=0.1, # line width
     )
-ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_currency(x, ticker))) # y text format
+ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_money_axis(x))) # y text format
 ax2.tick_params(axis='y', labelcolor='green') # y text color
 ax2.set_zorder(1) # layer order (higher value puts layer to the front)
 ax2.fill_between( # color filling of shape below the line
-    df['Date'][start_row:end_row],
-    df['Total Volumes'][start_row:end_row],
+    axis_date,
+    axis_volume,
     color='green', # filling color
-    alpha=0.1, # filling transparency
+    alpha=0.15, # filling transparency
 )
 
 # Legend
 legend = ax1.legend(
     [line1, line2], # lines in legend
-    ['Price, $', 'Volume, $'], # titles of lines
+    [f'Price, {ticker}', f'Volume, {ticker}'], # titles of lines
     loc='upper left', # legend location
     prop=custom_font, # legend font
     handlelength=0
