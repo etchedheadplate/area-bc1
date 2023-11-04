@@ -31,11 +31,15 @@ def get_json_data(url):
     else:
         return response.status_code, 'Unknown error' # if error is unknown returns status code
 
-def get_data(base, endpoint):
+def get_data(base, endpoint, **kwargs):
     # Returns unformatted dictionary with data provided by API endpoint
-    endpoint_base = base
-    endpoint_params = API_ENDPOINTS.get(endpoint)
-    endpoint_url = build_api_url(endpoint_base, endpoint, **endpoint_params)
+    endpoint_params = API_ENDPOINTS.get(endpoint) # standart parameters from API parameters dictionary
+    for key, value in kwargs.items(): # custom API parameters passed as kwargs
+        if key == 'start': # if one of the parameters named 'start'...
+            endpoint_params['from']=f'{value}' # ...it renamed to 'from' (due to Python limitations)
+        else: # else all standart parameters passed as valid for the link
+            endpoint_params[f'{key}']=f'{value}'
+    endpoint_url = build_api_url(base, endpoint, **endpoint_params)
     endpoint_data = get_json_data(endpoint_url)
     return endpoint_data
 
@@ -135,3 +139,12 @@ def format_time_axis(timestamp, period):
             return formatted_date
         except Exception as e:
             return str(e)
+
+def convert_utc_to_timestamp():
+    # Converts imput in form of dd.mm.yy string to UNIX timestamp  
+    start_date = datetime.strptime(str(input('Enter dd.mm.yyyy start date: ')), '%d.%m.%Y')
+    end_date = datetime.strptime(str(input('Enter dd.mm.yyyy end date: ')), '%d.%m.%Y')
+    start_timestamp = int(start_date.timestamp())
+    end_timestamp = int(end_date.timestamp())
+    return (f'start={start_timestamp}', f'to={end_timestamp}')
+
