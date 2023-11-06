@@ -118,12 +118,16 @@ def set_time_period():
 
 '''Chart related functions'''
 
+def calculate_price_change_percentage(start_price, end_price):
+    price_change_percentage = end_price / (start_price / 100) - 100
+    return price_change_percentage
+
 def select_plot_background(price_change_percentage):
     # Selects plot background based on % of price change in given period and returns path to image
-    for image in plot_background_image:
-        range = image[1]
-        if range[0] <= price_change_percentage <= range[1]:
-            return plot_background_path + image[0]
+    for image_params in plot_background_image:
+        percentage_range = image_params[1]
+        if percentage_range[0] <= price_change_percentage <= percentage_range[1]:
+            return image_params
 
 def format_money_axis(amount):
     # Formats money to common abbreviation
@@ -147,13 +151,13 @@ def format_time_axis(timestamp, period):
     if len(str(timestamp)) > 10: # if timestamp in milliseconds...
         timestamp /= 1000 # converts it to seconds 
     date_object = datetime.utcfromtimestamp(timestamp)
-    if days <= 1:
+    if days <= 90:
         try:           
-            formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M:%S')
+            formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
             return formatted_date
         except Exception as e:
             return str(e)
-    elif days > 1:
+    elif days > 90:
         try:
             formatted_date = date_object.strftime('%d.%m.%Y')
             return formatted_date
