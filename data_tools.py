@@ -10,7 +10,7 @@ from data_config import plot_background_path, plot_background_image
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
 
-# API related functions
+'''API related functions'''
 
 def build_api_url(base, endpoint, **kwargs):
     # Builds URL with specific query parameters to API endpoint
@@ -44,7 +44,7 @@ def get_data(base, endpoint, **kwargs):
     return endpoint_data
 
 
-# Functions to display or format data
+'''Functions to display or format data'''
 
 def view_json_contents(json, indent=0):
     # Allows to view nested dictionaries in human-readable form
@@ -86,6 +86,9 @@ def format_things(number):
     formatted_number = '{:,.0f}'.format(number).replace(',', ' ')
     return formatted_number
 
+
+'''Functions to display or format time'''
+
 def convert_timestamp_to_utc(timestamp):
     # Converts UNIX timestamp to UTC    
     try:
@@ -94,10 +97,26 @@ def convert_timestamp_to_utc(timestamp):
         utc_datetime = datetime.utcfromtimestamp(timestamp)
         return utc_datetime
     except Exception as e:
-        return str(e)
+        return str('convert_timestamp_to_utc failed')
+
+def convert_utc_to_timestamp(utc):
+    # Converts imput in form of dd.mm.yyyy string to UNIX timestamp  
+    formatted_utc = datetime.strptime(str(utc), '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y')
+    date_utc = datetime.strptime(formatted_utc, '%d.%m.%Y')
+    date_timestamp = int(date_utc.timestamp())
+    return date_timestamp
+
+def set_time_period():
+    # Converts input in form of 2 dd.mm.yy strings to UNIX timestamp and calculates the difference
+    start_date = datetime.strptime(str(input('Enter dd.mm.yyyy start date: ')), '%d.%m.%Y')
+    end_date = datetime.strptime(str(input('Enter dd.mm.yyyy end date: ')), '%d.%m.%Y')
+    start_timestamp = convert_utc_to_timestamp(start_date)
+    end_timestamp = convert_utc_to_timestamp(end_date)
+    period_timestamp = end_timestamp - start_timestamp
+    return start_timestamp, end_timestamp, period_timestamp
 
 
-# Chart related functions
+'''Chart related functions'''
 
 def select_plot_background(price_change_percentage):
     # Selects plot background based on % of price change in given period and returns path to image
@@ -109,42 +128,37 @@ def select_plot_background(price_change_percentage):
 def format_money_axis(amount):
     # Formats money to common abbreviation
     if amount >= 1_000_000_000_000_000:
-        formatted_amount = "{:.0f} Qn".format(amount / 1_000_000_000_000_000)
+        formatted_amount = "{:.1f} Qn".format(amount / 1_000_000_000_000_000)
     elif amount >= 1_000_000_000_000:
-        formatted_amount = "{:.0f} T".format(amount / 1_000_000_000_000)
+        formatted_amount = "{:.1f} T".format(amount / 1_000_000_000_000)
     elif amount >= 1_000_000_000:
-        formatted_amount = "{:.0f} B".format(amount / 1_000_000_000)
+        formatted_amount = "{:.1f} B".format(amount / 1_000_000_000)
     elif amount >= 1_000_000:
-        formatted_amount = "{:.0f} M".format(amount / 1_000_000)
+        formatted_amount = "{:.1f} M".format(amount / 1_000_000)
     elif amount >= 1_000:
-        formatted_amount = "{:.0f} K".format(amount / 1_000)
+        formatted_amount = "{:.1f} K".format(amount / 1_000)
     else:
         formatted_amount = "{:.2f}".format(amount)
     return formatted_amount
 
 def format_time_axis(timestamp, period):
     # Converts UNIX timestamp to UTC    
+    days = period / 60 / 60 / 24 # converts period timestamp to days
     if len(str(timestamp)) > 10: # if timestamp in milliseconds...
         timestamp /= 1000 # converts it to seconds 
     date_object = datetime.utcfromtimestamp(timestamp)
-    if period <= 3:
+    if days <= 1:
         try:           
-            formatted_date = date_object.strftime('%d.%m.%Y %H:%M:%S')
+            formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M:%S')
             return formatted_date
         except Exception as e:
             return str(e)
-    elif period > 3:
+    elif days > 1:
         try:
             formatted_date = date_object.strftime('%d.%m.%Y')
             return formatted_date
         except Exception as e:
             return str(e)
 
-def convert_utc_to_timestamp():
-    # Converts imput in form of dd.mm.yy string to UNIX timestamp  
-    start_date = datetime.strptime(str(input('Enter dd.mm.yyyy start date: ')), '%d.%m.%Y')
-    end_date = datetime.strptime(str(input('Enter dd.mm.yyyy end date: ')), '%d.%m.%Y')
-    start_timestamp = int(start_date.timestamp())
-    end_timestamp = int(end_date.timestamp())
-    return (f'start={start_timestamp}', f'to={end_timestamp}')
+
 

@@ -3,20 +3,35 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image
-from data_tools import format_money_axis, format_time_axis, select_plot_background
-from data_config import ticker, database_file, plot_path, plot_font, plot_background_image
+from data_tools import format_money_axis, format_time_axis, select_plot_background, get_data, set_time_period
+from data_config import cryptocurrency, ticker, database_file, plot_path, plot_font, plot_background_image
+from api.coingecko import BASE
+
+dates = set_time_period()
+start, end, period = dates[0], dates[1], dates[2]
+endpoint = f'coins/{cryptocurrency}/market_chart/range'
+
+list_prices_data = get_data(BASE, endpoint, start=f'{start}',to=f'{end}')['prices']  # list
+list_market_caps_data = get_data(BASE, endpoint, start=f'{start}',to=f'{end}')['market_caps']  # list
+list_market_total_volumes = get_data(BASE, endpoint, start=f'{start}',to=f'{end}')['total_volumes']  # list
+
+prices_data = pd.DataFrame(list_prices_data, columns=['Date', 'Price'])
+market_cap_data = pd.DataFrame(list_market_caps_data, columns=['Date', 'Market Cap'])
+total_volumes_data = pd.DataFrame(list_market_total_volumes, columns=['Date', 'Total Volumes'])
+history_data = prices_data.merge(market_cap_data, on='Date', how='left').merge(total_volumes_data, on='Date', how='left')
+history_data.to_csv(database_file, index=False)
+df = pd.read_csv(database_file)
+df['Supply Circulating'] = df['Market Cap'] / df['Price']
+df.to_csv(database_file, index=False)
 
 df = pd.read_csv(database_file) # Load data from the CSV file
 
 # Set the font properties for the text elements on the plot
 custom_font = font_manager.FontProperties(fname=plot_font) # Use the specified font path
 
-start_row = 3717
-end_row = 3837
-
-axis_date = df['Date'][start_row:end_row]
-axis_price = df['Price'][start_row:end_row]
-axis_volume = df['Total Volumes'][start_row:end_row]
+axis_date = df['Date']
+axis_price = df['Price']
+axis_volume = df['Total Volumes']
 
 fig, ax1 = plt.subplots(figsize=(12, 6)) # Create a figure and axes
 fig.patch.set_alpha(0.0) # Set the background color inside the plot area to be transparent
@@ -31,7 +46,7 @@ line1, = ax1.plot( # line 1 creation
     linewidth=1, # line width
     zorder=1 # layer order (higher value puts layer to the front)
     )
-ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, len(axis_date)))) # x text format
+ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, period))) # x text format
 ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_money_axis(x))) # y text format
 ax1.tick_params(axis='x', labelcolor='white') # x text color
 ax1.tick_params(axis='y', labelcolor='orange') # y text color
@@ -40,7 +55,7 @@ ax1.set_zorder(2) # layer order (higher value puts layer to the front)
 plt.setp(
     ax1.get_xticklabels(),
     rotation=30, # rotates text on x axis
-    ha='right')  # alignes to right text on x axis
+    ha='center')  # alignes to right text on x axis
 
 # Right y axis
 line2, = ax2.plot( # line 1 creation
