@@ -1,62 +1,63 @@
+from api.telegram import TOKEN
 import logging
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, CallbackContext, CallbackQueryHandler
-from api.telegram import api_token
-from market_values import data_source
 
+# Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+# set higher logging level for httpx to avoid all GET and POST requests being logged
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
-# States constants
-CURRENT_INFO, PERIOD_CHANGES, SETTINGS = range(3)
+logger = logging.getLogger(__name__)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    start_text = "Start text as a variable"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text,
-        reply_markup=main_menu_keyboard())
+from telegram import ParseMode
+from telegram.ext import Updater, CommandHandler
 
-async def current_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-     data_text = data_source
-     await context.bot.send_message(chat_id=update.effective_chat.id, text=data_text,
-        reply_markup=main_menu_keyboard())
+from market_values import values, update_values
+from data_tools import get_data
+from data_config import cryptocurrency
+from api.coingecko import BASE
 
-async def period_changes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-     await context.bot.send_message(chat_id=update.effective_chat.id, text="Period changes section",
-        reply_markup=main_menu_keyboard())
 
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-     await context.bot.send_message(chat_id=update.effective_chat.id, text="Settings section",
-        reply_markup=main_menu_keyboard())
+def start(update, context):
+    welcome_message = "This bot can show you Bitcoin market data. Hit Menu button to see current Bitcoin stats or history graph."
+    update.message.reply_text(welcome_message)
 
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+def stats(update, context):
+    api_response = get_data(BASE, f'coins/{cryptocurrency}')['market_data']
+    update_values(api_response)
+    stats_message = "\n".join([f"{key}: {value}" for key, value in values.items()])
+    update.message.reply_text(f'```\n{stats_message}```', parse_mode=ParseMode.MARKDOWN)
 
-# Keyboard with main menu
-def main_menu_keyboard():
-    keyboard = [
-        [KeyboardButton("Current info")],
-        [KeyboardButton("Period changes")],
-        [KeyboardButton("Settings")],
-    ]
-    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
+def graph(update, context):
+    graph_message = "this is graph state"
+    update.message.reply_text(graph_message)
 
-def button_click(update: Update, context: CallbackContext):
-    query = update.callback_query
-    callback_data = query.data
+def settings(update, context):
+    settings_message = "this is settings state"
+    update.message.reply_text(settings_message)
 
-    if callback_data == "current_info":
-        current_info(update, context)
+def about(update, context):
+    about_message = "This bot uses [Coingecko API](https://www.coingecko.com/) for market data. " \
+                    "You can visit bot's [GitHub page](https://github.com/etchedheadplate/area-bc1)."
+    update.message.reply_text(about_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+
+def main():
+    # Bot and dispatcher initialization
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
+
+    # Bot handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("stats", stats))
+    dispatcher.add_handler(CommandHandler("graph", graph))
+    dispatcher.add_handler(CommandHandler("settings", settings))
+    dispatcher.add_handler(CommandHandler("about", about))
+
+    # Bot start
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(api_token).build()
-    
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CallbackQueryHandler(button_click))
-    application.add_handler(CommandHandler('current_info', current_info))
-    application.add_handler(MessageHandler('period_changes', period_changes))
-    application.add_handler(MessageHandler('settings', settings))
-    application.add_handler(MessageHandler(filters.COMMAND, unknown))
-
-    application.run_polling()
+    main()
