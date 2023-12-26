@@ -4,7 +4,7 @@ Various functions used in other modules.
 
 
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from currency_symbols import CurrencySymbols
 from data_config import plot_background_path, plot_background_image
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
@@ -13,12 +13,12 @@ from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 '''API related functions'''
 
 def build_api_url(base, endpoint, **kwargs):
-    # Builds URL with specific query parameters to API endpoint
-    query_parameters = [] # empty list for query parameters
-    for key, value in kwargs.items():
-        query_parameters.append(f"{key}={value}") # parameters are copied from dictionary to list...
-    url = f"{base}{endpoint}?{'&'.join(query_parameters)}" # ...so they can be formated correctly to queries...
-    return url # ... and returned as correct URL to API endpoint 
+        # Builds URL with specific query parameters to API endpoint
+        query_parameters = [] # empty list for query parameters
+        for key, value in kwargs.items():
+            query_parameters.append(f"{key}={value}") # parameters are copied from dictionary to list...
+        url = f"{base}{endpoint}?{'&'.join(query_parameters)}" # ...so they can be formated correctly to queries...
+        return url # ... and returned as correct URL to API endpoint 
 
 def get_json_data(url):
     # Returns JSON object or error code
@@ -106,7 +106,22 @@ def convert_utc_to_timestamp(utc):
     date_timestamp = int(date_utc.timestamp())
     return date_timestamp
 
-def set_time_period():
+def strip_utc_symbols(utc):
+    # Strips UTC from 'T' an 'Z' symbols
+    utc_time = datetime.strptime(utc, '%Y-%m-%dT%H:%M:%S.%fZ')
+    time_without_utc_symbols = utc_time.strftime('%Y-%m-%d %H:%M:%S')
+    return time_without_utc_symbols
+
+def set_24h_time_period():
+    current_datetime_utc = datetime.now(timezone.utc)
+    current_date_utc = current_datetime_utc.date()
+    combined_current_datetime = datetime.combine(current_date_utc, datetime.min.time())
+    period_timestamp = 86400
+    today_timestamp = int(combined_current_datetime.timestamp())
+    yesterday_timestamp = today_timestamp - period_timestamp
+    return yesterday_timestamp, today_timestamp, period_timestamp
+
+def set_custom_time_period():
     # Converts input in form of 2 dd.mm.yy strings to UNIX timestamp and calculates the difference
     start_date = datetime.strptime(str(input('Enter dd.mm.yyyy start date: ')), '%d.%m.%Y')
     end_date = datetime.strptime(str(input('Enter dd.mm.yyyy end date: ')), '%d.%m.%Y')

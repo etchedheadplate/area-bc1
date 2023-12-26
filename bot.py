@@ -13,21 +13,25 @@ logger = logging.getLogger(__name__)
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 
-from market_values import values, update_values
-from data_tools import get_data
-from data_config import cryptocurrency
-from api.coingecko import BASE
+from market_values import latest_values, update_latest_values
+# from market_plot import make_market_plot
+from data_config import plot_output_image
+import time
 
 
 def start(update, context):
-    welcome_message = "This bot can show you Bitcoin market data. Hit Menu button to see current Bitcoin stats or history graph."
+    welcome_message = "This bot can show you Bitcoin market data. Hit Menu button to see latest Bitcoin stats or history graph."
     update.message.reply_text(welcome_message)
 
 def stats(update, context):
-    api_response = get_data(BASE, f'coins/{cryptocurrency}')['market_data']
-    update_values(api_response)
-    stats_message = "\n".join([f"{key}: {value}" for key, value in values.items()])
-    update.message.reply_text(f'```\n{stats_message}```', parse_mode=ParseMode.MARKDOWN)
+    update_latest_values(latest_values)
+#    make_market_plot()
+    stats_message = "\n".join([f"{key}: {value}" for key, value in latest_values.items()])
+    with open(plot_output_image, 'rb') as img:
+        context.bot.send_photo(chat_id=update.effective_chat.id,
+                               photo=img,
+                               caption=f'```\n{stats_message}```',
+                               parse_mode=ParseMode.MARKDOWN)
 
 def graph(update, context):
     graph_message = "this is graph state"

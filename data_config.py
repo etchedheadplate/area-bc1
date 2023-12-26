@@ -11,6 +11,7 @@ ticker = vs_currency.upper()
 
 # Database related variables
 database_file = 'db/History_market_data.csv'
+latest_market_values_file = 'db/latest_market_values.txt'
 
 # Market plot related variables
 plot_path = 'src/images/market_plot.png'
@@ -22,3 +23,4 @@ plot_background_image = ( # filename, price range in %, DPI, X-coordinate, Y-coo
     (plot_background_path + 'good.png', (0, 10), 150, 800, 85), # (0 to +10%]
     (plot_background_path + 'supergood.png', (10, float('inf')), 150, 100, 85) # (+10% to +inf)
 )
+plot_output_image = 'output.png'
