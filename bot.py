@@ -15,7 +15,7 @@ from telegram.ext import Updater, CommandHandler
 
 from market_values import latest_values, update_latest_values
 # from market_plot import make_market_plot
-from data_config import plot_output_image
+from config import plot_output_image
 import time
 
 

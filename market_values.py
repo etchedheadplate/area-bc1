@@ -1,5 +1,5 @@
 from data_tools import get_data, format_currency, format_percentage, format_things, strip_utc_symbols
-from data_config import cryptocurrency, vs_currency, ticker
+from config import cryptocurrency, vs_currency, ticker
 from api.coingecko import BASE
 
 latest_values = {

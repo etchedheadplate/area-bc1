@@ -6,7 +6,6 @@ Various functions used in other modules.
 import requests
 from datetime import datetime, timezone
 from currency_symbols import CurrencySymbols
-from data_config import plot_background_path, plot_background_image
 from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
 
 
@@ -137,12 +136,12 @@ def calculate_price_change_percentage(start_price, end_price):
     price_change_percentage = end_price / (start_price / 100) - 100
     return price_change_percentage
 
-def select_plot_background(price_change_percentage):
+'''def select_plot_background(price_change_percentage):
     # Selects plot background based on % of price change in given period and returns path to image
     for image_params in plot_background_image:
         percentage_range = image_params[1]
         if percentage_range[0] <= price_change_percentage <= percentage_range[1]:
-            return image_params
+            return image_params'''
 
 def format_money_axis(amount):
     # Formats money to common abbreviation
