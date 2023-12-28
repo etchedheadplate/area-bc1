@@ -6,41 +6,33 @@ Various functions used in other modules.
 import requests
 from datetime import datetime, timezone
 from currency_symbols import CurrencySymbols
-from api.coingecko import API_ERROR_CODES, API_ENDPOINTS
+
+import config
 
 
 '''API related functions'''
 
-def build_api_url(base, endpoint, **kwargs):
-        # Builds URL with specific query parameters to API endpoint
-        query_parameters = [] # empty list for query parameters
-        for key, value in kwargs.items():
-            query_parameters.append(f"{key}={value}") # parameters are copied from dictionary to list...
-        url = f"{base}{endpoint}?{'&'.join(query_parameters)}" # ...so they can be formated correctly to queries...
-        return url # ... and returned as correct URL to API endpoint 
+def get_api_data(database):
+# Builds formatted URL to API based on user configuration and retrieves JSON data
 
-def get_json_data(url):
-    # Returns JSON object or error code
-    response = requests.get(url) # executes GET command to endpoint
-    if response.status_code == 200: # if status code is OK... 
-        data = response.json() # ...builds JSON object...
-        return data # ...and returns JSON object
-    elif response.status_code in API_ERROR_CODES: # if known error status code is recieved...
-        return f'{response.status_code}:{API_ERROR_CODES[response.status_code]}' # ...returns status code and description
-    else:
-        return response.status_code, 'Unknown error' # if error is unknown returns status code
+    # Local user configuration related variables:       
+    api_name = config.database[f'{database}']['api']
+    api_base = config.api[f'{api_name}']['base']
+    api_endpoint = config.api[f'{api_name}']['endpoint'][f'{database}']['name']
+    api_params = config.api[f'{api_name}']['endpoint'][f'{database}']['params']
 
-def get_data(base, endpoint, **kwargs):
-    # Returns unformatted dictionary with data provided by API endpoint
-    endpoint_params = API_ENDPOINTS.get(endpoint) # standart parameters from API parameters dictionary
-    for key, value in kwargs.items(): # custom API parameters passed as kwargs
-        if key == 'start': # if one of the parameters named 'start'...
-            endpoint_params['from']=f'{value}' # ...it renamed to 'from' (due to Python limitations)
-        else: # else all standart parameters passed as valid for the link
-            endpoint_params[f'{key}']=f'{value}'
-    endpoint_url = build_api_url(base, endpoint, **endpoint_params)
-    endpoint_data = get_json_data(endpoint_url)
-    return endpoint_data
+    # Specific queries defined by user configuration
+    query_params = []
+    for query, value in api_params.items():
+        api_params[f'{query}']=f'{value}'
+        query_params.append(f"{query}={value}")
+    
+    # Build formatted url to API and retrieve JSON
+    api_url = f"{api_base}{api_endpoint}?{'&'.join(query_params)}"
+    api_response = requests.get(api_url)
+    api_data = api_response.json()
+
+    return api_data
 
 
 '''Functions to display or format data'''

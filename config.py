@@ -9,30 +9,49 @@ cryptocurrency = 'bitcoin'
 vs_currency = 'usd'
 ticker = vs_currency.upper()
 
+
 # API related variables
 api = {
     'coingecko': {
         'base': 'https://api.coingecko.com/api/v3/',
         'endpoint' : {
-            'current': {
+            'latest': {
                 'name': f'coins/{cryptocurrency}',
                 'params': {
-                    'localization': 'true',
-                    'tickers': 'true',
+                    'localization': 'false',
+                    'tickers': 'false',
                     'market_data': 'true',
-                    'community_data': 'true',
-                    'developer_data': 'true'
+                    'community_data': 'false',
+                    'developer_data': 'false'
                 },
             },
-            'history': {
+            'all-time': {
                 'name': f'coins/{cryptocurrency}/market_chart',
                 'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
                     'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
                     'days': 'max', # 1,14,30,max
-                    'interval': 'daily',
+                    'interval': None,
                     'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
                 }
-            } 
+            },
+            '1_day': {
+                'name': f'coins/{cryptocurrency}/market_chart',
+                'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
+                    'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
+                    'days': '1', # 1,14,30,max
+                    'interval': '',
+                    'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
+                }
+            },
+            '90_days': {
+                'name': f'coins/{cryptocurrency}/market_chart',
+                'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
+                    'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
+                    'days': '90', # 1,14,30,max
+                    'interval': '',
+                    'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
+                }
+            }
         },
         'error': { # Dictionary of API error codes specific to CoinGecko API
             400: "Bad Request",
@@ -49,19 +68,67 @@ api = {
     }
 }
 
+
 # Database related variables
 database = {
-    'history': {
-        'path': 'db/history_market_data.csv',
+    'latest': {
+        'api': 'coingecko',
+        'path': 'db/latest_market_data.txt',
+        'columns': {
+            'Last Price': None,
+            'Market Cap': None,
+            'Tot.Volume': None,
+            'Δ24h Price': None,
+            'Δ24h M.Cap': None,
+            'Updated at': None
+        }
+    },
+    'all-time': {
+        'path': 'db/history_market_data_all-time.csv',
+        'api': 'coingecko',
         'columns': {
                 'Date': [],
                 'Price': [],
                 'Market Cap': [],
                 'Total Volumes': []
+        },
+        'update': {
+            'interval': 24,
+            'rewrite': False
+        }
+    },
+    '1_day': {
+        'path': 'db/history_market_data_1_day.csv',
+        'api': 'coingecko',
+        'columns': {
+                'Date': [],
+                'Price': [],
+                'Market Cap': [],
+                'Total Volumes': []
+        },
+        'update': {
+            'interval': 24,
+            'rewrite': True
+        }
+    },
+    '90_days': {
+        'path': 'db/history_market_data_90_days.csv',
+        'api': 'coingecko',
+        'columns': {
+                'Date': [],
+                'Price': [],
+                'Market Cap': [],
+                'Total Volumes': []
+        },
+        'update': {
+            'interval': 24,
+            'rewrite': True
         }
     }
 }
+
 latest_market_values_file = 'db/latest_market_values.txt'
+
 
 # Market plot related variables
 plot = {

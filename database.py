@@ -2,46 +2,41 @@ import os
 import time
 import pandas as pd
 from datetime import datetime, timedelta
-from data_tools import get_data
-from config import api, database
+
+import config
+from data_tools import get_api_data
 
 
-# Global variables based on user configuration:
+def update_database(database):
+    # Checks if database exists. If not creates empty database with template
+    # from user configuration and regulary updates it with new API data 
 
-base = api['coingecko']['base']
+    # Local user configuration related variables:
+    db_file = config.database[f'{database}']['path']
+    db_columns = config.database[f'{database}']['columns']
+    db_rewrite = config.database[f'{database}']['update']['rewrite']
+  
+    # Local time-related variables for regular database updates:
+    current_time = datetime.now()
+    update_interval = config.database[f'{database}']['update']['interval']
+    next_update = current_time + timedelta(hours=update_interval)
+    time_difference = (next_update - current_time).total_seconds()
 
-history_endpoint = api['coingecko']['endpoint']['history']['name']
-history_params = api['coingecko']['endpoint']['history']['params']
-history_database = database['history']
-
-
-def initialize_database(database):
-    # Checks if database exists. If not creates empty one with pre-defined columns
-
-    print('Initializing database:')
-    if not os.path.isfile(database['path']): # Check if data filedatabase exists
-        database_columns = database['columns']
-        database_template = pd.DataFrame(database_columns)
-        database_template.to_csv(database['path'], index=False) # Save DataFrame to CSV database without index
-        print(f"{database['path']} created")
+    # Check if database exists. If not, empty database with template from user configuration created
+    print(current_time, 'Initializing database:')
+    if not os.path.isfile(db_file):
+        db_template = pd.DataFrame(db_columns)
+        db_template.to_csv(db_file, index=False)
+        print(current_time, db_file, 'created')
     else:
-        print(f"{database['path']} exists")
+        print(current_time, db_file, 'exists')
 
-
-def update_database(base, endpoint, database):
-    # Updates database with data recieved from API call to CoinGecko
+    # Regular database updates with new API data according to parameters defined by user configuration
     while True:
-        # Local time-related variables for regular database updates:
-        current_time = datetime.now()
-        next_update = current_time + timedelta(hours=1)
-        time_difference = (next_update - current_time).total_seconds()
-        
-        current_data = pd.read_csv(database['path'])
-        
         print(current_time, 'Updating database:')
 
-        # Call to CoinGecko API and creation of DataFrame objects based on response data:
-        response = get_data(base, endpoint)
+        # Call to API and creation of DataFrame objects based on response data:
+        response = get_api_data(database)
         response_prices = pd.DataFrame(response['prices'], columns=['Date', 'Price'])
         response_market_cap = pd.DataFrame(response['market_caps'], columns=['Date', 'Market Cap'])
         response_total_volumes = pd.DataFrame(response['total_volumes'], columns=['Date', 'Total Volumes'])
@@ -49,20 +44,19 @@ def update_database(base, endpoint, database):
         
         # Check if current data is empty or not. If empty, updates it with response data.
         # If not, updates it with rows from response data that are absent in current data:
-        if not current_data.empty:
-            if len(response_data) > len(current_data):
-                updated_data = pd.concat([current_data, response_data]).drop_duplicates()
-                updated_data.to_csv(database['path'], index=False)
-                print(current_time, len(response_data) - len(current_data), f"entries added to {database['path']}")
-            else:
-                print(current_time, f"{database['path']} is up to date")
+        current_data = pd.read_csv(db_file)
+        if db_rewrite:
+            response_data.to_csv(db_file, index=False)
+            print(current_time, len(response_data), 'entries re-written to', db_file)
         else:
-            response_data.to_csv(database['path'], index=False)
-            print(current_time, len(response_data) - len(current_data), f"entries added to {database['path']}")
+            if len(response_data) > len(current_data):
+                response_data.to_csv(db_file, index=False)
+                print(current_time, len(response_data) - len(current_data), 'entries added to', db_file)
+            else:
+                print(current_time, db_file, 'is up to date, no new entries')
 
         # Update database in 1 hour:
         time.sleep(time_difference)
 
 
-initialize_database(history_database)
-update_database(base, history_endpoint, history_database)
+update_database('1_day')
