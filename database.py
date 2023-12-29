@@ -8,32 +8,42 @@ from data_tools import get_api_data
 
 
 def update_database(database):
-    # Checks if database exists. If not creates empty database with template
-    # from user configuration and regulary updates it with new API data 
+    # Checks if database exists. If not creates empty database by template from user configuration
+    # and updates it with new API data with regularity specified in user configuration.
 
     # Local user configuration related variables:
     db_file = config.database[f'{database}']['path']
     db_columns = config.database[f'{database}']['columns']
-    db_rewrite = config.database[f'{database}']['update']['rewrite']
-  
-    # Local time-related variables for regular database updates:
-    current_time = datetime.now()
-    update_interval = config.database[f'{database}']['update']['interval']
-    next_update = current_time + timedelta(hours=update_interval)
-    time_difference = (next_update - current_time).total_seconds()
+    db_update_time = config.database[f'{database}']['update']['time']
+    db_update_interval = config.database[f'{database}']['update']['interval']
+    db_update_allow_rewrite = config.database[f'{database}']['update']['allow_rewrite']
 
-    # Check if database exists. If not, empty database with template from user configuration created
-    print(current_time, 'Initializing database:')
+    # Local time-related variables formatted as specified in user configuration:
+    time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    time_update = datetime.strptime(str(time_current)[:-len(db_update_time)] + db_update_time, '%Y-%m-%d %H:%M:%S')
+
+    print(time_current, f'[{database}] update planned to {time_update}')
+
+    # Check if current time > update time. If is, shifts update time by user configuration
+    # specified update interval untill update time > current time.
+    if time_current > time_update:
+        time_update = time_update + timedelta(hours=db_update_interval)
+        print(time_current, f'[{database}] current time > update time, update planned to {time_update}')
+
+    seconds_untill_upgrade = (time_update - time_current).total_seconds()
+
+    # Check if database exists. If not, empty database with template from user configuration created.
+    print(time_current, f'[{database}] initializing:')
     if not os.path.isfile(db_file):
         db_template = pd.DataFrame(db_columns)
         db_template.to_csv(db_file, index=False)
-        print(current_time, db_file, 'created')
+        print(time_current, f'[{database}]', db_file, 'created')
     else:
-        print(current_time, db_file, 'exists')
+        print(time_current, f'[{database}]', db_file, 'exists')
 
-    # Regular database updates with new API data according to parameters defined by user configuration
+    # Regular database updates with new API data according to parameters defined by user configuration.
     while True:
-        print(current_time, 'Updating database:')
+        print(time_current, f'[{database}] updating:')
 
         # Call to API and creation of DataFrame objects based on response data:
         response = get_api_data(database)
@@ -42,21 +52,26 @@ def update_database(database):
         response_total_volumes = pd.DataFrame(response['total_volumes'], columns=['Date', 'Total Volumes'])
         response_data = response_prices.merge(response_market_cap, on='Date', how='left').merge(response_total_volumes, on='Date', how='left')
         
-        # Check if current data is empty or not. If empty, updates it with response data.
-        # If not, updates it with rows from response data that are absent in current data:
+        # If full database re-write is allowed by user configuration database is updated with response data.
+        # If not, response is checked if it contains new rows. If does, database is updated with response data.
         current_data = pd.read_csv(db_file)
-        if db_rewrite:
+        if db_update_allow_rewrite:
             response_data.to_csv(db_file, index=False)
-            print(current_time, len(response_data), 'entries re-written to', db_file)
+            print(time_current, f'[{database}]', len(response_data), f'entries re-written')
         else:
             if len(response_data) > len(current_data):
                 response_data.to_csv(db_file, index=False)
-                print(current_time, len(response_data) - len(current_data), 'entries added to', db_file)
+                print(time_current, f'[{database}]', len(response_data) - len(current_data), f'entries added')
             else:
-                print(current_time, db_file, 'is up to date, no new entries')
+                print(time_current, f'[{database}] is up to date, no new entries')
 
-        # Update database in 1 hour:
-        time.sleep(time_difference)
+        print(time_current, f'[{database}] next update planned to {time_update}')
+
+        # Update database with regularity specified in user configuration.:
+        time.sleep(seconds_untill_upgrade)
 
 
-update_database('1_day')
+if __name__ == '__main__':
+    databases = list(config.database.keys())
+    for db in databases:
+        update_database(db)

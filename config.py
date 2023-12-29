@@ -30,7 +30,7 @@ api = {
                 'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
                     'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
                     'days': 'max', # 1,14,30,max
-                    'interval': None,
+                    'interval': [],
                     'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
                 }
             },
@@ -71,32 +71,23 @@ api = {
 
 # Database related variables
 database = {
-    'latest': {
-        'api': 'coingecko',
-        'path': 'db/latest_market_data.txt',
-        'columns': {
-            'Last Price': None,
-            'Market Cap': None,
-            'Tot.Volume': None,
-            'Δ24h Price': None,
-            'Δ24h M.Cap': None,
-            'Updated at': None
-        }
-    },
-    'all-time': {
-        'path': 'db/history_market_data_all-time.csv',
-        'api': 'coingecko',
-        'columns': {
-                'Date': [],
-                'Price': [],
-                'Market Cap': [],
-                'Total Volumes': []
-        },
-        'update': {
-            'interval': 24,
-            'rewrite': False
-        }
-    },
+#    'latest': {
+#        'api': 'coingecko',
+#        'path': 'db/latest_market_data.csv',
+#        'columns': {
+#            'Last Price': [],
+#            'Market Cap': [],
+#            'Tot.Volume': [],
+#            'Δ24h Price': [],
+#            'Δ24h M.Cap': [],
+#            'Updated at': []
+#        },
+#        'update': {
+#            'time': '00:30',
+#            'interval': 0.5,
+#            'allow_rewrite': True
+#        }
+#    },
     '1_day': {
         'path': 'db/history_market_data_1_day.csv',
         'api': 'coingecko',
@@ -107,8 +98,9 @@ database = {
                 'Total Volumes': []
         },
         'update': {
-            'interval': 24,
-            'rewrite': True
+            'time': '50:30',
+            'interval': 0.5,
+            'allow_rewrite': True
         }
     },
     '90_days': {
@@ -121,10 +113,26 @@ database = {
                 'Total Volumes': []
         },
         'update': {
-            'interval': 24,
-            'rewrite': True
+            'time': '05:30',
+            'interval': 1,
+            'allow_rewrite': True
         }
-    }
+    },
+    'all-time': {
+        'path': 'db/history_market_data_all-time.csv',
+        'api': 'coingecko',
+        'columns': {
+                'Date': [],
+                'Price': [],
+                'Market Cap': [],
+                'Total Volumes': []
+        },
+        'update': {
+            'time': '00:55:30',
+            'interval': 24,
+            'allow_rewrite': False
+        }
+    },
 }
 
 latest_market_values_file = 'db/latest_market_values.txt'
