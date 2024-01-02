@@ -15,7 +15,22 @@ api = {
     'coingecko': {
         'base': 'https://api.coingecko.com/api/v3/',
         'endpoint' : {
-            'latest': {
+            'data_chart': {
+                'name': f'coins/{cryptocurrency}/market_chart',
+                'params': {
+                    'vs_currency': f'{vs_currency}',
+                    'days': '',
+                    'interval': '',
+                    'precision': '2'
+                },
+                'subdict': False,
+                'columns': {
+                    'Price': 'prices',
+                    'Market Cap': 'market_caps',
+                    'Total Volume': 'total_volumes'
+                }
+            },
+            'data_granular': {
                 'name': f'coins/{cryptocurrency}',
                 'params': {
                     'localization': 'false',
@@ -24,32 +39,37 @@ api = {
                     'community_data': 'false',
                     'developer_data': 'false'
                 },
-            },
-            'all-time': {
-                'name': f'coins/{cryptocurrency}/market_chart',
-                'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
-                    'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
-                    'days': 'max', # 1,14,30,max
-                    'interval': [],
-                    'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
-                }
-            },
-            '1_day': {
-                'name': f'coins/{cryptocurrency}/market_chart',
-                'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
-                    'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
-                    'days': '1', # 1,14,30,max
-                    'interval': '',
-                    'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
-                }
-            },
-            '90_days': {
-                'name': f'coins/{cryptocurrency}/market_chart',
-                'params': { # Get historical market data include price, market cap, and 24h volume (granularity auto)
-                    'vs_currency': f'{vs_currency}', # The target currency of market data (usd, eur, jpy, etc.)
-                    'days': '90', # 1,14,30,max
-                    'interval': '',
-                    'precision': '2' # full or any value between 0 - 18 to specify decimal place for currency price value
+                'subdict': 'market_data',
+                'values': {
+                    'currency': {
+                        'Price': 'current_price',
+                        'Price Δ24h': 'price_change_24h_in_currency',
+                        'Market Cap': 'market_cap',
+                        'Market Cap Δ24h': 'market_cap_change_24h_in_currency',
+                        'All-Time High': 'ath',
+                        'Total Volume': 'total_volume',
+                        'Fully Diluted Valuation': 'fully_diluted_valuation',
+                    },
+                    'percentage': {
+                        'Price % Δ1h': 'price_change_percentage_1h_in_currency',
+                        'Price % Δ24h': 'price_change_percentage_24h_in_currency',
+                        'Price % Δ7d': 'price_change_percentage_7d_in_currency',
+                        'Price % Δ14d': 'price_change_percentage_14d_in_currency',
+                        'Price % Δ30d': 'price_change_percentage_30d_in_currency',
+                        'Price % Δ60d': 'price_change_percentage_60d_in_currency',
+                        'Price % Δ200d': 'price_change_percentage_200d_in_currency',
+                        'Price % Δ1y': 'price_change_percentage_1y_in_currency',
+                        'Market Cap % Δ24h': 'market_cap_change_percentage_24h_in_currency',
+                        'All-Time High % Δ': 'ath_change_percentage'
+                    },
+                    'quantity': {
+                        'Supply': 'circulating_supply',
+                        'Total Supply': 'total_supply'
+                    },
+                    'dates': {
+#                        'All-Time High Date': 'ath_date',
+                        'Last Updated': 'last_updated'
+                    }
                 }
             }
         },
@@ -70,72 +90,61 @@ api = {
 
 
 # Database related variables
-database = {
-#    'latest': {
-#        'api': 'coingecko',
-#        'path': 'db/latest_market_data.csv',
-#        'columns': {
-#            'Last Price': [],
-#            'Market Cap': [],
-#            'Tot.Volume': [],
-#            'Δ24h Price': [],
-#            'Δ24h M.Cap': [],
-#            'Updated at': []
-#        },
-#        'update': {
-#            'time': '00:30',
-#            'interval': 0.5,
-#            'allow_rewrite': True
-#        }
-#    },
-    '1_day': {
-        'path': 'db/history_market_data_1_day.csv',
+databases = {
+    'data_granular_latest': {
         'api': 'coingecko',
-        'columns': {
-                'Date': [],
-                'Price': [],
-                'Market Cap': [],
-                'Total Volumes': []
+        'type': 'data_granular',
+        'path': 'db/data_granular_latest.txt',
+        'update': {
+            'time': '00:30',
+            'interval': 0.5,
+            'allow_rewrite': True
         },
+        'custom_params': {
+            '': ''
+        }
+    },
+    'data_chart_1_day': {
+        'api': 'coingecko',
+        'type': 'data_chart',
+        'path': 'db/data_chart_1_day.csv',
         'update': {
             'time': '50:30',
             'interval': 0.5,
             'allow_rewrite': True
+        },
+        'custom_params': {
+            'days': '1'
         }
     },
-    '90_days': {
-        'path': 'db/history_market_data_90_days.csv',
+    'data_chart_90_days': {
         'api': 'coingecko',
-        'columns': {
-                'Date': [],
-                'Price': [],
-                'Market Cap': [],
-                'Total Volumes': []
-        },
+        'type': 'data_chart',
+        'path': 'db/data_chart_90_days.csv',
         'update': {
             'time': '05:30',
             'interval': 1,
             'allow_rewrite': True
+        },
+        'custom_params': {
+            'days': '90'
         }
     },
-    'all-time': {
-        'path': 'db/history_market_data_all-time.csv',
+    'data_chart_max_days': {
         'api': 'coingecko',
-        'columns': {
-                'Date': [],
-                'Price': [],
-                'Market Cap': [],
-                'Total Volumes': []
-        },
+        'type': 'data_chart',
+        'path': 'db/data_chart_max_days.csv',
         'update': {
             'time': '00:55:30',
             'interval': 24,
             'allow_rewrite': False
+        },
+        'custom_params': {
+            'days': 'max'
         }
     },
 }
 
-latest_market_values_file = 'db/latest_market_values.txt'
 
 
 # Market plot related variables

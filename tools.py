@@ -1,8 +1,3 @@
-'''
-Various functions used in other modules.
-'''
-
-
 import requests
 from datetime import datetime, timezone
 from currency_symbols import CurrencySymbols
@@ -10,72 +5,88 @@ from currency_symbols import CurrencySymbols
 import config
 
 
-'''API related functions'''
-
 def get_api_data(database):
-# Builds formatted URL to API based on user configuration and retrieves JSON data
+# Builds formatted URL to API based on user configuration and retrieves JSON data.
 
-    # Local user configuration related variables:       
-    api_name = config.database[f'{database}']['api']
-    api_base = config.api[f'{api_name}']['base']
-    api_endpoint = config.api[f'{api_name}']['endpoint'][f'{database}']['name']
-    api_params = config.api[f'{api_name}']['endpoint'][f'{database}']['params']
+    # User configuration related variables:
+    db_api = config.databases[f'{database}']['api']
+    db_type = config.databases[f'{database}']['type']
+    db_custom_params = config.databases[f'{database}']['custom_params'] 
 
-    # Specific queries defined by user configuration
+    api_base = config.api[f'{db_api}']['base']
+    api_endpoint = config.api[f'{db_api}']['endpoint'][f'{db_type}']['name']
+    api_params = config.api[f'{db_api}']['endpoint'][f'{db_type}']['params']
+    api_response_subdict = config.api[f'{db_api}']['endpoint'][f'{db_type}']['subdict']
+
+    # Build queries list from standart API parameters and custom database parameters:
+    api_params.update(db_custom_params)
     query_params = []
     for query, value in api_params.items():
         api_params[f'{query}']=f'{value}'
         query_params.append(f"{query}={value}")
     
-    # Build formatted url to API and retrieve JSON
+    # Build formatted URL to API and retrieve JSON:
     api_url = f"{api_base}{api_endpoint}?{'&'.join(query_params)}"
     api_response = requests.get(api_url)
-    api_data = api_response.json()
+    response_data = api_response.json()
 
-    return api_data
+    # Check if needed data is a subdictionary of retrieved JSON:
+    if api_response_subdict:
+        return response_data[api_response_subdict]
+    else:
+        return response_data
 
-
-'''Functions to display or format data'''
-
-def view_json_contents(json, indent=0):
-    # Allows to view nested dictionaries in human-readable form
-    for key, value in json.items():
-        if isinstance(value, dict): # if value is nested dictionary
-            print(' ' * indent + f'{key}:') # prints key associated with value as nested dictionary
-            view_json_contents(value, indent + 4) # recursively calls view_json_contents() until no nested dictionaries left
-        else:
-            print(' ' * indent + f'{key}: {value}') # prints key and value
-
-def check_file_length(file_path):
-    file=open(file_path, 'r')
-    file_lines = file.readlines()
-    list_of_lines=[]
-    for line in file_lines:
-        list_of_lines.append(line)
-    print(len(list_of_lines))
-    file.close()
 
 def format_currency(amount, ticker):
-    # Converts endpoint values to currency format with spaces, commas and currency symbol
-    currency_symbols = CurrencySymbols()
-    currency_symbol = currency_symbols.get_symbol(ticker)
-    symbol = ''
+    # Formats integer value to currency format (e.g. 1234567.89 -> 1,234,567.89 $).
+    # If currency symbol is unknown replaced by ticker (e.g. 1234567.89 -> 1,234,567.89 USD).
+    
+    currency_symbol = CurrencySymbols().get_symbol(ticker)
     if currency_symbol:
-        symbol = currency_symbol
+        return '{:,.2f} '.format(amount) + currency_symbol
     else:
-        symbol = ticker
-    formatted_amount = '{:,.2f} '.format(amount) + symbol # formatted with symbols
-    return formatted_amount
+        return '{:,.2f} '.format(amount) + ticker
+
 
 def format_percentage(percentage):
-    # Converts endpoint values to percentage format
-    formatted_percentage = f"{percentage:.2f} %"
-    return formatted_percentage
+    # Formats integer value to percentage format with 2 decimal rounding and commas for thousands.
+    # (e.g -1234.567 -> -1,234.57 %) If value is non-negative, adds '+' symbol (e.g. 6.789 -> +6.79).
 
-def format_things(number):
-    # Converts endpoint values to space-separated whole number
-    formatted_number = '{:,.0f}'.format(number).replace(',', ' ')
+    formatted_percentage = '{:,.2f}'.format(round(percentage, 2))
+    if formatted_percentage[0] == '-':
+        return f"{formatted_percentage} %"
+    else:
+        return f"+{formatted_percentage} %"
+
+
+def format_quantity(whole_number):
+    # Formats integer value to space-separated whole number (e.g. 21000000 -> 21 000 000).
+
+    formatted_number = '{:,.0f}'.format(whole_number).replace(',', ' ')
     return formatted_number
+
+
+def format_utc(utc):
+    # Strips UTC from 'T', 'Z' symbols and microseconds (e.g. 2024-01-02T23:27:24.911Z -> 2024-01-02 23:27:24).
+
+    utc_time = datetime.strptime(utc, '%Y-%m-%dT%H:%M:%S.%fZ')
+    time_without_utc_symbols = utc_time.strftime('%Y-%m-%d %H:%M:%S')
+    return time_without_utc_symbols
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 '''Functions to display or format time'''
@@ -96,12 +107,6 @@ def convert_utc_to_timestamp(utc):
     date_utc = datetime.strptime(formatted_utc, '%d.%m.%Y')
     date_timestamp = int(date_utc.timestamp())
     return date_timestamp
-
-def strip_utc_symbols(utc):
-    # Strips UTC from 'T' an 'Z' symbols
-    utc_time = datetime.strptime(utc, '%Y-%m-%dT%H:%M:%S.%fZ')
-    time_without_utc_symbols = utc_time.strftime('%Y-%m-%d %H:%M:%S')
-    return time_without_utc_symbols
 
 def set_24h_time_period():
     current_datetime_utc = datetime.now(timezone.utc)

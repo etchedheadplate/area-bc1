@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image
-from data_tools import format_money_axis, format_time_axis, select_plot_background, get_data, set_24h_time_period, set_custom_time_period, calculate_price_change_percentage
+from tools import format_money_axis, format_time_axis, select_plot_background, get_data, set_24h_time_period, set_custom_time_period, calculate_price_change_percentage
 from config import cryptocurrency, ticker, database_file, plot_path, plot_font
 from api.coingecko import BASE
 

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler
 
-from market_values import latest_values, update_latest_values
+from granular import latest_values, update_latest_values
 # from market_plot import make_market_plot
 from config import plot_output_image
 import time
