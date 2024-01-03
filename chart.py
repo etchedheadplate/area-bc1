@@ -8,8 +8,8 @@ from tools import get_api_data
 
 
 def update_data_chart(data_chart):
-    # Checks if data chart exists. If not creates empty data chart by template from user
-    # configuration and updates it with new API data with regularity specified in user configuration.
+    # Checks if data chart exists. If not, creates empty data chart by user configuration
+    # template and updates it with new API data with regularity specified in user configuration.
 
     # User configuration related variables:
     data_chart_api = config.databases[f'{data_chart}']['api']
@@ -20,7 +20,7 @@ def update_data_chart(data_chart):
     data_chart_update_interval = config.databases[f'{data_chart}']['update']['interval']
     data_chart_update_allow_rewrite = config.databases[f'{data_chart}']['update']['allow_rewrite']
 
-    # Check if data chart exists. If not, empty data chart with template from user configuration created.
+    # Check if data chart exists. If not, empty data chart with template from user configuration created:
     print(f'[{data_chart}] initializing:')
     if not os.path.isfile(data_chart_file):
         data_chart_template = pd.DataFrame(data_chart_columns.keys())
@@ -29,7 +29,7 @@ def update_data_chart(data_chart):
     else:
         print(f'[{data_chart}]', data_chart_file, 'exists')
 
-    # Regular data chart updates with new API data according to parameters defined by user configuration.
+    # Regular data chart updates with new API data according to parameters defined by user configuration:
     while True:
 
         # Time-related variables formatted as specified in user configuration:
@@ -63,7 +63,7 @@ def update_data_chart(data_chart):
 
         # Schedule next update time. Check if current time > update time. If is, shift update time
         # by user configuration specified update interval untill update time > current time.
-        if time_current > time_update:
+        while time_current > time_update:
             time_update = time_update + timedelta(hours=data_chart_update_interval)
             print(time_current, f'[{data_chart}] current time > update time, update planned to {time_update}')
         else:
@@ -71,7 +71,7 @@ def update_data_chart(data_chart):
 
         seconds_untill_upgrade = (time_update - time_current).total_seconds()
 
-        # Update data chart with regularity specified in user configuration.:
+        # Update data chart with regularity specified in user configuration:
         time.sleep(seconds_untill_upgrade)
 
 

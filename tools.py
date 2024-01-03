@@ -71,7 +71,7 @@ def format_utc(utc):
 
     utc_time = datetime.strptime(utc, '%Y-%m-%dT%H:%M:%S.%fZ')
     time_without_utc_symbols = utc_time.strftime('%Y-%m-%d %H:%M:%S')
-    return time_without_utc_symbols
+    return f'UTC {time_without_utc_symbols}'
 
 
 

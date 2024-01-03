@@ -6,8 +6,9 @@ within this module or/and via user interface in bot. All paths are relative.
 
 # Currency related variables
 cryptocurrency = 'bitcoin'
+crypto_ticker = 'BTC'
 vs_currency = 'usd'
-ticker = vs_currency.upper()
+vs_ticker = vs_currency.upper()
 
 
 # API related variables
@@ -40,37 +41,6 @@ api = {
                     'developer_data': 'false'
                 },
                 'subdict': 'market_data',
-                'values': {
-                    'currency': {
-                        'Price': 'current_price',
-                        'Price Δ24h': 'price_change_24h_in_currency',
-                        'Market Cap': 'market_cap',
-                        'Market Cap Δ24h': 'market_cap_change_24h_in_currency',
-                        'All-Time High': 'ath',
-                        'Total Volume': 'total_volume',
-                        'Fully Diluted Valuation': 'fully_diluted_valuation',
-                    },
-                    'percentage': {
-                        'Price % Δ1h': 'price_change_percentage_1h_in_currency',
-                        'Price % Δ24h': 'price_change_percentage_24h_in_currency',
-                        'Price % Δ7d': 'price_change_percentage_7d_in_currency',
-                        'Price % Δ14d': 'price_change_percentage_14d_in_currency',
-                        'Price % Δ30d': 'price_change_percentage_30d_in_currency',
-                        'Price % Δ60d': 'price_change_percentage_60d_in_currency',
-                        'Price % Δ200d': 'price_change_percentage_200d_in_currency',
-                        'Price % Δ1y': 'price_change_percentage_1y_in_currency',
-                        'Market Cap % Δ24h': 'market_cap_change_percentage_24h_in_currency',
-                        'All-Time High % Δ': 'ath_change_percentage'
-                    },
-                    'quantity': {
-                        'Supply': 'circulating_supply',
-                        'Total Supply': 'total_supply'
-                    },
-                    'dates': {
-#                        'All-Time High Date': 'ath_date',
-                        'Last Updated': 'last_updated'
-                    }
-                }
             }
         },
         'error': { # Dictionary of API error codes specific to CoinGecko API

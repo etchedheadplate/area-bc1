@@ -4,7 +4,7 @@ from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image
 from tools import format_money_axis, format_time_axis, select_plot_background, get_data, set_24h_time_period, set_custom_time_period, calculate_price_change_percentage
-from config import cryptocurrency, ticker, database_file, plot_path, plot_font
+from config import cryptocurrency, vs_ticker, database_file, plot_path, plot_font
 from api.coingecko import BASE
 
 def make_market_plot():
@@ -86,7 +86,7 @@ def make_market_plot():
     # Legend
     legend = ax1.legend(
         [line1, line2], # lines in legend
-        [f'Price, {ticker}', f'Volume, {ticker}'], # titles of lines
+        [f'Price, {vs_ticker}', f'Volume, {vs_ticker}'], # titles of lines
         loc='upper left', # legend location
         prop=custom_font, # legend font
         handlelength=0
