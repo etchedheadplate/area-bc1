@@ -120,12 +120,36 @@ databases = {
 # Market plot related variables
 plot = {
     'path': 'src/images/plot/market_plot.png',
+    'output': 'src/images/plot/market_plot_with_background.png',
     'font': 'src/font/font.ttf',
-    'background': ( # filename, price range in %, DPI, X-coordinate, Y-coordinate
-        ('src/images/plot/backgrounds/superbad.png', (-float('inf'), -10), 150, 800, 85), # (-inf to -10%]
-        ('src/images/plot/backgrounds/bad.png', (-10, 0), 150, 100, 85), # (-10% to 0]
-        ('src/images/plot/backgrounds/good.png', (0, 10), 150, 800, 85), # (0 to +10%]
-        ('src/images/plot/backgrounds/supergood.png', (10, float('inf')), 150, 100, 85) # (+10% to +inf)
-    ),
-    'output': 'src/images/plot/output.png'
+    'colors': {
+        'date': 'white',
+        'price': 'orange',
+        'total_volume': 'blue',
+        'frame': 'black',
+        'percentage_plus': 'green',
+        'percentage_minus': 'red'
+    },
+    'backgrounds': {
+        '-inf to -ten': {
+                'path': 'src/images/plot/backgrounds/superbad.png',
+                'range': (-float('inf'), -10),
+                'coordinates': (800, 85)
+        },
+        '-ten to zero': {
+                'path': 'src/images/plot/backgrounds/bad.png',
+                'range': (-10, 0),
+                'coordinates': (100, 85)
+        },
+        'zero to +ten': {
+                'path': 'src/images/plot/backgrounds/good.png',
+                'range': (0, 10),
+                'coordinates': (800, 85)
+        },
+        '+ten to +inf': {
+                'path': 'src/images/plot/backgrounds/supergood.png',
+                'range': (10, float('inf')),
+                'coordinates': (100, 85)
+        },
+    }
 }

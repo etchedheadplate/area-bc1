@@ -74,74 +74,85 @@ def format_utc(utc):
     return f'UTC {time_without_utc_symbols}'
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''Functions to display or format time'''
-
 def convert_timestamp_to_utc(timestamp):
-    # Converts UNIX timestamp to UTC    
-    try:
-        if len(str(timestamp)) > 10: # if timestamp in milliseconds...
-            timestamp /= 1000 # converts it to seconds
-        utc_datetime = datetime.utcfromtimestamp(timestamp)
-        return utc_datetime
-    except Exception as e:
-        return str('convert_timestamp_to_utc failed')
-
-def convert_utc_to_timestamp(utc):
-    # Converts imput in form of dd.mm.yyyy string to UNIX timestamp  
-    formatted_utc = datetime.strptime(str(utc), '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y')
-    date_utc = datetime.strptime(formatted_utc, '%d.%m.%Y')
-    date_timestamp = int(date_utc.timestamp())
-    return date_timestamp
-
-def set_24h_time_period():
-    current_datetime_utc = datetime.now(timezone.utc)
-    current_date_utc = current_datetime_utc.date()
-    combined_current_datetime = datetime.combine(current_date_utc, datetime.min.time())
-    period_timestamp = 86400
-    today_timestamp = int(combined_current_datetime.timestamp())
-    yesterday_timestamp = today_timestamp - period_timestamp
-    return yesterday_timestamp, today_timestamp, period_timestamp
-
-def set_custom_time_period():
-    # Converts input in form of 2 dd.mm.yy strings to UNIX timestamp and calculates the difference
-    start_date = datetime.strptime(str(input('Enter dd.mm.yyyy start date: ')), '%d.%m.%Y')
-    end_date = datetime.strptime(str(input('Enter dd.mm.yyyy end date: ')), '%d.%m.%Y')
-    start_timestamp = convert_utc_to_timestamp(start_date)
-    end_timestamp = convert_utc_to_timestamp(end_date)
-    period_timestamp = end_timestamp - start_timestamp
-    return start_timestamp, end_timestamp, period_timestamp
+    # Converts milliseconds timestamp to seconds timestamp, then converts timestamp to UTC.
+      
+    if len(str(timestamp)) > 10: 
+        timestamp /= 1000 
+    utc = datetime.utcfromtimestamp(timestamp)
+    return utc
 
 
-'''Chart related functions'''
+def convert_utc_date_to_timestamp(utc):
+    # Converts yyyy.mm.dd string to timestamp.
+    
+    utc_date = datetime.strptime(utc, '%Y-%m-%d')
+    timestamp = int(utc_date.timestamp())
+    return timestamp
 
-def calculate_price_change_percentage(start_price, end_price):
-    price_change_percentage = end_price / (start_price / 100) - 100
-    return price_change_percentage
 
-'''def select_plot_background(price_change_percentage):
-    # Selects plot background based on % of price change in given period and returns path to image
-    for image_params in plot_background_image:
-        percentage_range = image_params[1]
-        if percentage_range[0] <= price_change_percentage <= percentage_range[1]:
-            return image_params'''
+def select_data_chart(period):
+    # Selects data chart file based on plot days period. 
+    
+    if isinstance(period, int):
+        days = int(period)
+        if days <= 1:
+            chart = 'data_chart_1_day'
+        elif days <= 90:
+            chart = 'data_chart_90_days'
+        else:
+            chart = 'data_chart_max_days'
+    else:
+        chart = 'data_chart_max_days'
+    
+    data_chart_file = config.databases[f'{chart}']['path']
+    return data_chart_file
+
+def calculate_chart_interval(period):
+    # Calculates interval between data chart rows based on CoinGecko API intervals.
+
+    if period <= 1:
+        interval_5_mins = period * 288
+        return interval_5_mins
+    elif period <= 90:
+        interval_1_hour = period * 24
+        return interval_1_hour
+    else:
+        interval_1_day = period * 1
+        return interval_1_day
+
+
+def calculate_percentage_change(old, new):
+    # Calculates percentage change between old and new value.
+
+    percentage_change = new / (old / 100) - 100
+    return percentage_change
+
+
+def format_time_axis(timestamp, period):
+    # Formats time axis to show granular time depending on time period.
+    
+    # Convert milliseconds timestamp to seconds timestamp, then convert timestamp to UTC:
+    if len(str(timestamp)) > 10:
+        timestamp /= 1000
+
+    date_object = datetime.utcfromtimestamp(timestamp)
+
+    # Format time according to plot time period:
+    if period <= 1:
+        formatted_date = date_object.strftime('%H:%M')
+        return formatted_date
+    elif period < 5:
+        formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
+        return formatted_date
+    elif period >= 5:
+        formatted_date = date_object.strftime('%d.%m.%Y')
+        return formatted_date
+
 
 def format_money_axis(amount):
-    # Formats money to common abbreviation
+    # Formats money axis to common abbreviation depending on money amount.
+
     if amount >= 1_000_000_000_000_000:
         formatted_amount = "{:.1f} Qn".format(amount / 1_000_000_000_000_000)
     elif amount >= 1_000_000_000_000:
@@ -156,24 +167,31 @@ def format_money_axis(amount):
         formatted_amount = "{:.2f}".format(amount)
     return formatted_amount
 
-def format_time_axis(timestamp, period):
-    # Converts UNIX timestamp to UTC    
-    days = period / 60 / 60 / 24 # converts period timestamp to days
-    if len(str(timestamp)) > 10: # if timestamp in milliseconds...
-        timestamp /= 1000 # converts it to seconds 
-    date_object = datetime.utcfromtimestamp(timestamp)
-    if days <= 90:
-        try:           
-            formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
-            return formatted_date
-        except Exception as e:
-            return str(e)
-    elif days > 90:
-        try:
-            formatted_date = date_object.strftime('%d.%m.%Y')
-            return formatted_date
-        except Exception as e:
-            return str(e)
+
+def define_market_movement(percent):
+    # Selects market data color based on market movements.
+    market_movement = str(percent)
+    if market_movement[0] == '-':
+        color = 'percentage_minus'
+    else:
+        color = 'percentage_plus'
+    return color
+
+
+def select_plot_background(percentage_change):
+    # Selects plot background based on % of price change in given period.
+
+    for background_name in config.plot['backgrounds']:
+        percentage_range = config.plot['backgrounds'][f'{background_name}']['range']
+        if percentage_range[0] <= percentage_change <= percentage_range[1]:
+            return background_name
+
+
+
+
+
+
+
 
 
 

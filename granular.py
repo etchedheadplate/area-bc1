@@ -17,7 +17,7 @@ def update_granular_data(granular_data):
     # Regular granular data updates with new API data according to parameters defined by user configuration:
     while True:
 
-        # Time-related variables formatted as specified in user configuration:
+        # Time-related variables formatted as specified in user configuration for correct update period:
         time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
         time_update = datetime.strptime(str(time_current)[:-len(granular_data_update_time)] + granular_data_update_time, '%Y-%m-%d %H:%M:%S')
 
