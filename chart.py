@@ -76,4 +76,4 @@ def update_data_chart(data_chart):
 
 
 if __name__ == '__main__':
-    update_data_chart('data_chart_max_days')
+    update_data_chart('data_chart_1_day')

@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timezone
+from datetime import datetime
 from currency_symbols import CurrencySymbols
 
 import config
@@ -112,7 +112,7 @@ def calculate_chart_interval(period):
     # Calculates interval between data chart rows based on CoinGecko API intervals.
 
     if period <= 1:
-        interval_5_mins = period * 288
+        interval_5_mins = period * 288 - 1
         return interval_5_mins
     elif period <= 90:
         interval_1_hour = period * 24
@@ -142,10 +142,10 @@ def format_time_axis(timestamp, period):
     if period <= 1:
         formatted_date = date_object.strftime('%H:%M')
         return formatted_date
-    elif period < 5:
+    elif period <= 7:
         formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
         return formatted_date
-    elif period >= 5:
+    else:
         formatted_date = date_object.strftime('%d.%m.%Y')
         return formatted_date
 
@@ -168,22 +168,14 @@ def format_money_axis(amount):
     return formatted_amount
 
 
-def define_market_movement(percent):
-    # Selects market data color based on market movements.
-    market_movement = str(percent)
-    if market_movement[0] == '-':
-        color = 'percentage_minus'
-    else:
-        color = 'percentage_plus'
-    return color
 
-
-def select_plot_background(percentage_change):
-    # Selects plot background based on % of price change in given period.
+def define_market_movement(percentage_change):
+    # Defines % of price change as market movement in given period. Based on
+    # market movement selects plot background and color for plot legend.
 
     for background_name in config.plot['backgrounds']:
-        percentage_range = config.plot['backgrounds'][f'{background_name}']['range']
-        if percentage_range[0] <= percentage_change <= percentage_range[1]:
+        market_movement = config.plot['backgrounds'][f'{background_name}']['range']
+        if market_movement[0] <= percentage_change <= market_movement[1]:
             return background_name
 
 

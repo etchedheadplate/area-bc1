@@ -124,32 +124,34 @@ plot = {
     'font': 'src/font/font.ttf',
     'colors': {
         'date': 'white',
-        'price': 'orange',
-        'total_volume': 'blue',
+        'price': '#F7931A',
+        'total_volume': '#1D910D', # 0E86D4
         'frame': 'black',
-        'percentage_plus': 'green',
-        'percentage_minus': 'red'
+        '-inf_to_-ten': '#CB2B1B', # +
+        '-ten_to_zero': '#CB2B1B', # +
+        'zero_to_+ten': '#2BD713', # +
+        '+ten_to_+inf': '#2BD713' # +
     },
     'backgrounds': {
-        '-inf to -ten': {
+        '-inf_to_-ten': {
                 'path': 'src/images/plot/backgrounds/superbad.png',
                 'range': (-float('inf'), -10),
-                'coordinates': (800, 85)
+                'coordinates': (795, 5)
         },
-        '-ten to zero': {
+        '-ten_to_zero': {
                 'path': 'src/images/plot/backgrounds/bad.png',
                 'range': (-10, 0),
-                'coordinates': (100, 85)
+                'coordinates': (25, 5)
         },
-        'zero to +ten': {
+        'zero_to_+ten': {
                 'path': 'src/images/plot/backgrounds/good.png',
                 'range': (0, 10),
-                'coordinates': (800, 85)
+                'coordinates': (795, 5)
         },
-        '+ten to +inf': {
+        '+ten_to_+inf': {
                 'path': 'src/images/plot/backgrounds/supergood.png',
                 'range': (10, float('inf')),
-                'coordinates': (100, 85)
+                'coordinates': (25, 5)
         },
     }
 }
