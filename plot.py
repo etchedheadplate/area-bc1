@@ -6,7 +6,7 @@ from matplotlib import font_manager
 from PIL import Image
 
 import config
-from tools import (select_data_chart,
+from tools import (select_data_chart_for_plot,
                    calculate_chart_interval,
                    calculate_percentage_change,
                    format_time_axis,
@@ -18,7 +18,7 @@ from tools import (select_data_chart,
 def make_chart_plot(days_period):
     
     # User configuration related variables: 
-    chart_file = select_data_chart(days_period)
+    chart_file = select_data_chart_for_plot(days_period)
 
     # Creation of plot data frame and plot-related variables:
     plot_file = config.plot['path']
@@ -46,7 +46,7 @@ def make_chart_plot(days_period):
     print(plot_market_movement_color)
 
 
-    # Plot block
+    # Plot figure block:
 
         # Creation of plot axies:
     axis_date = plot_df['Date'][plot_index_first:plot_index_last]
@@ -61,7 +61,7 @@ def make_chart_plot(days_period):
     ax2 = ax1.twinx()
 
 
-    # Axies block
+    # Axies block:
 
         # Set axies lines:    
     ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=1)
@@ -99,7 +99,7 @@ def make_chart_plot(days_period):
     ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.3)
 
 
-    # Legend block
+    # Legend block:
 
         # Set plot legend proxies and actual legend:
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.vs_ticker}')
@@ -123,7 +123,7 @@ def make_chart_plot(days_period):
     plt.savefig(plot_file, bbox_inches='tight', transparent=True, dpi=150)
 
 
-    # Background block
+    # Background block:
 
         # Background-related variables:
     background = define_market_movement(plot_market_movement)
@@ -136,7 +136,7 @@ def make_chart_plot(days_period):
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
 
         # Save plot image with background:
-    background_image.save(config.plot['output'], "JPEG", quality=95, icc_profile=background_image.info.get('icc_profile', ''))
+    background_image.save(plot_output, "JPEG", quality=95, icc_profile=background_image.info.get('icc_profile', ''))
 
 
 if __name__ == '__main__':

@@ -5,10 +5,11 @@ within this module or/and via user interface in bot. All paths are relative.
 
 
 # Currency related variables
-cryptocurrency = 'bitcoin'
-crypto_ticker = 'BTC'
-vs_currency = 'usd'
-vs_ticker = vs_currency.upper()
+currency_crypto = 'bitcoin'
+currency_vs = 'usd'
+currency_crypto_ticker = 'BTC'
+currency_vs_ticker = currency_vs.upper()
+currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 
 # API related variables
@@ -16,10 +17,10 @@ api = {
     'coingecko': {
         'base': 'https://api.coingecko.com/api/v3/',
         'endpoint' : {
-            'data_chart': {
-                'name': f'coins/{cryptocurrency}/market_chart',
+            'chart': {
+                'name': f'coins/{currency_crypto}/market_chart',
                 'params': {
-                    'vs_currency': f'{vs_currency}',
+                    'vs_currency': f'{currency_vs}',
                     'days': '',
                     'interval': '',
                     'precision': '2'
@@ -31,8 +32,8 @@ api = {
                     'Total Volume': 'total_volumes'
                 }
             },
-            'data_granular': {
-                'name': f'coins/{cryptocurrency}',
+            'values': {
+                'name': f'coins/{currency_crypto}',
                 'params': {
                     'localization': 'false',
                     'tickers': 'false',
@@ -61,10 +62,10 @@ api = {
 
 # Database related variables
 databases = {
-    'data_granular_latest': {
+    'latest_values': {
         'api': 'coingecko',
-        'type': 'data_granular',
-        'path': 'db/data_granular_latest.txt',
+        'type': 'values',
+        'path': f'db/market/{currency_pair}/latest/',
         'update': {
             'time': '00:30',
             'interval': 0.5,
@@ -74,10 +75,10 @@ databases = {
             '': ''
         }
     },
-    'data_chart_1_day': {
+    'latest_chart': {
         'api': 'coingecko',
-        'type': 'data_chart',
-        'path': 'db/data_chart_1_day.csv',
+        'type': 'chart',
+        'path': f'db/market/{currency_pair}/latest/',
         'update': {
             'time': '50:30',
             'interval': 0.5,
@@ -87,10 +88,10 @@ databases = {
             'days': '1'
         }
     },
-    'data_chart_90_days': {
+    'history_chart_days_90': {
         'api': 'coingecko',
-        'type': 'data_chart',
-        'path': 'db/data_chart_90_days.csv',
+        'type': 'chart',
+        'path': f'db/market/{currency_pair}/history/',
         'update': {
             'time': '05:30',
             'interval': 1,
@@ -100,10 +101,10 @@ databases = {
             'days': '90'
         }
     },
-    'data_chart_max_days': {
+    'history_chart_days_max': {
         'api': 'coingecko',
-        'type': 'data_chart',
-        'path': 'db/data_chart_max_days.csv',
+        'type': 'chart',
+        'path': f'db/market/{currency_pair}/history/',
         'update': {
             'time': '00:55:30',
             'interval': 24,

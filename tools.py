@@ -91,25 +91,31 @@ def convert_utc_date_to_timestamp(utc):
     return timestamp
 
 
-def select_data_chart(period):
-    # Selects data chart file based on plot days period. 
+def select_history_chart(period):
+    # Selects history chart based on days period. Used for history values and plot selection. 90 days
+    # history chart skipped because of 1-hour interval, which makes it useless in history values case.
     
     if isinstance(period, int):
         days = int(period)
         if days <= 1:
-            chart = 'data_chart_1_day'
+            history_chart = 'latest_chart'
+            history_chart_for_history_values = history_chart
         elif days <= 90:
-            chart = 'data_chart_90_days'
+            history_chart = 'history_chart_days_90'
+            history_chart_for_history_values = 'history_chart_days_max'
         else:
-            chart = 'data_chart_max_days'
+            history_chart = 'history_chart_days_max'
+            history_chart_for_history_values = history_chart
     else:
-        chart = 'data_chart_max_days'
+        history_chart = 'history_chart_days_max'
+        history_chart_for_history_values = history_chart
     
-    data_chart_file = config.databases[f'{chart}']['path']
-    return data_chart_file
+    
+    return history_chart, history_chart_for_history_values
+
 
 def calculate_chart_interval(period):
-    # Calculates interval between data chart rows based on CoinGecko API intervals.
+    # Calculates interval between history chart rows based on CoinGecko API intervals.
 
     if period <= 1:
         interval_5_mins = period * 288 - 1
