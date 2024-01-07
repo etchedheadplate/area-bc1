@@ -1,6 +1,8 @@
 import io
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
@@ -17,7 +19,7 @@ from tools import (select_chart,
                    define_market_movement)
 
 
-def make_chart_plot(days):
+def make_history_plot(days):
     
     # User configuration related variables:
     chart_name = select_chart(days)[0]
@@ -108,7 +110,7 @@ def make_chart_plot(days):
     # Set plot legend proxies and actual legend:
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
     legend_proxy_volume = Line2D([0], [0], label=f'Volume, {config.currency_vs_ticker}')
-    legend_proxy_market = Line2D([0], [0], label=f'Market: {plot_market_movement_format}')
+    legend_proxy_market = Line2D([0], [0], label=f'Ayy lmao: {plot_market_movement_format}')
     legend = ax1.legend(handles=[legend_proxy_price, legend_proxy_volume, legend_proxy_market], loc="upper left", prop=plot_font, handlelength=0)
     
     # Set legend colors
@@ -141,4 +143,4 @@ if __name__ == '__main__':
 
     days = [1,2,6,7,365,366,1825,1826,'max']
     for day in days:
-        make_chart_plot(day)
+        make_history_plot(day)

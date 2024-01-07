@@ -43,9 +43,9 @@ def format_currency(amount, ticker):
     
     currency_symbol = CurrencySymbols().get_symbol(ticker)
     if currency_symbol:
-        return '{:,.2f}'.format(amount) + currency_symbol
+        return currency_symbol + ' {:,.2f}'.format(amount)
     else:
-        return '{:,.2f}'.format(amount) + ticker
+        return ticker + ' {:,.2f}'.format(amount)
 
 
 def format_percentage(percentage):

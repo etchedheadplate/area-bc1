@@ -11,51 +11,93 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 from telegram import ParseMode
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-from values import latest_values, update_latest_values
-# from market_plot import make_market_plot
-from config import plot_output_image
-import time
+import os
+
+import config
+from updates import run_parallel_database_update
+from plot import make_history_plot
+from values import write_history_values
+
+
+# States:
+START, HISTORY, SETTINGS, ABOUT = range(4)
 
 
 def start(update, context):
-    welcome_message = "This bot can show you Bitcoin market data. Hit Menu button to see latest Bitcoin stats or history graph."
-    update.message.reply_text(welcome_message)
 
-def stats(update, context):
-    update_latest_values(latest_values)
-#    make_market_plot()
-    stats_message = "\n".join([f"{key}: {value}" for key, value in latest_values.items()])
-    with open(plot_output_image, 'rb') as img:
-        context.bot.send_photo(chat_id=update.effective_chat.id,
-                               photo=img,
-                               caption=f'```\n{stats_message}```',
-                               parse_mode=ParseMode.MARKDOWN)
+    path = config.databases['latest_api_data']['path']
+    plot = path + 'latest_plot.png'
+    values = path + 'latest_values.txt'
+    with open(plot, 'rb') as img_file:
+        with open(values, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
+    
+    return START
 
-def graph(update, context):
-    graph_message = "this is graph state"
-    update.message.reply_text(graph_message)
+def history(update, context):
+       
+    days = handle_days(update.message.text)
+    path = config.databases['history_chart_days_max']['path']
+    plot = path + f'history_plot_days_{days}.png'
+    values = path + f'history_values_days_{days}.txt'
+
+    if not os.path.exists(plot):
+        make_history_plot(days)
+    if not os.path.exists(values):
+        write_history_values(days)
+
+    with open(plot, 'rb') as img_file:
+        with open(values, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
+    
+    return HISTORY
 
 def settings(update, context):
-    settings_message = "this is settings state"
+
+    settings_message = "settings state"
     update.message.reply_text(settings_message)
+    
+    return SETTINGS
 
 def about(update, context):
-    about_message = "This bot uses [Coingecko API](https://www.coingecko.com/) for market data. " \
-                    "You can visit bot's [GitHub page](https://github.com/etchedheadplate/area-bc1)."
-    update.message.reply_text(about_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
+    settings_message = "This bot uses [CoinGecko API](https://www.coingecko.com/) for market data. " \
+                    "You can visit bot's [GitHub page](https://github.com/etchedheadplate/area-bc1)."
+    update.message.reply_text(settings_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    
+    return ABOUT
+
+def handle_days(update):
+
+    user_message = update.message.text
+    if user_message.isdigit():
+        user_number = int(user_message)
+    else:
+        user_number = 'max'
+    
+    return user_number
 
 def main():
+
     # Bot and dispatcher initialization
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
 
-    # Bot handlers
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_days))
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("stats", stats))
-    dispatcher.add_handler(CommandHandler("graph", graph))
+    dispatcher.add_handler(CommandHandler("history", history))
     dispatcher.add_handler(CommandHandler("settings", settings))
     dispatcher.add_handler(CommandHandler("about", about))
 
@@ -63,5 +105,9 @@ def main():
     updater.start_polling()
     updater.idle()
 
+
+
+
 if __name__ == '__main__':
+    
     main()
