@@ -43,9 +43,9 @@ def format_currency(amount, ticker):
     
     currency_symbol = CurrencySymbols().get_symbol(ticker)
     if currency_symbol:
-        return '{:,.2f} '.format(amount) + currency_symbol
+        return '{:,.2f}'.format(amount) + currency_symbol
     else:
-        return '{:,.2f} '.format(amount) + ticker
+        return '{:,.2f}'.format(amount) + ticker
 
 
 def format_percentage(percentage):
@@ -54,9 +54,9 @@ def format_percentage(percentage):
 
     formatted_percentage = '{:,.2f}'.format(round(percentage, 2))
     if formatted_percentage[0] == '-':
-        return f"{formatted_percentage} %"
+        return f"{formatted_percentage}%"
     else:
-        return f"+{formatted_percentage} %"
+        return f"+{formatted_percentage}%"
 
 
 def format_quantity(whole_number):
@@ -71,16 +71,17 @@ def format_utc(utc):
 
     utc_time = datetime.strptime(utc, '%Y-%m-%dT%H:%M:%S.%fZ')
     time_without_utc_symbols = utc_time.strftime('%Y-%m-%d %H:%M:%S')
-    return f'UTC {time_without_utc_symbols}'
+    return f'{time_without_utc_symbols}'
 
 
 def convert_timestamp_to_utc(timestamp):
     # Converts milliseconds timestamp to seconds timestamp, then converts timestamp to UTC.
       
     if len(str(timestamp)) > 10: 
-        timestamp /= 1000 
+        timestamp = int(timestamp) / 1000 
     utc = datetime.utcfromtimestamp(timestamp)
-    return utc
+    utc_str = utc.strftime('%Y-%m-%d %H:%M:%S')
+    return utc_str
 
 
 def convert_utc_date_to_timestamp(utc):
@@ -91,41 +92,46 @@ def convert_utc_date_to_timestamp(utc):
     return timestamp
 
 
-def select_history_chart(period):
-    # Selects history chart based on days period. Used for history values and plot selection. 90 days
-    # history chart skipped because of 1-hour interval, which makes it useless in history values case.
+def select_chart(period):
+    # Selects chart based on days period. Used for history values and plot selection. 90 days
+    # chart skipped because of 1-hour interval, which makes it useless in history values case.
     
     if isinstance(period, int):
         days = int(period)
         if days <= 1:
-            history_chart = 'latest_chart'
-            history_chart_for_history_values = history_chart
+            chart = 'latest_chart'
+            chart_for_history_values = chart
         elif days <= 90:
-            history_chart = 'history_chart_days_90'
-            history_chart_for_history_values = 'history_chart_days_max'
+            chart = 'history_chart_days_90'
+            chart_for_history_values = 'history_chart_days_max'
         else:
-            history_chart = 'history_chart_days_max'
-            history_chart_for_history_values = history_chart
+            chart = 'history_chart_days_max'
+            chart_for_history_values = chart
     else:
-        history_chart = 'history_chart_days_max'
-        history_chart_for_history_values = history_chart
+        chart = 'history_chart_days_max'
+        chart_for_history_values = chart
     
-    
-    return history_chart, history_chart_for_history_values
+    return chart, chart_for_history_values
 
 
 def calculate_chart_interval(period):
     # Calculates interval between history chart rows based on CoinGecko API intervals.
-
-    if period <= 1:
-        interval_5_mins = period * 288 - 1
-        return interval_5_mins
-    elif period <= 90:
-        interval_1_hour = period * 24
-        return interval_1_hour
+    
+    if isinstance(period, int):
+        if period <= 1:
+            one_day_as_five_minutes_chunks = period * 288 - 1
+            interval = one_day_as_five_minutes_chunks
+        elif period <= 90:
+            one_day_as_one_hour_chunks = period * 24
+            interval = one_day_as_one_hour_chunks
+        else:
+            one_day_as_one_day_chunks = period * 1
+            interval = one_day_as_one_day_chunks
     else:
-        interval_1_day = period * 1
-        return interval_1_day
+        one_day_as_one_day_chunks = period * 1
+        interval = one_day_as_one_day_chunks
+    
+    return interval
 
 
 def calculate_percentage_change(old, new):
@@ -147,13 +153,15 @@ def format_time_axis(timestamp, period):
     # Format time according to plot time period:
     if period <= 1:
         formatted_date = date_object.strftime('%H:%M')
-        return formatted_date
-    elif period <= 7:
+    elif period <= 6:
         formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
-        return formatted_date
-    else:
+    elif period <= 365:
         formatted_date = date_object.strftime('%d.%m.%Y')
-        return formatted_date
+    elif period <= 1825:
+        formatted_date = date_object.strftime('%m.%Y')
+    else:
+        formatted_date = date_object.strftime('%Y')
+    return formatted_date
 
 
 def format_money_axis(amount):

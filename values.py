@@ -1,85 +1,230 @@
-import os
-import time
-from datetime import datetime, timedelta
+import json
+import pandas as pd
 
 import config
-from tools import get_api_data, format_currency, format_percentage, format_utc
+from tools import (calculate_chart_interval,
+                   calculate_percentage_change,
+                   convert_timestamp_to_utc,
+                   format_utc,
+                   format_currency,
+                   format_percentage)
 
 
-def get_db_latest_values(db_latest_values):
-    # Makes API call and parses JSON response to values variables. Variables formatted
-    # for user presentation. Data is updated with regularity specified in user configuration.
+def write_latest_values():
 
-    # User configuration related variables:        
-    db_latest_values_path = config.databases[f'{db_latest_values}']['path']
-    db_latest_values_file = db_latest_values_path + f'{db_latest_values}.txt'
-    db_latest_values_update_time = config.databases[f'{db_latest_values}']['update']['time']
-    db_latest_values_update_interval = config.databases[f'{db_latest_values}']['update']['interval']
+    # User configuration related variables:
+    latest_values_path = config.databases['latest_api_data']['path']    
+    latest_api_data_file = latest_values_path + config.databases['latest_api_data']['filename']
+    latest_values_file = latest_values_path + 'latest_values.txt'
 
-
-    print(f'[{db_latest_values}] initializing:')
-    if not os.path.isdir(db_latest_values_path):
-        os.makedirs(db_latest_values_path, exist_ok=True)
-        print(f'[{db_latest_values}]', db_latest_values_path, 'created')
-    else:
-        print(f'[{db_latest_values}]', db_latest_values_path, 'exists')
-
-    # Regular values updates with new API data according to parameters defined by user configuration:
-    while True:
-
-        # Time-related variables formatted as specified in user configuration for correct update period:
-        time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
-        time_update = datetime.strptime(str(time_current)[:-len(db_latest_values_update_time)] + db_latest_values_update_time, '%Y-%m-%d %H:%M:%S')
-
-        print(time_current, f'[{db_latest_values}] updating:')
-
-        # Call to API and creation of values variables based on response data:
-        response = get_api_data(db_latest_values)
-
-        LAST_UPDATED = format_utc(response['last_updated'])
-
-        PRICE_CURRENT = format_currency(response['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(response['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
-        PRICE_CHANGE_24H_IN_CURRENCY = format_currency(response['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_HIGH_24H = format_currency(response['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_LOW_24H = format_currency(response['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
+    with open (latest_api_data_file, 'r') as json_file:
         
-        MARKET_CAP = format_currency(response['market_cap'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        MARKET_CAP_CHANGE_24H_PERCENTAGE = format_percentage(response['market_cap_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
-        MARKET_CAP_CHANGE_24H = format_currency(response['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        FULLY_DILUTED_VALUATION = format_currency(response['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        api_data = json.load(json_file)
+
+        LAST_UPDATED = format_utc(api_data['last_updated'])
+
+        PRICE_CURRENT = format_currency(api_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(api_data['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
+        PRICE_CHANGE_24H_IN_CURRENCY = format_currency(api_data['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        PRICE_HIGH_24H = format_currency(api_data['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        PRICE_LOW_24H = format_currency(api_data['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
         
-        ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(response['ath_change_percentage'][f'{config.currency_vs}'])
-        ALL_TIME_HIGH = format_currency(response['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        ALL_TIME_HIGH_DATE = format_utc(response['ath_date'][f'{config.currency_vs}'])    
+        MARKET_CAP = format_currency(api_data['market_cap'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        MARKET_CAP_CHANGE_24H_PERCENTAGE = format_percentage(api_data['market_cap_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
+        MARKET_CAP_CHANGE_24H = format_currency(api_data['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        FULLY_DILUTED_VALUATION = format_currency(api_data['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
         
-        TOTAL_VOLUME = format_currency(response['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        SUPPLY_TOTAL = format_currency(response['total_supply'], config.currency_crypto_ticker)
-        SUPPLY_CIRCULATING = format_currency(response['circulating_supply'], config.currency_crypto_ticker)
+        ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(api_data['ath_change_percentage'][f'{config.currency_vs}'])
+        ALL_TIME_HIGH = format_currency(api_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        ALL_TIME_HIGH_DATE = format_utc(api_data['ath_date'][f'{config.currency_vs}'])    
+        
+        TOTAL_VOLUME = format_currency(api_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        SUPPLY_TOTAL = format_currency(api_data['total_supply'], config.currency_crypto_ticker)
+        SUPPLY_CIRCULATING = format_currency(api_data['circulating_supply'], config.currency_crypto_ticker)
     
         # Format values for user presentation:
-        info_pair_update = f'{config.currency_pair} at {LAST_UPDATED}:\n'
-        info_price = f'Price: {PRICE_CURRENT}\nΔ24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n24h High: {PRICE_HIGH_24H}\n24h Low: {PRICE_LOW_24H}\n'
-        info_market_cap = f'Market Cap: {MARKET_CAP}\nΔ24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\nFDV: {FULLY_DILUTED_VALUATION}\n'
-        info_ath = f'ATH: {ALL_TIME_HIGH_CHANGE_PERCENTAGE} ({ALL_TIME_HIGH})\nATH Date: {ALL_TIME_HIGH_DATE}\n'
-        info_supply = f'Total Volume: {TOTAL_VOLUME}\nTotal Supply: {SUPPLY_TOTAL}\nCirculating: {SUPPLY_CIRCULATING}'
+        info_pair_update = f'{config.currency_pair} at UTC {LAST_UPDATED}:\n'
+        info_price = f'Price: {PRICE_CURRENT}\n' \
+            f'24h Change: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
+            f'24h High: {PRICE_HIGH_24H}\n' \
+            f'24h Low: {PRICE_LOW_24H}\n'
+        info_market_cap = f'Market Cap: {MARKET_CAP}\n' \
+            f'24h Change: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
+            f'FDV: {FULLY_DILUTED_VALUATION}\n'
+        info_ath = f'ATH: {ALL_TIME_HIGH_CHANGE_PERCENTAGE} ({ALL_TIME_HIGH})\n' \
+            f'ATH Date: UTC {ALL_TIME_HIGH_DATE}\n'
+        info_supply = f'Total Volume: {TOTAL_VOLUME}\n' \
+            f'Total Supply: {SUPPLY_TOTAL}\n' \
+            f'Circulating: {SUPPLY_CIRCULATING}'
 
-        with open(db_latest_values_file, 'w') as file:
-            file.write(f"{info_pair_update}\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_supply}")
+        with open (latest_values_file, 'w') as latest_values:
+            latest_values.write(f"{info_pair_update}\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_supply}")
+
+
+def write_history_values(days):
+
+    # User configuration related variables:
+    history_chart = 'history_chart_days_max'
+
+    history_values_path = config.databases[f'{history_chart}']['path']
+    history_values_file = history_values_path + f'history_values_days_{days}.txt'
+
+    history_chart_path = config.databases[f'{history_chart}']['path']
+    history_chart_file = history_chart_path + history_chart + '.csv'
+    history_chart_data = pd.read_csv(history_chart_file)
+
+    if days == 'max':
+        days = len(history_chart_data) - 1
+
+    history_chart_interval = calculate_chart_interval(days)
+    history_chart_data_index_last = history_chart_data.index.max()
+    history_chart_data_index_first = history_chart_data_index_last - history_chart_interval
+
+    history_date = history_chart_data['Date'][history_chart_data_index_first : history_chart_data_index_last]
+    history_price = history_chart_data['Price'][history_chart_data_index_first : history_chart_data_index_last]
+    history_market_cap = history_chart_data['Market Cap'][history_chart_data_index_first : history_chart_data_index_last]
+    history_total_volume = history_chart_data['Total Volume'][history_chart_data_index_first : history_chart_data_index_last]
+
+    latest_api_data_file = config.databases['latest_api_data']['path'] + config.databases['latest_api_data']['filename']
+
+    with open (latest_api_data_file, 'r') as json_file:
         
-        # Schedule next update time. Check if current time > update time. If is, shift update time
-        # by user configuration specified update interval untill update time > current time.
-        while time_current > time_update:
-            time_update = time_update + timedelta(hours=db_latest_values_update_interval)
-            print(time_current, f'[{db_latest_values}] current time > update time, update planned to {time_update}')
+        data_current = json.load(json_file)
+
+        if history_chart_interval < 3664:
+
+            CURRENT_DATE = format_utc(data_current['last_updated'])[:-9]
+            CURRENT_PRICE = data_current['current_price'][f'{config.currency_vs}']
+            CURRENT_MCAP = data_current['market_cap'][f'{config.currency_vs}']
+            CURRENT_VOL = data_current['total_volume'][f'{config.currency_vs}']
+
+            HISTORY_DATE = convert_timestamp_to_utc(history_date.iloc[0])[:-9]
+            HISTORY_PRICE = history_price.iloc[0]
+            HISTORY_MCAP = history_market_cap.iloc[0]
+            HISTORY_VOL = history_total_volume.iloc[0]
+
+            CHANGE_PRICE = format_currency(CURRENT_PRICE - HISTORY_PRICE, f'{config.currency_vs}')
+            CHANGE_MCAP = format_currency(CURRENT_MCAP - HISTORY_MCAP, f'{config.currency_vs}')
+            CHANGE_VOL = format_currency(CURRENT_VOL - HISTORY_VOL, f'{config.currency_vs}')
+
+            PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(HISTORY_PRICE, CURRENT_PRICE))
+            PERCENTAGE_CHANGE_MCAP = format_percentage(calculate_percentage_change(HISTORY_MCAP, CURRENT_MCAP))
+            PERCENTAGE_CHANGE_VOL = format_percentage(calculate_percentage_change(HISTORY_VOL, CURRENT_VOL))
+
+            HIGH_PRICE = format_currency(history_price.max().max(), f'{config.currency_vs}')
+            HIGH_MCAP = format_currency(history_market_cap.max().max(), f'{config.currency_vs}')
+            HIGH_VOL = format_currency(history_total_volume.max().max(), f'{config.currency_vs}')
+
+            DATE_HIGH_PRICE = convert_timestamp_to_utc(history_date[history_price.idxmax()])[:-9]
+            DATE_HIGH_MCAP = convert_timestamp_to_utc(history_date[history_market_cap.idxmax()])[:-9]
+            DATE_HIGH_VOL = convert_timestamp_to_utc(history_date[history_total_volume.idxmax()])[:-9]
+
+            LOW_PRICE = format_currency(history_price.min().min(), f'{config.currency_vs}')
+            LOW_MCAP = format_currency(history_market_cap.min().min(), f'{config.currency_vs}')
+            LOW_VOL = format_currency(history_total_volume.min().min(), f'{config.currency_vs}')
+
+            DATE_LOW_PRICE = convert_timestamp_to_utc(history_date[history_price.idxmin()])[:-9]
+            DATE_LOW_MCAP = convert_timestamp_to_utc(history_date[history_market_cap.idxmin()])[:-9]
+            DATE_LOW_VOL = convert_timestamp_to_utc(history_date[history_total_volume.idxmin()])[:-9]
+
+            CURRENT_PRICE = format_currency(CURRENT_PRICE, f'{config.currency_vs}')
+            CURRENT_MCAP = format_currency(CURRENT_MCAP, f'{config.currency_vs}')
+            CURRENT_VOL = format_currency(CURRENT_VOL, f'{config.currency_vs}')
+
+            HISTORY_PRICE = format_currency(HISTORY_PRICE, f'{config.currency_vs}')
+            HISTORY_MCAP = format_currency(HISTORY_MCAP, f'{config.currency_vs}')
+            HISTORY_VOL = format_currency(HISTORY_VOL, f'{config.currency_vs}')
+            
+            info_period = f'{config.currency_pair} from {HISTORY_DATE} to {CURRENT_DATE}:\n'
+            info_price = f'Price:\n' \
+                f'{HISTORY_PRICE} --> {CURRENT_PRICE}\n' \
+                f'Change: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
+                f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
+            info_market_cap = f'Market Cap:\n' \
+                f'{HISTORY_MCAP} --> {CURRENT_MCAP}\n' \
+                f'Change: {PERCENTAGE_CHANGE_MCAP} ({CHANGE_MCAP})\n' \
+                f'High: {HIGH_MCAP} ({DATE_HIGH_MCAP})\n' \
+                f'Low: {LOW_MCAP} ({DATE_LOW_MCAP})\n'
+            info_total_volume = f'Total Volume:\n' \
+                f'{HISTORY_VOL} --> {CURRENT_VOL}\n' \
+                f'Change: {PERCENTAGE_CHANGE_VOL} ({CHANGE_VOL})\n' \
+                f'High: {HIGH_VOL} ({DATE_HIGH_VOL})\n' \
+                f'Low: {LOW_VOL} ({DATE_LOW_VOL})\n'
+
+            with open (history_values_file, 'w') as latest_values:
+                latest_values.write(f'{info_period}\n{info_price}\n{info_market_cap}\n{info_total_volume}')
+
         else:
-            print(time_current, f'[{db_latest_values}] update planned to {time_update}')
 
-        seconds_untill_upgrade = (time_update - time_current).total_seconds()
+            CURRENT_DATE = format_utc(data_current['last_updated'])[:-9]
+            CURRENT_PRICE = data_current['current_price'][f'{config.currency_vs}']
+            CURRENT_MCAP = data_current['market_cap'][f'{config.currency_vs}']
+            CURRENT_VOL = data_current['total_volume'][f'{config.currency_vs}']
 
-        # Update data chart with regularity specified in user configuration:
-        time.sleep(seconds_untill_upgrade)
+            HISTORY_DATE = convert_timestamp_to_utc(history_date.iloc[0])[:-9]
+            HISTORY_PRICE = history_price.iloc[0]
+            HISTORY_MCAP = history_market_cap.iloc[0]
+            HISTORY_VOL = 'Unknown'
+
+            CHANGE_PRICE = format_currency(CURRENT_PRICE - HISTORY_PRICE, f'{config.currency_vs}')
+            CHANGE_MCAP = format_currency(CURRENT_MCAP - HISTORY_MCAP, f'{config.currency_vs}')
+
+            PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(HISTORY_PRICE, CURRENT_PRICE))
+            PERCENTAGE_CHANGE_MCAP = format_percentage(calculate_percentage_change(HISTORY_MCAP, CURRENT_MCAP))
+
+            HIGH_PRICE = format_currency(history_price.max().max(), f'{config.currency_vs}')
+            HIGH_MCAP = format_currency(history_market_cap.max().max(), f'{config.currency_vs}')
+            HIGH_VOL = format_currency(history_total_volume.max().max(), f'{config.currency_vs}')
+
+            DATE_HIGH_PRICE = convert_timestamp_to_utc(history_date[history_price.idxmax()])[:-9]
+            DATE_HIGH_MCAP = convert_timestamp_to_utc(history_date[history_market_cap.idxmax()])[:-9]
+            DATE_HIGH_VOL = convert_timestamp_to_utc(history_date[history_total_volume.idxmax()])[:-9]
+
+            LOW_PRICE = format_currency(history_price.min().min(), f'{config.currency_vs}')
+            LOW_MCAP = format_currency(history_market_cap.min().min(), f'{config.currency_vs}')
+            LOW_VOL = format_currency(history_total_volume.min().min(), f'{config.currency_vs}')
+
+            DATE_LOW_PRICE = convert_timestamp_to_utc(history_date[history_price.idxmin()])[:-9]
+            DATE_LOW_MCAP = convert_timestamp_to_utc(history_date[history_market_cap.idxmin()])[:-9]
+            DATE_LOW_VOL = convert_timestamp_to_utc(history_date[history_total_volume.idxmin()])[:-9]
+
+            CURRENT_PRICE = format_currency(CURRENT_PRICE, f'{config.currency_vs}')
+            CURRENT_MCAP = format_currency(CURRENT_MCAP, f'{config.currency_vs}')
+            CURRENT_VOL = format_currency(CURRENT_VOL, f'{config.currency_vs}')
+
+            HISTORY_PRICE = format_currency(HISTORY_PRICE, f'{config.currency_vs}')
+            HISTORY_MCAP = format_currency(HISTORY_MCAP, f'{config.currency_vs}')
+            
+            info_period = f'{config.currency_pair} from {HISTORY_DATE} to {CURRENT_DATE}:\n'
+            info_price = f'Price:\n' \
+                f'{HISTORY_PRICE} --> {CURRENT_PRICE}\n' \
+                f'Change: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
+                f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
+            info_market_cap = f'Market Cap:\n' \
+                f'{HISTORY_MCAP} --> {CURRENT_MCAP}\n' \
+                f'Change: {PERCENTAGE_CHANGE_MCAP} ({CHANGE_MCAP})\n' \
+                f'High: {HIGH_MCAP} ({DATE_HIGH_MCAP})\n' \
+                f'Low: {LOW_MCAP} ({DATE_LOW_MCAP})\n'
+            info_total_volume = f'Total Volume:\n' \
+                f'{HISTORY_VOL} --> {CURRENT_VOL}\n' \
+                f'Unable to get Total Volume change\n' \
+                f'High: {HIGH_VOL} ({DATE_HIGH_VOL})\n' \
+                f'Low: unable to get Total Volume low\n'
+            info_limitations = 'CoinGecko does not provide information\n' \
+                'about Total Volume before 2013-12-27.\n'
+
+            with open (history_values_file, 'w') as latest_values:
+                latest_values.write(f'{info_period}\n{info_price}\n{info_market_cap}\n{info_total_volume}\n{info_limitations}')
+
+
 
 
 if __name__ == '__main__':
-    get_db_latest_values('latest_values')
+    
+    write_latest_values()
+
+    days = [1,2,6,7,365,366,1825,1826,3663,3664,3665,'max']
+    for day in days:
+        write_history_values(day)
