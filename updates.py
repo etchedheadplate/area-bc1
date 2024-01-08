@@ -22,7 +22,7 @@ def run_parallel_database_update():
         concurrent.futures.wait([update_values_data] + [update_chart_data])
 
 
-
+    
 if __name__ == '__main__':
 
     run_parallel_database_update()

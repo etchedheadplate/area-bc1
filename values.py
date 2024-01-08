@@ -15,7 +15,7 @@ def write_latest_values():
     # User configuration related variables:
     latest_values_path = config.databases['latest_api_data']['path']    
     latest_api_data_file = latest_values_path + config.databases['latest_api_data']['filename']
-    latest_values_file = latest_values_path + 'latest_values.txt'
+    latest_values_file = latest_values_path + 'latest_values.md'
 
     with open (latest_api_data_file, 'r') as json_file:
         
@@ -52,10 +52,10 @@ def write_latest_values():
             f'24h Change: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
             f'24h Volume: {TOTAL_TOTAL_VOLUMEUME}\n' \
             f'Diluted: {FULLY_DILUTED_VALUATION}\n'
-        info_ath = f'ATH: {ALL_TIME_HIGH_CHANGE_PERCENTAGE} ({ALL_TIME_HIGH})\n' \
+        info_ath = f'ATH Change: {ALL_TIME_HIGH_CHANGE_PERCENTAGE} ({ALL_TIME_HIGH})\n' \
             f'ATH Date: UTC {ALL_TIME_HIGH_DATE}\n'
-        info_supply = f'Total Supply: {SUPPLY_TOTAL}\n' \
-            f'Circulating: {SUPPLY_CIRCULATING}'
+        info_supply = f'Trade Supply: {SUPPLY_CIRCULATING}\n' \
+            f'Total Supply: {SUPPLY_TOTAL}\n'
 
         with open (latest_values_file, 'w') as latest_values:
             latest_values.write(f"```\n{info_pair_update}\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_supply}\n```")
@@ -67,7 +67,7 @@ def write_history_values(days):
     history_chart = 'history_chart_days_max'
 
     history_values_path = config.databases[f'{history_chart}']['path']
-    history_values_file = history_values_path + f'history_values_days_{days}.txt'
+    history_values_file = history_values_path + f'history_values_days_{days}.md'
 
     history_chart_path = config.databases[f'{history_chart}']['path']
     history_chart_file = history_chart_path + history_chart + '.csv'
