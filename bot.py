@@ -16,8 +16,8 @@ from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHa
 import os
 
 import config
-from plot import make_history_plot
-from values import write_history_values
+from market import make_plot, write_history_values
+
 
 
 # States:
@@ -89,7 +89,7 @@ def handle_days(update, context):
     values = path + f'history_values_days_{days}.md'
 
     if not os.path.exists(plot):
-        make_history_plot(days)
+        make_plot(days)
     if not os.path.exists(values):
         write_history_values(days)
 

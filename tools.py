@@ -92,48 +92,6 @@ def convert_utc_date_to_timestamp(utc):
     return timestamp
 
 
-def select_chart(period):
-    # Selects chart based on days period. Used for history values and plot selection. 90 days
-    # chart skipped because of 1-hour interval, which makes it useless in history values case.
-    
-    if isinstance(period, int):
-        days = int(period)
-        if days <= 1:
-            chart = 'latest_chart'
-            chart_for_history_values = chart
-        elif days <= 90:
-            chart = 'history_chart_days_90'
-            chart_for_history_values = 'history_chart_days_max'
-        else:
-            chart = 'history_chart_days_max'
-            chart_for_history_values = chart
-    else:
-        chart = 'history_chart_days_max'
-        chart_for_history_values = chart
-    
-    return chart, chart_for_history_values
-
-
-def calculate_chart_interval(period):
-    # Calculates interval between history chart rows based on CoinGecko API intervals.
-    
-    if isinstance(period, int):
-        if period <= 1:
-            one_day_as_five_minutes_chunks = period * 288 - 1
-            interval = one_day_as_five_minutes_chunks
-        elif period <= 90:
-            one_day_as_one_hour_chunks = period * 24
-            interval = one_day_as_one_hour_chunks
-        else:
-            one_day_as_one_day_chunks = period * 1
-            interval = one_day_as_one_day_chunks
-    else:
-        one_day_as_one_day_chunks = period * 1
-        interval = one_day_as_one_day_chunks
-    
-    return interval
-
-
 def calculate_percentage_change(old, new):
     # Calculates percentage change between old and new value.
 
@@ -141,56 +99,7 @@ def calculate_percentage_change(old, new):
     return percentage_change
 
 
-def format_time_axis(timestamp, period):
-    # Formats time axis to show granular time depending on time period.
-    
-    # Convert milliseconds timestamp to seconds timestamp, then convert timestamp to UTC:
-    if len(str(timestamp)) > 10:
-        timestamp /= 1000
 
-    date_object = datetime.utcfromtimestamp(timestamp)
-
-    # Format time according to plot time period:
-    if period <= 1:
-        formatted_date = date_object.strftime('%H:%M')
-    elif period <= 6:
-        formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
-    elif period <= 365:
-        formatted_date = date_object.strftime('%d.%m.%Y')
-    elif period <= 1825:
-        formatted_date = date_object.strftime('%m.%Y')
-    else:
-        formatted_date = date_object.strftime('%Y')
-    return formatted_date
-
-
-def format_money_axis(amount):
-    # Formats money axis to common abbreviation depending on money amount.
-
-    if amount >= 1_000_000_000_000_000:
-        formatted_amount = "{:.1f} Qn".format(amount / 1_000_000_000_000_000)
-    elif amount >= 1_000_000_000_000:
-        formatted_amount = "{:.1f} T".format(amount / 1_000_000_000_000)
-    elif amount >= 1_000_000_000:
-        formatted_amount = "{:.1f} B".format(amount / 1_000_000_000)
-    elif amount >= 1_000_000:
-        formatted_amount = "{:.1f} M".format(amount / 1_000_000)
-    elif amount >= 1_000:
-        formatted_amount = "{:.1f} K".format(amount / 1_000)
-    else:
-        formatted_amount = "{:.2f}".format(amount)
-    return formatted_amount
-
-
-
-def define_market_movement(percentage_change):
-    # Defines % of price change as market movement in given period. Based on
-    # market movement selects plot background and color for plot legend.
-
-    for background_name in config.plot['backgrounds']:
-        market_movement = config.plot['backgrounds'][f'{background_name}']['range']
-        if market_movement[0] <= percentage_change <= market_movement[1]:
-            return background_name
 
 
 

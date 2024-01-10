@@ -62,14 +62,14 @@ api = {
 
 # Database related variables
 databases = {
-    'latest_api_data': {
+    'latest_raw_values': {
         'api': 'coingecko',
         'type': 'values',
-        'filename': 'latest_api_data.json',
+        'filename': 'latest_raw_values.json',
         'path': f'db/market/{currency_pair}/latest/',
         'update': {
             'time': '00:30',
-            'interval': 0.5,
+            'interval': 0.25,
             'allow_rewrite': True
         },
         'custom_params': {
@@ -82,7 +82,7 @@ databases = {
         'path': f'db/market/{currency_pair}/latest/',
         'update': {
             'time': '50:30',
-            'interval': 0.5,
+            'interval': 0.25,
             'allow_rewrite': True
         },
         'custom_params': {
@@ -94,7 +94,7 @@ databases = {
         'type': 'chart',
         'path': f'db/market/{currency_pair}/history/',
         'update': {
-            'time': '05:30',
+            'time': '10:30',
             'interval': 1,
             'allow_rewrite': True
         },
@@ -122,7 +122,6 @@ databases = {
 # Market plot related variables
 plot = {
     'path': f'db/market/{currency_pair}/',
-#    'output': 'src/images/plot/market_plot_with_background.png',
     'font': 'src/font/font.ttf',
     'colors': {
         'date': 'white',
