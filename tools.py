@@ -16,6 +16,7 @@ def get_api_data(database):
     api_base = config.api[f'{db_api}']['base']
     api_endpoint = config.api[f'{db_api}']['endpoint'][f'{db_type}']['name']
     api_params = config.api[f'{db_api}']['endpoint'][f'{db_type}']['params']
+    api_response_type = config.api[f'{db_api}']['endpoint'][f'{db_type}']['type']
     api_response_subdict = config.api[f'{db_api}']['endpoint'][f'{db_type}']['subdict']
 
     # Build queries list from standart API parameters and custom database parameters:
@@ -25,16 +26,21 @@ def get_api_data(database):
         api_params[f'{query}']=f'{value}'
         query_params.append(f"{query}={value}")
     
-    # Build formatted URL to API and retrieve JSON:
+    # Build formatted URL to API and get data response. If response type is JSON,
+    # check if needed data is a subdictionary of retrieved JSON:
     api_url = f"{api_base}{api_endpoint}?{'&'.join(query_params)}"
     api_response = requests.get(api_url)
-    response_data = api_response.json()
-
-    # Check if needed data is a subdictionary of retrieved JSON:
-    if api_response_subdict:
-        return response_data[api_response_subdict]
+    if api_response_type == 'json':
+        response_data = api_response.json()
+        if api_response_subdict:
+            return response_data[api_response_subdict]
+        else:
+            return response_data
     else:
+        response_data = api_response
         return response_data
+
+
 
 
 def format_currency(amount, ticker):

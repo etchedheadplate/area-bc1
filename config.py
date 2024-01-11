@@ -11,6 +11,8 @@ currency_crypto_ticker = 'BTC'
 currency_vs_ticker = currency_vs.upper()
 currency_pair = currency_crypto_ticker + currency_vs_ticker
 
+blockchain_chart = 'transactions-per-second'
+
 
 # API related variables
 api = {
@@ -19,6 +21,7 @@ api = {
         'endpoint' : {
             'chart': {
                 'name': f'coins/{currency_crypto}/market_chart',
+                'type': 'json',
                 'params': {
                     'vs_currency': f'{currency_vs}',
                     'days': '',
@@ -34,6 +37,7 @@ api = {
             },
             'values': {
                 'name': f'coins/{currency_crypto}',
+                'type': 'json',
                 'params': {
                     'localization': 'false',
                     'tickers': 'false',
@@ -55,6 +59,37 @@ api = {
             1020: "Acces Denied",
             10002: "API Key Missing",
             10005: "Request limited to PRO API"
+        }
+    },
+    'blockchain.com': {
+        'base': 'https://api.blockchain.info/',
+        'endpoint': {
+            'chart': {
+                'name': f'{blockchain_chart}',
+                'type': 'csv',
+                'params': {
+                    'timespan': '5weeks',
+                    'rollingAverage': '8hours',
+                    'start': '',
+                    'format': 'csv',
+                    'sampled': 'true'
+                },
+                'subdict': False,
+                'columns': {
+                    '': ''
+                }
+            },
+            'values': {
+                'name': 'stats',
+                'type': 'json',
+                'params': {
+                    '': ''
+                },
+                'subdict': False,
+                'columns': {
+                    '': ''
+                }
+            }
         }
     }
 }
