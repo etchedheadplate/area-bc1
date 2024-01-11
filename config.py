@@ -62,61 +62,62 @@ api = {
 
 # Database related variables
 databases = {
-    'latest_raw_values': {
-        'api': 'coingecko',
-        'type': 'values',
-        'filename': 'latest_raw_values.json',
-        'path': f'db/market/{currency_pair}/latest/',
-        'update': {
-            'time': '00:30',
-            'interval': 0.25,
-            'allow_rewrite': True
+    'market': {
+        'latest_raw_values': {
+            'api': 'coingecko',
+            'type': 'values',
+            'filename': 'latest_raw_values.json',
+            'path': f'db/market/{currency_pair}/latest/',
+            'update': {
+                'time': '00:30',
+                'interval': 0.25,
+                'allow_rewrite': True
+            },
+            'custom_params': {
+                '': ''
+            }
         },
-        'custom_params': {
-            '': ''
-        }
-    },
-    'latest_chart': {
-        'api': 'coingecko',
-        'type': 'chart',
-        'path': f'db/market/{currency_pair}/latest/',
-        'update': {
-            'time': '50:30',
-            'interval': 0.25,
-            'allow_rewrite': True
+        'latest_chart': {
+            'api': 'coingecko',
+            'type': 'chart',
+            'path': f'db/market/{currency_pair}/latest/',
+            'update': {
+                'time': '50:30',
+                'interval': 0.25,
+                'allow_rewrite': True
+            },
+            'custom_params': {
+                'days': '1'
+            }
         },
-        'custom_params': {
-            'days': '1'
-        }
-    },
-    'history_chart_days_90': {
-        'api': 'coingecko',
-        'type': 'chart',
-        'path': f'db/market/{currency_pair}/history/',
-        'update': {
-            'time': '10:30',
-            'interval': 1,
-            'allow_rewrite': True
+        'history_chart_days_90': {
+            'api': 'coingecko',
+            'type': 'chart',
+            'path': f'db/market/{currency_pair}/history/',
+            'update': {
+                'time': '10:30',
+                'interval': 1,
+                'allow_rewrite': True
+            },
+            'custom_params': {
+                'days': '90'
+            }
         },
-        'custom_params': {
-            'days': '90'
+        'history_chart_days_max': {
+            'api': 'coingecko',
+            'type': 'chart',
+            'path': f'db/market/{currency_pair}/history/',
+            'update': {
+                'time': '00:55:30',
+                'interval': 24,
+                'allow_rewrite': False
+            },
+            'custom_params': {
+                'days': 'max'
+            }
         }
-    },
-    'history_chart_days_max': {
-        'api': 'coingecko',
-        'type': 'chart',
-        'path': f'db/market/{currency_pair}/history/',
-        'update': {
-            'time': '00:55:30',
-            'interval': 24,
-            'allow_rewrite': False
-        },
-        'custom_params': {
-            'days': 'max'
-        }
-    },
+    }
 }
-
 
 
 # Market plot related variables
