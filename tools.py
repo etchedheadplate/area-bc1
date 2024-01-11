@@ -5,13 +5,14 @@ from currency_symbols import CurrencySymbols
 import config
 
 
-def get_api_data(database):
+def get_api_data(section, database):
 # Builds formatted URL to API based on user configuration and retrieves JSON data.
 
     # User configuration related variables:
-    db_api = config.databases[f'{database}']['api']
-    db_type = config.databases[f'{database}']['type']
-    db_custom_params = config.databases[f'{database}']['custom_params'] 
+    db_section = section
+    db_api = config.databases[f'{db_section}'][f'{database}']['api']
+    db_type = config.databases[f'{db_section}'][f'{database}']['type']
+    db_custom_params = config.databases[f'{db_section}'][f'{database}']['custom_params'] 
 
     api_base = config.api[f'{db_api}']['base']
     api_endpoint = config.api[f'{db_api}']['endpoint'][f'{db_type}']['name']

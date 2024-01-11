@@ -72,14 +72,14 @@ def get_chart_data(days):
 
     # User configuration related variables:
     chart_name = select_chart(days)[0]
-    chart_api = config.databases[f'{chart_name}']['api']
-    chart_type = config.databases[f'{chart_name}']['type']
-    chart_path = config.databases[f'{chart_name}']['path']
+    chart_api = config.databases['market'][f'{chart_name}']['api']
+    chart_type = config.databases['market'][f'{chart_name}']['type']
+    chart_path = config.databases['market'][f'{chart_name}']['path']
     chart_file = chart_path + chart_name + '.csv'
     chart_columns = config.api[f'{chart_api}']['endpoint'][f'{chart_type}']['columns']
-    chart_update_time = config.databases[f'{chart_name}']['update']['time']
-    chart_update_interval = config.databases[f'{chart_name}']['update']['interval']
-    chart_update_allow_rewrite = config.databases[f'{chart_name}']['update']['allow_rewrite']
+    chart_update_time = config.databases['market'][f'{chart_name}']['update']['time']
+    chart_update_interval = config.databases['market'][f'{chart_name}']['update']['interval']
+    chart_update_allow_rewrite = config.databases['market'][f'{chart_name}']['update']['allow_rewrite']
 
     # Create chart directory if it doesn' exists:
     if not os.path.isdir(chart_path):
@@ -97,7 +97,7 @@ def get_chart_data(days):
         time_update = datetime.strptime(str(time_current)[:-len(chart_update_time)] + chart_update_time, '%Y-%m-%d %H:%M:%S')
 
         # Call to API and creation of DataFrame objects based on response data:
-        response = get_api_data(chart_name)
+        response = get_api_data('market', chart_name)
         response_columns = pd.DataFrame({'Date': []})
 
         for column, row in chart_columns.items():
@@ -144,7 +144,7 @@ def get_latest_raw_values():
     # Updates JSON file with regularity specified in user configuration.
 
     # User configuration related variables:
-    latest_raw_values = config.databases['latest_raw_values']
+    latest_raw_values = config.databases['market']['latest_raw_values']
     latest_raw_values_path = latest_raw_values['path']
     latest_raw_values_file = latest_raw_values_path + latest_raw_values['filename']
     latest_raw_values_update_time = latest_raw_values['update']['time']
@@ -158,7 +158,7 @@ def get_latest_raw_values():
         time_update = datetime.strptime(str(time_current)[:-len(latest_raw_values_update_time)] + latest_raw_values_update_time, '%Y-%m-%d %H:%M:%S')
 
         # Call to API and creation JSON file based on response data:
-        response = get_api_data('latest_raw_values')
+        response = get_api_data('market', 'latest_raw_values')
 
         with open(latest_raw_values_file, 'w') as json_file:
             json.dump(response, json_file)
@@ -274,7 +274,7 @@ def make_plot(days):
     
     # User configuration related variables:
     chart_name = select_chart(days)[0]
-    chart_file = config.databases[f'{chart_name}']['path'] + chart_name + '.csv'
+    chart_file = config.databases['market'][f'{chart_name}']['path'] + chart_name + '.csv'
 
     # Plot-related variables:
     plot_font = font_manager.FontProperties(fname=config.plot['font'])
@@ -404,8 +404,8 @@ def write_latest_values():
     # Parses raw API data to separate values and generates Markdown file with latest values.
 
     # User configuration related variables:
-    latest_values_path = config.databases['latest_raw_values']['path']    
-    latest_raw_values_file = latest_values_path + config.databases['latest_raw_values']['filename']
+    latest_values_path = config.databases['market']['latest_raw_values']['path']    
+    latest_raw_values_file = latest_values_path + config.databases['market']['latest_raw_values']['filename']
     latest_values_file = latest_values_path + 'latest_values.md'
 
     with open (latest_raw_values_file, 'r') as json_file:
@@ -459,11 +459,11 @@ def write_history_values(days):
 
     # User configuration related variables:
     history_chart = select_chart(days)[1]
-    history_chart_path = config.databases[f'{history_chart}']['path']
+    history_chart_path = config.databases['market'][f'{history_chart}']['path']
     history_chart_file = history_chart_path + history_chart + '.csv'
     history_chart_data = pd.read_csv(history_chart_file)
 
-    history_values_path = config.databases[f'{history_chart}']['path']
+    history_values_path = config.databases['market'][f'{history_chart}']['path']
     history_values_file = history_values_path + f'history_values_days_{days}.md'
 
     if days == 'max':
@@ -477,7 +477,7 @@ def write_history_values(days):
     history_market_cap = history_chart_data['Market Cap'][history_chart_data_index_first : history_chart_data_index_last]
     history_total_volume = history_chart_data['Total Volume'][history_chart_data_index_first : history_chart_data_index_last]
 
-    latest_raw_values_file = config.databases['latest_raw_values']['path'] + config.databases['latest_raw_values']['filename']
+    latest_raw_values_file = config.databases['market']['latest_raw_values']['path'] + config.databases['market']['latest_raw_values']['filename']
 
     with open (latest_raw_values_file, 'r') as json_file:
         

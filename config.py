@@ -151,6 +151,12 @@ databases = {
                 'days': 'max'
             }
         }
+    },
+    'blockchain': {
+
+    },
+    'transactions': {
+        
     }
 }
 
