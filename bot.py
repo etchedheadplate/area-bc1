@@ -32,7 +32,7 @@ def start(update, context):
 
 def latest(update, context):
 
-    path = config.databases['latest_api_data']['path']
+    path = config.databases['market']['latest_api_data']['path']
     plot = path + 'latest_plot.png'
     values = path + 'latest_values.md'
     with open(plot, 'rb') as img_file:
@@ -84,7 +84,7 @@ def handle_days(update, context):
          update.message.reply_text('Please send number')
 
     days = user_number
-    path = config.databases['history_chart_days_max']['path']
+    path = config.databases['market']['history_chart_days_max']['path']
     plot = path + f'history_plot_days_{days}.png'
     values = path + f'history_values_days_{days}.md'
 

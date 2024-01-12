@@ -294,8 +294,10 @@ def make_plot(days):
 
     # Specification of chart data indexes for plot axes:
     chart_interval = calculate_rows_interval(days)
-    plot_index_last = len(plot_df) -1
+    plot_index_last = len(plot_df) - 1
     plot_index_first = plot_index_last - chart_interval
+    if plot_index_first < 1:
+        plot_index_first = 1
 
     # Market data related variables for percentage change calculation:
     plot_price_new = plot_df['Price'][plot_index_last]
@@ -471,6 +473,8 @@ def write_history_values(days):
 
     history_chart_data_index_last = len(history_chart_data)
     history_chart_data_index_first = history_chart_data_index_last - days
+    if history_chart_data_index_first < 1:
+        history_chart_data_index_first = 1
 
     history_date = history_chart_data['Date'][history_chart_data_index_first : history_chart_data_index_last]
     history_price = history_chart_data['Price'][history_chart_data_index_first : history_chart_data_index_last]
