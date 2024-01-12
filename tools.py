@@ -5,41 +5,26 @@ from currency_symbols import CurrencySymbols
 import config
 
 
-def get_api_data(section, database):
+def get_api_data(base, endpoint, params=False, subdict=False):
 # Builds formatted URL to API based on user configuration and retrieves JSON data.
 
-    # User configuration related variables:
-    db_section = section
-    db_api = config.databases[f'{db_section}'][f'{database}']['api']
-    db_type = config.databases[f'{db_section}'][f'{database}']['type']
-    db_custom_params = config.databases[f'{db_section}'][f'{database}']['custom_params'] 
-
-    api_base = config.api[f'{db_api}']['base']
-    api_endpoint = config.api[f'{db_api}']['endpoint'][f'{db_type}']['name']
-    api_params = config.api[f'{db_api}']['endpoint'][f'{db_type}']['params']
-    api_response_type = config.api[f'{db_api}']['endpoint'][f'{db_type}']['type']
-    api_response_subdict = config.api[f'{db_api}']['endpoint'][f'{db_type}']['subdict']
-
     # Build queries list from standart API parameters and custom database parameters:
-    api_params.update(db_custom_params)
-    query_params = []
-    for query, value in api_params.items():
-        api_params[f'{query}']=f'{value}'
-        query_params.append(f"{query}={value}")
+    if params:
+        query_params = []
+        for query, value in params.items():
+            params[f'{query}']=f'{value}'
+            query_params.append(f"{query}={value}")
     
     # Build formatted URL to API and get data response. If response type is JSON,
     # check if needed data is a subdictionary of retrieved JSON:
-    api_url = f"{api_base}{api_endpoint}?{'&'.join(query_params)}"
+    api_url = f"{base}{endpoint}?{'&'.join(query_params)}"
     api_response = requests.get(api_url)
-    if api_response_type == 'json':
-        response_data = api_response.json()
-        if api_response_subdict:
-            return response_data[api_response_subdict]
-        else:
-            return response_data
+    response_data = api_response.json()
+    if subdict:
+        return response_data[subdict]
     else:
-        response_data = api_response
         return response_data
+
 
 
 

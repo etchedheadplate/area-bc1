@@ -28,6 +28,7 @@ from tools import (get_api_data,
 
 
 
+
 def select_chart(days):
     # Selects chart based on days period. Used for updating charts, creation of
     # plots and history values. Due to history values being calculated on daily
@@ -37,16 +38,16 @@ def select_chart(days):
     if isinstance(days, int):
         days = int(days)
         if days <= 1:
-            chart = 'latest_chart'
+            chart = 'market_latest_chart'
             chart_for_history_values = chart
         elif days <= 90:
-            chart = 'history_chart_days_90'
-            chart_for_history_values = 'history_chart_days_max'
+            chart = 'market_history_chart_days_90'
+            chart_for_history_values = 'market_history_chart_days_max'
         else:
-            chart = 'history_chart_days_max'
+            chart = 'market_history_chart_days_max'
             chart_for_history_values = chart
     else:
-        chart = 'history_chart_days_max'
+        chart = 'market_history_chart_days_max'
         chart_for_history_values = chart
     
     return chart, chart_for_history_values
@@ -64,30 +65,30 @@ All database files are updated regulary as specified in user configuration.
 '''
 
 
-def get_chart_data(days):
+def get_chart(days):
     # Creates chart path if it doesn't exists for selected chart. Creates empty
     # chart file with columns specified in user configuration. Fetches API data
     # from CoinGecko and distributes it to columns using 'Date' column as common
     # denominator. Updates chart with regularity specified in user configuration.
 
-    # User configuration related variables:
     chart_name = select_chart(days)[0]
-    chart_api = config.databases['market'][f'{chart_name}']['api']
-    chart_type = config.databases['market'][f'{chart_name}']['type']
-    chart_path = config.databases['market'][f'{chart_name}']['path']
-    chart_file = chart_path + chart_name + '.csv'
-    chart_columns = config.api[f'{chart_api}']['endpoint'][f'{chart_type}']['columns']
-    chart_update_time = config.databases['market'][f'{chart_name}']['update']['time']
-    chart_update_interval = config.databases['market'][f'{chart_name}']['update']['interval']
-    chart_update_allow_rewrite = config.databases['market'][f'{chart_name}']['update']['allow_rewrite']
+
+    # User configuration related variables:
+    chart = config.databases[f'{chart_name}']
+    chart_api_base = chart['api']['base']
+    chart_api_endpoint = chart['api']['endpoint']
+    chart_api_params = chart['api']['params']
+    chart_api_subdict = chart['api']['subdict']
+    chart_file_path = chart['file']['path']
+    chart_file_name = chart['file']['name']
+    chart_file_columns = chart['file']['columns']
+    chart_file = chart_file_path + chart_file_name
+    chart_update_time = chart['update']['time']
+    chart_update_interval = chart['update']['interval']
 
     # Create chart directory if it doesn' exists:
-    if not os.path.isdir(chart_path):
-        os.makedirs(chart_path, exist_ok=True)
-
-    # Create new chart file with template from user configuration:
-    chart_template = pd.DataFrame(chart_columns.keys())
-    chart_template.to_csv(chart_file, index=False)
+    if not os.path.isdir(chart_file_path):
+        os.makedirs(chart_file_path, exist_ok=True)
 
     # Update chart, history plot and history values:
     while True:
@@ -96,29 +97,26 @@ def get_chart_data(days):
         time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
         time_update = datetime.strptime(str(time_current)[:-len(chart_update_time)] + chart_update_time, '%Y-%m-%d %H:%M:%S')
 
-        # Call to API and creation of DataFrame objects based on response data:
-        response = get_api_data('market', chart_name)
+        # Empty DataFrame for later filling with response DataFrame:
         response_columns = pd.DataFrame({'Date': []})
 
-        for column, row in chart_columns.items():
+        # Call to API and creation of DataFrame objects based on response data:
+        response = get_api_data(
+            chart_api_base,
+            chart_api_endpoint,
+            chart_api_params,
+            chart_api_subdict)
+
+        # Response data assigned to columns specified in user configuration
+        for column, row in chart_file_columns.items():
             response_data = pd.DataFrame(response[row], columns=['Date', f'{column}'])
             response_columns = response_columns.merge(response_data, on='Date', how='outer')
 
         response_columns = response_columns.drop_duplicates('Date')
         
-        # Chart is either fully re-writen with new response data, or updated
-        # with new rows (if any detected) as specified in user configuration.
-        current_data = pd.read_csv(chart_file)
-
-        if chart_update_allow_rewrite:
-            response_columns.to_csv(chart_file, index=False)
-            print(time_current, f'[{chart_name}]', len(response_columns), f'entries re-written')
-        else:
-            if len(response_columns) > len(current_data):
-                response_columns.to_csv(chart_file, index=False)
-                print(time_current, f'[{chart_name}]', len(response_columns) - len(current_data), f'entries added')
-            else:
-                print(time_current, f'[{chart_name}] no new entries')
+        # Filled with response data DataFrame saved to file:
+        response_columns.to_csv(chart_file, index=False)
+        print(time_current, f'[{chart_name}]', len(response_columns), f'entries added')
         
         # Make chart plot and history values data:
         write_history_values(days)
@@ -143,10 +141,17 @@ def get_latest_raw_values():
     # Fetches raw API data for latest values and saves it eto database.
     # Updates JSON file with regularity specified in user configuration.
 
+    latest_raw_values_name = 'market_latest_raw_values'
+
     # User configuration related variables:
-    latest_raw_values = config.databases['market']['latest_raw_values']
-    latest_raw_values_path = latest_raw_values['path']
-    latest_raw_values_file = latest_raw_values_path + latest_raw_values['filename']
+    latest_raw_values = config.databases[f'{latest_raw_values_name}']
+    latest_raw_values_api_base = latest_raw_values['api']['base']
+    latest_raw_values_api_endpoint = latest_raw_values['api']['endpoint']
+    latest_raw_values_api_params = latest_raw_values['api']['params']
+    latest_raw_values_api_subdict = latest_raw_values['api']['subdict']
+    latest_raw_values_file_path = latest_raw_values['file']['path']
+    latest_raw_values_file_name = latest_raw_values['file']['name']
+    latest_raw_values_file = latest_raw_values_file_path + latest_raw_values_file_name
     latest_raw_values_update_time = latest_raw_values['update']['time']
     latest_raw_values_update_interval = latest_raw_values['update']['interval']
 
@@ -158,22 +163,26 @@ def get_latest_raw_values():
         time_update = datetime.strptime(str(time_current)[:-len(latest_raw_values_update_time)] + latest_raw_values_update_time, '%Y-%m-%d %H:%M:%S')
 
         # Call to API and creation JSON file based on response data:
-        response = get_api_data('market', 'latest_raw_values')
+        response = get_api_data(
+            latest_raw_values_api_base,
+            latest_raw_values_api_endpoint,
+            latest_raw_values_api_params,
+            latest_raw_values_api_subdict)
 
         with open(latest_raw_values_file, 'w') as json_file:
             json.dump(response, json_file)
-            print(time_current, '[latest_raw_values] re-written')
+            print(time_current, f'[{latest_raw_values_name}] re-written')
         
         # Make latest values data
         write_latest_values()
-        print(time_current, '[latest_raw_values] values updated')
+        print(time_current, f'[{latest_raw_values_name}] values updated')
         
         # Schedule next update time. Check if current time > update time. If is, shift update time
         # by user configuration specified update interval untill update time > current time.
         while time_current > time_update:
             time_update = time_update + timedelta(hours=latest_raw_values_update_interval)
         else:
-            print(time_current, f'[latest_raw_values] update planned to {time_update}')
+            print(time_current, f'[{latest_raw_values_name}] update planned to {time_update}')
 
         seconds_untill_upgrade = (time_update - time_current).total_seconds()
 
@@ -263,8 +272,8 @@ def define_market_movement(price_change_percentage):
     # Defines % of price change as market movement in given period. Based on
     # market movement selects plot background and color for plot legend.
 
-    for background in config.plot['backgrounds']:
-        market_movement = config.plot['backgrounds'][f'{background}']['range']
+    for background in config.plot['market']['backgrounds']:
+        market_movement = config.plot['market']['backgrounds'][f'{background}']['range']
         if market_movement[0] <= price_change_percentage < market_movement[1]:
             return background
 
@@ -272,19 +281,23 @@ def define_market_movement(price_change_percentage):
 def make_plot(days):
     # Creates plot file with properties specified in user configuration.
     
-    # User configuration related variables:
     chart_name = select_chart(days)[0]
-    chart_file = config.databases['market'][f'{chart_name}']['path'] + chart_name + '.csv'
+
+    # User configuration related variables:
+    chart = config.databases[f'{chart_name}']
+    chart_file_path = chart['file']['path']
+    chart_file_name = chart['file']['name']
+    chart_file = chart_file_path + chart_file_name
 
     # Plot-related variables:
-    plot_font = font_manager.FontProperties(fname=config.plot['font'])
-    plot_colors = config.plot['colors']
-    plot_background = config.plot['backgrounds']
+    plot_font = font_manager.FontProperties(fname=config.plot['market']['font'])
+    plot_colors = config.plot['market']['colors']
+    plot_background = config.plot['market']['backgrounds']
     
     if days == 1:
-        plot_output = config.plot['path'] + 'latest/latest_plot.png'
+        plot_output = config.plot['market']['path'] + 'latest/latest_plot.png'
     else:
-        plot_output = config.plot['path'] + f'history/history_plot_days_{days}.png'
+        plot_output = config.plot['market']['path'] + f'history/history_plot_days_{days}.png'
     
     # Creation of plot data frame:
     plot_df = pd.read_csv(chart_file)
@@ -371,7 +384,7 @@ def make_plot(days):
     legend.get_texts()[1].set_color(plot_colors['total_volume'])
     legend.get_texts()[2].set_color(plot_colors[f'{plot_market_movement_color}'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
-    legend.get_frame().set_alpha(0.5)
+    legend.get_frame().set_alpha(0.7)
 
     # Set legend text size
     for text in legend.get_texts():
@@ -405,10 +418,14 @@ saved as Markdown files in database.
 def write_latest_values():
     # Parses raw API data to separate values and generates Markdown file with latest values.
 
+    latest_raw_values_name = 'market_latest_raw_values'
+
     # User configuration related variables:
-    latest_values_path = config.databases['market']['latest_raw_values']['path']    
-    latest_raw_values_file = latest_values_path + config.databases['market']['latest_raw_values']['filename']
-    latest_values_file = latest_values_path + 'latest_values.md'
+    latest_raw_values = config.databases[f'{latest_raw_values_name}']
+    latest_raw_values_file_path = latest_raw_values['file']['path']
+    latest_raw_values_file_name = latest_raw_values['file']['name']
+    latest_raw_values_file = latest_raw_values_file_path + latest_raw_values_file_name
+    latest_values_file = latest_raw_values_file_path + 'latest_values.md'
 
     with open (latest_raw_values_file, 'r') as json_file:
         
@@ -459,13 +476,16 @@ def write_latest_values():
 def write_history_values(days):
     # Parses raw API data and chart to separate values and generates Markdown file with history values.
 
+    history_chart_name = select_chart(days)[1]
+
     # User configuration related variables:
-    history_chart = select_chart(days)[1]
-    history_chart_path = config.databases['market'][f'{history_chart}']['path']
-    history_chart_file = history_chart_path + history_chart + '.csv'
+    history_chart = config.databases[f'{history_chart_name}']
+    history_chart_file_path = history_chart['file']['path']
+    history_chart_file_name = history_chart['file']['name']
+    history_chart_file = history_chart_file_path + history_chart_file_name
     history_chart_data = pd.read_csv(history_chart_file)
 
-    history_values_path = config.databases['market'][f'{history_chart}']['path']
+    history_values_path = history_chart_file_path
     history_values_file = history_values_path + f'history_values_days_{days}.md'
 
     if days == 'max':
@@ -481,7 +501,11 @@ def write_history_values(days):
     history_market_cap = history_chart_data['Market Cap'][history_chart_data_index_first : history_chart_data_index_last]
     history_total_volume = history_chart_data['Total Volume'][history_chart_data_index_first : history_chart_data_index_last]
 
-    latest_raw_values_file = config.databases['market']['latest_raw_values']['path'] + config.databases['market']['latest_raw_values']['filename']
+    latest_raw_values_name = 'market_latest_raw_values'
+    latest_raw_values = config.databases[f'{latest_raw_values_name}']
+    latest_raw_values_file_path = latest_raw_values['file']['path']
+    latest_raw_values_file_name = latest_raw_values['file']['name']
+    latest_raw_values_file = latest_raw_values_file_path + latest_raw_values_file_name
 
     with open (latest_raw_values_file, 'r') as json_file:
         
