@@ -298,8 +298,8 @@ def make_plot(days):
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to min total volume value and 99% of min price value for better scaling
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_price) * 0.95, max(axis_price) * 0.95)
-    ax2.set_ylim(min(axis_total_volume), max(axis_total_volume))
+    ax1.set_ylim(min(axis_price) * 0.99, max(axis_price) * 1.01)
+    ax2.set_ylim(min(axis_total_volume), max(axis_total_volume) * 1.05)
 
     # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))

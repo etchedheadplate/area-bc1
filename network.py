@@ -221,9 +221,9 @@ def make_plot():
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to 95% of plot values for better scaling
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 0.95)
-    ax2.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 0.95)
-    ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 0.95)
+    ax1.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
+    ax2.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
+    ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 1.05)
 
     # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))

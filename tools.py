@@ -12,7 +12,6 @@ def get_api_data(base, endpoint, params=False, subdict=False):
     # Build queries list from standart API parameters and custom database parameters:
     query_params = []
     if params:
-        print('params')
         for query, value in params.items():
             params[f'{query}']=f'{value}'
             query_params.append(f"{query}={value}")
