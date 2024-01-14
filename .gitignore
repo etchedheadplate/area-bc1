@@ -5,11 +5,9 @@
 *.jpg
 *.png
 *.DS_Store
-tests.py
-output.png
 __pycache__/
-src/
+api/
 db/
+src/
 tests/
-api/telegram.py
-api/__pycache__/
+tests.py

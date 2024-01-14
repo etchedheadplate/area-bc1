@@ -12,14 +12,17 @@ def get_api_data(base, endpoint, params=False, subdict=False):
     # Build queries list from standart API parameters and custom database parameters:
     query_params = []
     if params:
+        print('params')
         for query, value in params.items():
             params[f'{query}']=f'{value}'
             query_params.append(f"{query}={value}")
+
     
     # Build formatted URL to API and get data response. If response type is JSON,
     # check if needed data is a subdictionary of retrieved JSON:
     api_url = f"{base}{endpoint}?{'&'.join(query_params)}"
     api_response = requests.get(api_url)
+#    print(api_response)
     response_data = api_response.json()
     if subdict:
         return response_data[subdict]
@@ -182,6 +185,8 @@ def convert_utc_date_to_timestamp(utc):
 def calculate_percentage_change(old, new):
     # Calculates percentage change between old and new value.
 
+    if old == 0:
+        old = 0.001
     percentage_change = new / (old / 100) - 100
     return percentage_change
 

@@ -157,6 +157,10 @@ def get_market_latest_raw_values():
     latest_raw_values_update_time = latest_raw_values['update']['time']
     latest_raw_values_update_interval = latest_raw_values['update']['interval']
 
+    # Create directory for raw API data if it doesn' exists:
+    if not os.path.isdir(latest_raw_values_file_path):
+        os.makedirs(latest_raw_values_file_path, exist_ok=True)
+
     # Update raw API data for latest values:
     while True:
 
@@ -294,8 +298,8 @@ def make_plot(days):
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to min total volume value and 99% of min price value for better scaling
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_price) * 0.99)
-    ax2.set_ylim(min(axis_total_volume))
+    ax1.set_ylim(min(axis_price) * 0.95, max(axis_price) * 0.95)
+    ax2.set_ylim(min(axis_total_volume), max(axis_total_volume))
 
     # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))

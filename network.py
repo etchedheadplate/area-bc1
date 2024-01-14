@@ -17,13 +17,10 @@ from PIL import Image
 
 import config
 from tools import (get_api_data,
-                   define_key_metric_movement,
-                   calculate_percentage_change,
                    format_time_axis,
                    format_amount,
                    convert_timestamp_to_utc,
                    format_currency,
-                   format_percentage,
                    format_quantity)
 
 
@@ -32,21 +29,22 @@ from tools import (get_api_data,
 
 
 '''
-Functions related to fetching blockchain data from Blockchain.com API and
-updating local database at ./db/blockchain/. All blockchain data stored
-localy as files which are used as source of data for plots and values.
-All database files are updated regulary as specified in user configuration.
+Functions related to fetching network data from Blockchain.com API and updating
+local database at ./db/network/. All network data stored localy as files which
+are used as source of data for plots and values. All database files are updated
+regulary as specified in user configuration.
 '''
 
 
-def get_blockchain_chart():
-    # Creates chart path if it doesn't exists for selected chart. Creates empty
-    # chart file with columns specified in user configuration. Fetches API data
-    # from Blockchain.com and distributes it to columns using 'Date' column as common
-    # denominator. Updates chart with regularity specified in user configuration.
+def get_network_chart():
+   # Creates chart path if it doesn't exists. Fetches API data from Blockchain.com
+    # and distributes it to columns using 'Date' column as common denominator.
+    # Updates chart with regularity specified in user configuration..
+
+    chart_name = 'network_history_chart'
 
     # User configuration related variables:
-    chart = config.databases['blockchain_history_chart']
+    chart = config.databases[f'{chart_name}']
     chart_api_base = chart['api']['base']
     chart_api_endpoint = chart['api']['endpoint']
     chart_api_params = chart['api']['params']
@@ -87,13 +85,30 @@ def get_blockchain_chart():
     
     # Filled with response data DataFrame saved to file:
     response_columns.to_csv(chart_file, index=False)
+    print(time_current, f'[{chart_name}]', len(response_columns), f'entries added')
+
+    # Make history plot:
+    make_plot()
+    print(time_current, f'[{chart_name}] plot updated')
+
+    # Schedule next update time. Check if current time > update time. If is, shift update time
+    # by user configuration specified update interval untill update time > current time.
+    while time_current > time_update:
+        time_update = time_update + timedelta(hours=chart_update_interval)
+    else:
+        print(time_current, f'[{chart_name}] update planned to {time_update}')
+
+    seconds_untill_upgrade = (time_update - time_current).total_seconds()
+
+    # Update chart with regularity specified in user configuration:
+    time.sleep(seconds_untill_upgrade)
 
 
-def get_blockchain_latest_raw_values():
+def get_network_latest_raw_values():
     # Fetches raw API data for latest values and saves it to database.
     # Updates JSON file with regularity specified in user configuration.
 
-    latest_raw_values_name = 'blockchain_latest_raw_values'
+    latest_raw_values_name = 'network_latest_raw_values'
 
     # User configuration related variables:
     latest_raw_values = config.databases[f'{latest_raw_values_name}']
@@ -104,6 +119,10 @@ def get_blockchain_latest_raw_values():
     latest_raw_values_file = latest_raw_values_file_path + latest_raw_values_file_name
     latest_raw_values_update_time = latest_raw_values['update']['time']
     latest_raw_values_update_interval = latest_raw_values['update']['interval']
+
+    # Create directory for raw API data if it doesn' exists:
+    if not os.path.isdir(latest_raw_values_file_path):
+        os.makedirs(latest_raw_values_file_path, exist_ok=True)
 
     # Update raw API data for latest values:
     while True:
@@ -121,11 +140,9 @@ def get_blockchain_latest_raw_values():
             json.dump(response, json_file)
             print(time_current, f'[{latest_raw_values_name}] re-written')
         
-        # Make latest values data
+        # Write latest values data:
         write_latest_values()
         print(time_current, f'[{latest_raw_values_name}] values updated')
-        make_plot()
-        print(time_current, f'[{latest_raw_values_name}] plot updated')
 
         # Schedule next update time. Check if current time > update time. If is, shift update time
         # by user configuration specified update interval untill update time > current time.
@@ -156,46 +173,35 @@ def make_plot():
     # Creates plot file with properties specified in user configuration.
     
     # User configuration related variables:
-    chart = config.databases['blockchain_history_chart']
+    chart = config.databases['network_history_chart']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_columns = chart['file']['columns']
     chart_file = chart_file_path + chart_file_name
 
     # Plot-related variables:
-    plot = config.plot['blockchain']
+    plot = config.plot['network']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
-    plot_background = plot['backgrounds']
+    plot_background = plot['background']
     plot_output = plot['path'] + 'history_plot.png'
         
     # Creation of plot data frame:
     plot_df = pd.read_csv(chart_file)
 
-    days = len(plot_df) - 1
+    days = len(plot_df)
 
     # Specification of chart data indexes for plot axes:
-    plot_index_last = len(plot_df) - 1
-    plot_index_first = plot_index_last - days
-    if plot_index_first < 1:
-        plot_index_first = 1
-
-    # Blockchain data related variables for percentage change calculation:
-    plot_key_metric = 'TRX Cost'
-    plot_key_metric_new = plot_df[plot_key_metric][plot_index_last]
-    plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
-    plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
-    plot_key_metric_movement_format = format_percentage(plot_key_metric_movement)
-    plot_key_metric_movement_color = define_key_metric_movement(plot, plot_key_metric_movement)
+    plot_index_last = len(plot_df)
+    plot_index_first = 0
 
     # Background-related variables:
-    background = define_key_metric_movement(plot, plot_key_metric_movement)
-    background_path = plot_background[f'{background}']['path']
-    background_coordinates = plot_background[f'{background}']['coordinates']
+    background_path = plot_background['path']
+    background_coordinates = plot_background['coordinates']
 
     # Creation of plot axies:
     axis_date = plot_df['Date'][plot_index_first:plot_index_last]
-    axis_trx_cost = plot_df['TRX Cost'][plot_index_first:plot_index_last]
+    axis_trx_per_block = plot_df['TRX Per Block'][plot_index_first:plot_index_last]
     axis_hashrate = plot_df['Hashrate'][plot_index_first:plot_index_last]
     axis_price = plot_df['Price'][plot_index_first:plot_index_last]
 
@@ -208,16 +214,16 @@ def make_plot():
     ax3 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_trx_cost, color=plot_colors['trx_cost'], label="TRX Cost", linewidth=5)
-    ax2.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="Hashrate", linewidth=2)
-    ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", alpha=0.15, linewidth=0.1)
+    ax1.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="TRX Per Block", linewidth=4)
+    ax2.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="Hashrate", alpha=0.0, linewidth=0.0)
+    ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=2)
 
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to 95% of plot values for better scaling
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_trx_cost) * 0.95)
-    ax2.set_ylim(min(axis_hashrate) * 0.95)
-    ax3.set_ylim(min(axis_price) * 0.95)
+    ax1.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 0.95)
+    ax2.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 0.95)
+    ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 0.95)
 
     # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
@@ -231,7 +237,7 @@ def make_plot():
 
     # Set axies ticks text color and font:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
-    ax1.tick_params(axis="y", labelcolor=plot_colors['trx_cost'])
+    ax1.tick_params(axis="y", labelcolor=plot_colors['trx_per_block'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
 
     # Set axies ticks text size:
@@ -241,24 +247,28 @@ def make_plot():
 
     # Set axies order (higher value puts layer to the front):
     ax1.set_zorder(3)
-    ax2.set_zorder(2)
-    ax3.set_zorder(1)
+    ax2.set_zorder(1)
+    ax3.set_zorder(2)
     
-    # Set axies color filling:
-    ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.3)
+    # Set axies color filling and ticks visability:
+    ax2.fill_between(axis_date, axis_hashrate, color=plot_colors['hashrate'], alpha=0.4)
+    ax3.set_yticks([])
 
     # Set plot legend proxies and actual legend:
-    legend_proxy_trx_cost = Line2D([0], [0], label=f'TRX Cost, {config.currency_vs_ticker}')
+    legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
     legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
-    legend_proxy_hashrate_change = Line2D([0], [0], label=f'TRX Cost {plot_key_metric_movement_format}')
-    legend = ax2.legend(handles=[legend_proxy_trx_cost, legend_proxy_hashrate, legend_proxy_price, legend_proxy_hashrate_change], loc="upper left", prop=plot_font, handlelength=0)
+    legend = ax2.legend(handles=[legend_proxy_trx_per_block,
+                                 legend_proxy_hashrate,
+                                 legend_proxy_price],
+                                 loc="upper left",
+                                 prop=plot_font,
+                                 handlelength=0)
     
     # Set legend colors
-    legend.get_texts()[0].set_color(plot_colors['trx_cost'])
+    legend.get_texts()[0].set_color(plot_colors['trx_per_block'])
     legend.get_texts()[1].set_color(plot_colors['hashrate'])
     legend.get_texts()[2].set_color(plot_colors['price'])
-    legend.get_texts()[3].set_color(plot_colors[f'{plot_key_metric_movement_color}'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
 
@@ -294,7 +304,7 @@ saved as Markdown files in database.
 def write_latest_values():
     # Parses raw API data to separate values and generates Markdown file with latest values.
 
-    latest_raw_values_name = 'blockchain_latest_raw_values'
+    latest_raw_values_name = 'network_latest_raw_values'
 
     # User configuration related variables:
     latest_raw_values = config.databases[f'{latest_raw_values_name}']
@@ -303,7 +313,7 @@ def write_latest_values():
     latest_raw_values_file = latest_raw_values_file_path + latest_raw_values_file_name
     latest_values_file = latest_raw_values_file_path + 'latest_values.md'
 
-    history_chart = config.databases['blockchain_history_chart']
+    history_chart = config.databases['network_history_chart']
     history_chart_file_path = history_chart['file']['path']
     history_chart_file_name = history_chart['file']['name']
     history_chart_file = history_chart_file_path + history_chart_file_name
@@ -318,7 +328,7 @@ def write_latest_values():
 
         BLOCKS_HEIGHT = format_quantity(api_data['n_blocks_total'])
         BLOCKS_MINED = format_quantity(api_data['n_blocks_mined'])
-        BLOCKS_SIZE = round(api_data['blocks_size'] / (1_024**2) / int(BLOCKS_MINED), 4)
+        BLOCKS_SIZE = round(api_data['blocks_size'] / (1_024**2) / int(BLOCKS_MINED), 2)
         BLOCKS_MINUTES = round(api_data['minutes_between_blocks'], 1)
 
         BTC_SUPPLY = format_currency(api_data['totalbc'] / 100_000_000, config.currency_crypto_ticker)
@@ -326,6 +336,7 @@ def write_latest_values():
         BTC_SENT = format_currency(api_data['total_btc_sent'] / 100_000_000, config.currency_crypto_ticker)
         BTC_PRICE = format_currency(api_data['market_price_usd'], config.currency_vs_ticker)
 
+        TRANSACTIONS_BLOCK = round(history_chart_data['TRX Per Block'].iloc[-1], 2)
         TRANSACTIONS_MADE = format_quantity(api_data['n_tx'])
         TRANSACTIONS_COST = format_currency(history_chart_data['TRX Cost'].iloc[-1], config.currency_vs_ticker)
 
@@ -336,14 +347,15 @@ def write_latest_values():
         # Format values text for user presentation:
         info_blocks = f'Block Height: {BLOCKS_HEIGHT}\n' \
             f'24h Mined: {BLOCKS_MINED} blocks\n' \
-            f'24h Size: {BLOCKS_SIZE} MB\n' \
-            f'24h Time: {BLOCKS_MINUTES} minutes\n'
+            f'24h Size: {BLOCKS_SIZE} MB/block\n' \
+            f'24h Time: {BLOCKS_MINUTES} min/block\n'
         info_coin = f'BTC: {BTC_SUPPLY}\n' \
             f'24h Mined: {BTC_MINED}\n' \
             f'24h Sent: {BTC_SENT}\n' \
             f'24h Price: {BTC_PRICE}\n'
-        info_transactions = f'24h TRXs: {TRANSACTIONS_MADE}\n' \
-            f'24h TRX Cost: {TRANSACTIONS_COST}\n'
+        info_transactions = f'TRX: {TRANSACTIONS_BLOCK}/block\n' \
+            f'24h Total: {TRANSACTIONS_MADE}\n' \
+            f'24h Cost: {TRANSACTIONS_COST}/TRX\n'
         info_network = f'Hashrate: {HASHRATE} TH/s\n' \
             f'Difficulty: {DIFFICULTY}\n' \
             f'Change Height: {RETARGET_HEIGHT}\n'
