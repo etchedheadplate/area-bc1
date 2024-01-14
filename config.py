@@ -15,13 +15,31 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Database related variables
 databases = {
+    'blockchain_latest_raw_values': {
+        'api': {
+            'base': 'https://api.blockchain.info/',
+            'endpoint': ('stats'),
+            'params': {
+                ''
+                },
+            'subdict': ''
+        },
+        'file': {
+            'path': 'db/blockchain/',
+            'name': 'latest_raw_values.json',
+            'columns': False
+        },
+        'update': {
+            'time': '00:00',
+            'interval': 0.25
+        }
+    },
     'blockchain_history_chart': {
         'api': {
             'base': 'https://api.blockchain.info/',
-            'endpoint': ('charts/hash-rate', 'charts/avg-block-size'),
+            'endpoint': ('charts/market-price', 'charts/hash-rate', 'charts/cost-per-transaction', 'charts/transaction-fees-usd'),
             'params': {
                     'timespan': '1months',
-                    'rollingAverage': '1hours',
                     'start': '',
                     'format': 'json',
                     'sampled': 'true'
@@ -31,11 +49,11 @@ databases = {
         'file': {
             'path': 'db/blockchain/',
             'name': 'history_chart.csv',
-            'columns': ('Hashrate', 'Block Size')
+            'columns': ('Price', 'Hashrate', 'TRX Cost', 'Total Transaction Fees')
         },
         'update': {
-            'time': '00:30',
-            'interval': 0.25
+            'time': '00:05',
+            'interval': 1
         }
     },
     'market_latest_raw_values': {
@@ -148,39 +166,22 @@ plot = {
         'path': 'db/blockchain/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': 'white',
+            'date': '#B9B9B9',
             'price': '#F7931A',
-            'total_volume': '#1D910D',
+            'hashrate': '#686868',
+            'trx_cost': '#F9F9F9',
             'frame': 'black',
-            'blockchain': '#CB2B1B',
+            'trx_cost_down': '#2BD713',
+            'trx_cost_up': '#CB2B1B',
         },
         'backgrounds': {
-            'blockchain': {
-                    'path': 'src/image/plot/backgrounds/blockchain.png',
-                    'range': (-float('inf'), float('inf')),
-                    'coordinates': (25, 5)
-            }
-        }
-    },
-    'hashrate': {
-        'path': 'db/hashrate/',
-        'font': 'src/font/font.ttf',
-        'colors': {
-            'date': 'white',
-            'price': '#F7931A',
-            'total_volume': '#1D910D',
-            'frame': 'black',
-            'hashrate_down': '#CB2B1B',
-            'hashrate_up': '#CB2B1B',
-        },
-        'backgrounds': {
-            'hashrate_down': {
-                    'path': 'src/image/plot/backgrounds/hashrate_down.png',
+            'trx_cost_down': {
+                    'path': 'src/image/plot/backgrounds/trx_cost_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (795, 5)
             },
-            'hashrate_up': {
-                    'path': 'src/image/plot/backgrounds/hashrate_up.png',
+            'trx_cost_up': {
+                    'path': 'src/image/plot/backgrounds/trx_cost_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (795, 5)
             }
@@ -190,21 +191,21 @@ plot = {
         'path': f'db/market/{currency_pair}/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': 'white',
+            'date': '#B9B9B9',
             'price': '#F7931A',
-            'total_volume': '#49A0B6',
+            'total_volume': '#17E2E8',
             'frame': 'black',
-            'market_down': '#CB2B1B',
-            'market_up': '#2BD713'
+            'price_down': '#CB2B1B',
+            'price_up': '#2BD713'
         },
         'backgrounds': {
-            'market_down': {
-                    'path': 'src/image/plot/backgrounds/market_down.png',
+            'price_down': {
+                    'path': 'src/image/plot/backgrounds/price_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (25, 5)
             },
-            'market_up': {
-                    'path': 'src/image/plot/backgrounds/market_up.png',
+            'price_up': {
+                    'path': 'src/image/plot/backgrounds/price_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (25, 5)
             }

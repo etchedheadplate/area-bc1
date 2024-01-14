@@ -1,4 +1,5 @@
 import requests
+import numpy as np
 from datetime import datetime
 from currency_symbols import CurrencySymbols
 
@@ -9,8 +10,8 @@ def get_api_data(base, endpoint, params=False, subdict=False):
 # Builds formatted URL to API based on user configuration and retrieves JSON data.
 
     # Build queries list from standart API parameters and custom database parameters:
+    query_params = []
     if params:
-        query_params = []
         for query, value in params.items():
             params[f'{query}']=f'{value}'
             query_params.append(f"{query}={value}")
@@ -29,15 +30,109 @@ def get_api_data(base, endpoint, params=False, subdict=False):
 
 
 
-def format_currency(amount, ticker):
-    # Formats integer value to currency format (e.g. 1234567.89 -> 1,234,567.89 $).
-    # If currency symbol is unknown replaced by ticker (e.g. 1234567.89 -> 1,234,567.89 USD).
+
+def define_key_metric_movement(plot, key_metric_change_percentage):
+    # Defines % of price change as market movement in given period. Based on
+    # market movement selects plot background and color for plot legend.
+
+    for background in plot['backgrounds']:
+        key_metric_movement = plot['backgrounds'][f'{background}']['range']
+        if key_metric_movement[0] <= key_metric_change_percentage < key_metric_movement[1]:
+            return background
+        
+
+
+
+
+
+def format_time_axis(timestamp, days):
+    # Converts timestamps from chart's Date columns to UTC and appropriately formats time
+    # to plot period.
     
-    currency_symbol = CurrencySymbols().get_symbol(ticker)
-    if currency_symbol:
-        return currency_symbol + ' {:,.2f}'.format(amount)
+    # Convert milliseconds timestamp to seconds:
+    if len(str(int(timestamp))) > 10:
+        timestamp /= 1000
+
+    # Convert timestamp to UTC:
+    date_object = datetime.utcfromtimestamp(timestamp)
+
+    # Format time appropriately to plot period:
+    if days <= 1:
+        formatted_date = date_object.strftime('%H:%M')
+    elif days <= 6:
+        formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
+    elif days <= 365:
+        formatted_date = date_object.strftime('%d.%m.%Y')
+    elif days <= 1825:
+        formatted_date = date_object.strftime('%m.%Y')
     else:
-        return ticker + ' {:,.2f}'.format(amount)
+        formatted_date = date_object.strftime('%Y')
+    return formatted_date
+
+
+
+
+
+
+
+def format_amount(amount, ticker=False):
+    # Formats amount to common abbreviation.
+
+    if amount >= 1_000_000_000_000_000:
+        formatted_amount = "{:.1f}Qn".format(amount / 1_000_000_000_000_000)
+    elif amount >= 1_000_000_000_000:
+        formatted_amount = "{:.1f}T".format(amount / 1_000_000_000_000)
+    elif amount >= 1_000_000_000:
+        formatted_amount = "{:.1f}B".format(amount / 1_000_000_000)
+    elif amount >= 1_000_000:
+        formatted_amount = "{:.1f}M".format(amount / 1_000_000)
+    elif amount >= 1_000:
+        formatted_amount = "{:.1f}K".format(amount / 1_000)
+    elif amount <= -1_000_000_000_000_000:
+        formatted_amount = "{:.1f}Qn".format(amount / 1_000_000_000_000_000)
+    elif amount <= -1_000_000_000_000:
+        formatted_amount = "{:.1f}T".format(amount / 1_000_000_000_000)
+    elif amount <= -1_000_000_000:
+        formatted_amount = "{:.1f}B".format(amount / 1_000_000_000)
+    elif amount <= -1_000_000:
+        formatted_amount = "{:.1f}M".format(amount / 1_000_000)
+    elif amount <= -1_000:
+        formatted_amount = "{:.1f}K".format(amount / 1_000)
+    else:
+        formatted_amount = "{:.2f}".format(amount)
+    
+    if ticker:
+        currency_symbol = CurrencySymbols().get_symbol(ticker)
+        if currency_symbol:
+            return currency_symbol + formatted_amount
+        else:
+            return ticker + formatted_amount
+    else:
+        return formatted_amount
+
+
+
+
+
+
+def format_currency(amount, ticker, decimal=False):
+    # Formats integer value to currency format (e.g. 1234567.89 -> 1,234,567.89 $).
+    # If currency symbol is unknown, replaced by ticker (e.g. 1234567.89 -> 1,234,567.89 USD).
+    # If decimal is True, format amount with N decimal places.
+
+    # Check if currency symbol is available
+    currency_symbol = CurrencySymbols().get_symbol(ticker)
+
+    # Set decimal places based on decimal argument
+    decimal_places = 2 if decimal is False else decimal
+
+    # Format amount with the specified decimal places
+    formatted_amount = '{:,.{}f}'.format(amount, decimal_places)
+
+    if currency_symbol:
+        return currency_symbol + formatted_amount
+    else:
+        return ticker + formatted_amount
 
 
 def format_percentage(percentage):

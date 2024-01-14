@@ -30,9 +30,9 @@ def start(update, context):
     update.message.reply_text(welcome_message)
 
 
-def latest(update, context):
+def market(update, context):
 
-    path = config.databases['market']['latest_api_data']['path']
+    path = config.databases['market_latest_chart']['file']['path']
     plot = path + 'latest_plot.png'
     values = path + 'latest_values.md'
     with open(plot, 'rb') as img_file:
@@ -52,6 +52,21 @@ def history(update, context):
     logger.info("History command processed")
     
     return CHOOSE_DAYS
+
+
+def blockchain(update, context):
+
+    path = config.databases['blockchain_history_chart']['file']['path']
+    plot = path + 'history_plot.png'
+    values = path + 'latest_values.md'
+    with open(plot, 'rb') as img_file:
+        with open(values, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
 
 def settings(update, context):
 
@@ -84,7 +99,7 @@ def handle_days(update, context):
          update.message.reply_text('Please send number')
 
     days = user_number
-    path = config.databases['market']['history_chart_days_max']['path']
+    path = config.databases['market_history_chart_days_max']['file']['path']
     plot = path + f'history_plot_days_{days}.png'
     values = path + f'history_values_days_{days}.md'
 
@@ -123,8 +138,9 @@ def start_bot():
     handler = ConversationHandler(
         entry_points=[
             CommandHandler("start", start),
-            CommandHandler("latest", latest),
+            CommandHandler("market", market),
             CommandHandler("history", history),
+            CommandHandler("blockchain", blockchain),
             CommandHandler("settings", settings),
             CommandHandler("about", about)
             ],
