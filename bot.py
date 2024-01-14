@@ -56,8 +56,8 @@ def history(update, context):
 def network(update, context):
 
     path = config.databases['network_history_chart']['file']['path']
-    plot = path + 'network_history_plot.png'
-    values = path + 'network_latest_values.md'
+    plot = path + 'history_plot.png'
+    values = path + 'latest_values.md'
     with open(plot, 'rb') as img_file:
         with open(values, 'r') as text_file:
             img_data = img_file.read()
@@ -73,8 +73,8 @@ def network(update, context):
 def lightning(update, context):
 
     path = config.databases['lightning_history_chart']['file']['path']
-    plot = path + 'lightning_history_plot.png'
-    values = path + 'lightning_latest_values.md'
+    plot = path + 'history_plot.png'
+    values = path + 'latest_values.md'
     with open(plot, 'rb') as img_file:
         with open(values, 'r') as text_file:
             img_data = img_file.read()

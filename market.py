@@ -292,7 +292,7 @@ def make_plot(days):
     ax2 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=1)
+    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=4)
     ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="Total Volume", alpha=0.3, linewidth=0.1)
 
     # Set axies left and right borders to first and last date of period. Bottom border
