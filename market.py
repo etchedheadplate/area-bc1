@@ -2,7 +2,7 @@ import io
 import os
 import time
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -292,7 +292,7 @@ def make_plot(days):
     ax2 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=4)
+    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=6)
     ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="Total Volume", alpha=0.3, linewidth=0.1)
 
     # Set axies left and right borders to first and last date of period. Bottom border
@@ -307,7 +307,7 @@ def make_plot(days):
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     
     # Set date axis ticks and text properties:
-    axis_date_ticks_positions = np.linspace(axis_date.iloc[0], axis_date.iloc[-1], num=6) 
+    axis_date_ticks_positions = np.linspace(axis_date.iloc[0], axis_date.iloc[-1], num=7) 
     ax1.set_xticks(axis_date_ticks_positions)
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
@@ -400,34 +400,37 @@ def write_latest_values():
         MARKET_CAP_CHANGE_24H = format_amount(api_data['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
         FULLY_DILUTED_VALUATION = format_amount(api_data['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
         
-        ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(api_data['ath_change_percentage'][f'{config.currency_vs}'])
         ALL_TIME_HIGH = format_currency(api_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(api_data['ath_change_percentage'][f'{config.currency_vs}'])
+#        ALL_TIME_HIGH_CHANGE = format_currency((api_data['ath'][f'{config.currency_vs}'] - api_data['current_price'][f'{config.currency_vs}']), config.currency_vs_ticker)
         ALL_TIME_HIGH_DATE = api_data['ath_date'][f'{config.currency_vs}'][:10]    
-        
-        TOTAL_TOTAL_VOLUMEUME = format_amount(api_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
+        ALL_TIME_HIGH_DAYS = (datetime.now(timezone.utc) - datetime.fromisoformat(api_data['ath_date'][f'{config.currency_vs}'].replace('Z', '+00:00'))).days
+
+        TOTAL_VOLUME = format_amount(api_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
 #        SUPPLY_TOTAL = format_amount(api_data['total_supply'], config.currency_crypto_ticker)
         SUPPLY_CIRCULATING = format_amount(api_data['circulating_supply'], config.currency_crypto_ticker)
     
         # Format values text for user presentation:
-        info_price = f'Price: {PRICE_CURRENT}\n' \
-            f'24h % Change: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H}\n' \
-            f'24h Change: {PRICE_CHANGE_24H_IN_CURRENCY}\n' \
+        info_price = f'[Trade]\n' \
+            f'Price: {PRICE_CURRENT}\n' \
+            f'24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
             f'24h High: {PRICE_HIGH_24H}\n' \
             f'24h Low: {PRICE_LOW_24H}\n' \
-            f'24h Volume: {TOTAL_TOTAL_VOLUMEUME}\n'
-        info_market_cap = f'Market Cap: {MARKET_CAP}\n' \
-            f'24h % Change: {MARKET_CAP_CHANGE_24H_PERCENTAGE}\n' \
-            f'24h Change: {MARKET_CAP_CHANGE_24H}\n' \
+            f'24h Volume: {TOTAL_VOLUME}\n'
+        info_market_cap = f'[Capitalization]\n' \
+            f'Market Cap: {MARKET_CAP}\n' \
+            f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
             f'Diluted: {FULLY_DILUTED_VALUATION}\n' \
             f'Supply: {SUPPLY_CIRCULATING}/21M\n'
-        info_ath = f'ATH: {ALL_TIME_HIGH}\n' \
-            f'% Change: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
+        info_ath = f'[All-Time-High]\n' \
+            f'Price: {ALL_TIME_HIGH}\n' \
+            f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
             f'Date: {ALL_TIME_HIGH_DATE}\n'
         info_update = f'{LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (latest_values_file, 'w') as latest_values:
-            latest_values.write(f"```\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}\n```")
+            latest_values.write(f"```md\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}\n```")
 
 
 def write_history_values(days):
@@ -516,25 +519,25 @@ def write_history_values(days):
             
             # Format values text for user presentation:
             info_period = f'{HISTORY_DATE} --> {CURRENT_DATE}\n'
-            info_price = f'Price:\n' \
+            info_price = f'[Price]\n' \
                 f'{HISTORY_PRICE} --> {CURRENT_PRICE}\n' \
-                f'Change: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                 f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                 f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-            info_total_volume = f'Volume:\n' \
+            info_total_volume = f'[Volume]\n' \
                 f'{HISTORY_TOTAL_VOLUME} --> {CURRENT_TOTAL_VOLUME}\n' \
-                f'Change: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
+                f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
                 f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
                 f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
-            info_market_cap = f'Market Cap:\n' \
+            info_market_cap = f'[Market-Cap]\n' \
                 f'{HISTORY_MARKET_CAP} --> {CURRENT_MARKET_CAP}\n' \
-                f'Change: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
+                f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                 f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                 f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
             
             # Write latest values to Markdown file:
             with open (history_values_file, 'w') as latest_values:
-                latest_values.write(f'```\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n```')
+                latest_values.write(f'```md\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n```')
 
         else:
 
@@ -580,25 +583,36 @@ def write_history_values(days):
             
             # Format values text for user presentation:
             info_period = f'{HISTORY_DATE} --> {CURRENT_DATE}\n'
-            info_price = f'Price:\n' \
+            info_price = f'[Price]\n' \
                 f'{HISTORY_PRICE} --> {CURRENT_PRICE}\n' \
-                f'Change: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                 f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                 f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-            info_total_volume = f'Volume:\n' \
+            info_total_volume = f'[Volume]\n' \
                 f'{HISTORY_TOTAL_VOLUME} --> {CURRENT_TOTAL_VOLUME}\n' \
-                f'Change: Unknown\n' \
+                f'{days}d: Unknown\n' \
                 f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
                 f'Low: Unknown\n'
-            info_market_cap = f'Market Cap:\n' \
+            info_market_cap = f'[Market-Cap]\n' \
                 f'{HISTORY_MARKET_CAP} --> {CURRENT_MARKET_CAP}\n' \
-                f'Change: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
+                f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                 f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                 f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
-            info_limitations = 'CoinGecko API does not\n' \
-                'have Volume information\n'\
-                'before 2013-12-27.\n' \
+            info_limitations = 'CoinGecko API does not provide Volume information before 2013-12-27\n'
 
             # Write latest values to Markdown file:
             with open (history_values_file, 'w') as latest_values:
-                latest_values.write(f'```\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}\n```')
+                latest_values.write(f'```md\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}\n```')
+
+
+
+
+
+
+if __name__ == '__main__':
+    write_latest_values()
+
+    days = [1, 3, 7, 90, 366, 1826, 'max']
+    for day in days:
+        make_plot(day)
+        write_history_values(day)

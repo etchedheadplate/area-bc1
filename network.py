@@ -214,9 +214,9 @@ def make_plot():
     ax3 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="TRX Per Block", linewidth=4)
+    ax1.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="TRX Per Block", linewidth=10)
     ax2.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="Hashrate", alpha=0.0, linewidth=0.0)
-    ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=2)
+    ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="Price", linewidth=6)
 
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to 95% of plot values for better scaling
@@ -231,7 +231,7 @@ def make_plot():
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     
     # Set date axis ticks and text properties:
-    axis_date_ticks_positions = np.linspace(axis_date.iloc[0], axis_date.iloc[-1], num=6) 
+    axis_date_ticks_positions = np.linspace(axis_date.iloc[0], axis_date.iloc[-1], num=7) 
     ax1.set_xticks(axis_date_ticks_positions)
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
@@ -331,7 +331,7 @@ def write_latest_values():
         BLOCKS_SIZE = round(api_data['blocks_size'] / (1_024**2) / int(BLOCKS_MINED), 2)
         BLOCKS_MINUTES = round(api_data['minutes_between_blocks'], 1)
 
-        BTC_SUPPLY = format_currency(api_data['totalbc'] / 100_000_000, config.currency_crypto_ticker)
+        BTC_SUPPLY = format_currency(api_data['totalbc'] / 100_000_000, config.currency_crypto_ticker, 0)
         BTC_MINED = format_currency(api_data['n_btc_mined'] / 100_000_000, config.currency_crypto_ticker)
         BTC_SENT = format_currency(api_data['total_btc_sent'] / 100_000_000, config.currency_crypto_ticker)
         BTC_PRICE = format_currency(api_data['market_price_usd'], config.currency_vs_ticker)
@@ -345,22 +345,35 @@ def write_latest_values():
         RETARGET_HEIGHT = format_quantity(api_data['nextretarget'])
     
         # Format values text for user presentation:
-        info_blocks = f'Block Height: {BLOCKS_HEIGHT}\n' \
+        info_blocks = f'[Block]\n' \
+            f'Height: {BLOCKS_HEIGHT}\n' \
             f'24h Mined: {BLOCKS_MINED} blocks\n' \
             f'24h Size: {BLOCKS_SIZE} MB/block\n' \
             f'24h Time: {BLOCKS_MINUTES} min/block\n'
-        info_coin = f'BTC: {BTC_SUPPLY}\n' \
+        info_coin = f'[Bitcoin]\n' \
+            f'Supply: {BTC_SUPPLY}\n' \
             f'24h Mined: {BTC_MINED}\n' \
             f'24h Sent: {BTC_SENT}\n' \
             f'24h Price: {BTC_PRICE}\n'
-        info_transactions = f'TRX: {TRANSACTIONS_BLOCK}/block\n' \
+        info_transactions = f'[Transactions]\n' \
+            f'Avg: {TRANSACTIONS_BLOCK}/block\n' \
             f'24h Total: {TRANSACTIONS_MADE}\n' \
             f'24h Cost: {TRANSACTIONS_COST}/TRX\n'
-        info_network = f'Hashrate: {HASHRATE} TH/s\n' \
+        info_network = f'[Mining]\n' \
+            f'Hashrate: {HASHRATE} TH/s\n' \
             f'Difficulty: {DIFFICULTY}\n' \
             f'Change Height: {RETARGET_HEIGHT}\n'
         info_update = f'{LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (latest_values_file, 'w') as latest_values:
-            latest_values.write(f"```\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}\n```")
+            latest_values.write(f"```md\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}\n```")
+
+
+
+
+
+
+if __name__ == '__main__':
+#    get_network_latest_raw_values()
+    get_network_chart()

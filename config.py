@@ -15,6 +15,23 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Database related variables
 databases = {
+    'fees_latest_raw_values': {
+        'api': {
+            'base': 'https://mempool.space/api/v1/',
+            'endpoint': ('fees/recommended'),
+            'params': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/fees/',
+            'name': 'fees_latest_raw_values.json',
+            'columns': False
+        },
+        'update': {
+            'time': '00:30',
+            'interval': 0.05
+        }
+    },
     'lightning_latest_raw_values': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
@@ -28,14 +45,14 @@ databases = {
             'columns': False
         },
         'update': {
-            'time': '00:05',
+            'time': '05:00',
             'interval': 24
         }
     },
     'lightning_history_chart': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoint': ('lightning/statistics/1y'),
+            'endpoint': ('lightning/statistics/1w'),
             'params': False,
             'subdict': False
         },
@@ -53,8 +70,8 @@ databases = {
             }
         },
         'update': {
-            'time': '00:05',
-            'interval': 1
+            'time': '03:00',
+            'interval': 24
         }
     },
     'market_latest_raw_values': {
@@ -182,8 +199,8 @@ databases = {
             'base': 'https://api.blockchain.info/',
             'endpoint': ('charts/market-price', 'charts/hash-rate', 'charts/n-transactions-per-block', 'charts/cost-per-transaction'),
             'params': {
-                    'timespan': '1years',
-                    'rollingAverage': '7days',
+                    'timespan': '44days',
+                    'rollingAverage': '2days',
                     'start': '',
                     'format': 'json',
                     'sampled': 'true'
