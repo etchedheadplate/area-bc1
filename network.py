@@ -241,9 +241,13 @@ def make_plot():
     ax2.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
 
     # Set axies ticks text size:
-    for label in ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels():
+    for label in ax1.get_xticklabels():
         label.set_fontproperties(plot_font)
-        label.set_fontsize(14)
+        label.set_fontsize(12)
+
+    for label in ax1.get_yticklabels() + ax2.get_yticklabels():
+        label.set_fontproperties(plot_font)
+        label.set_fontsize(18)
 
     # Set axies order (higher value puts layer to the front):
     ax1.set_zorder(3)
@@ -257,7 +261,7 @@ def make_plot():
     # Set plot legend proxies and actual legend:
     legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
     legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
-    legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
+    legend_proxy_price = Line2D([0], [0], label=f'6w Price, {config.currency_vs_ticker}')
     legend = ax2.legend(handles=[legend_proxy_trx_per_block,
                                  legend_proxy_hashrate,
                                  legend_proxy_price],
@@ -274,7 +278,7 @@ def make_plot():
 
     # Set legend text size
     for text in legend.get_texts():
-        text.set_fontsize(12)
+        text.set_fontsize(16)
 
     # Save plot image without background in memory buffer and transfer it to PIL.Image module:
     buffer = io.BytesIO()
@@ -361,13 +365,13 @@ def write_latest_values():
             f'24h Cost: {TRANSACTIONS_COST}/TRX\n'
         info_network = f'[Mining]\n' \
             f'Hashrate: {HASHRATE} TH/s\n' \
-            f'Difficulty: {DIFFICULTY}\n' \
+            f'Difficulty Level: {DIFFICULTY}\n' \
             f'Change Height: {RETARGET_HEIGHT}\n'
-        info_update = f'{LAST_UPDATED}\n'
+        info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (latest_values_file, 'w') as latest_values:
-            latest_values.write(f"```md\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}\n```")
+            latest_values.write(f"```markdown\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```")
 
 
 

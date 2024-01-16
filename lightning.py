@@ -235,7 +235,7 @@ def make_plot():
     fig, ax1 = plt.subplots(figsize=(12, 7.4))
     fig.patch.set_alpha(0.0)
     fig.patch.set_facecolor('none')
-    ax1.grid(True, linestyle="dashed", linewidth=0.5, alpha=0.7)
+    ax1.grid(True, axis = 'both', linestyle="dashed", linewidth=0.5, alpha=0.7)
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
@@ -255,7 +255,7 @@ def make_plot():
     ax1.set_ylim(min(axis_total_capacity) * 0.995, max(axis_total_capacity) * 1.005)
     ax2.set_ylim(min(axis_channel_count) * 0.995, max(axis_channel_count) * 1.005)
 
-    # Set axies text format:
+     # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x / 100_000_000)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
@@ -271,9 +271,13 @@ def make_plot():
     ax2.tick_params(axis="y", labelcolor=plot_colors['channel_count'])
 
     # Set axies ticks text size:
-    for label in ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels():
+    for label in ax1.get_xticklabels():
         label.set_fontproperties(plot_font)
-        label.set_fontsize(14)
+        label.set_fontsize(12)
+
+    for label in ax1.get_yticklabels() + ax2.get_yticklabels():
+        label.set_fontproperties(plot_font)
+        label.set_fontsize(18)
 
     # Set axies order (higher value puts layer to the front):
     ax1.set_zorder(3)
@@ -283,10 +287,10 @@ def make_plot():
     # Set plot and stacked area legend proxies:
     plot_legend_proxy_channel_count = Line2D([0], [0], label='Channels')
     plot_legend_proxy_total_capacity = Line2D([0], [0], label=f'Capacity, {config.currency_crypto_ticker}')
-    plot_legend_proxy_key_metric_movement = Line2D([0], [0], label=f'Capacity {plot_key_metric_movement_format}')
+    plot_legend_proxy_key_metric_movement = Line2D([0], [0], label=f'1w Capacity {plot_key_metric_movement_format}')
     
     stacked_legend_proxy_nodes_unannounced = Line2D([0], [0], label='Clearnet')
-    stacked_legend_proxy_nodes_tor = Line2D([0], [0], label='Clear/Darknet')
+    stacked_legend_proxy_nodes_tor = Line2D([0], [0], label='Greynet')
     stacked_legend_proxy_nodes_clearnet_tor = Line2D([0], [0], label='Darknet')
     stacked_legend_proxy_nodes_clearnet = Line2D([0], [0], label='Unannounced')
     
@@ -318,10 +322,10 @@ def make_plot():
 
     # Set plot and stacked area legend text size:
     for text in plot_legend.get_texts():
-        text.set_fontsize(12)
+        text.set_fontsize(16)
 
     for text in stacked_legend.get_texts():
-        text.set_fontsize(12)
+        text.set_fontsize(16)
 
     # Save plot image without background in memory buffer and transfer it to PIL.Image module:
     buffer = io.BytesIO()
@@ -370,7 +374,6 @@ def write_latest_values():
         # Parse raw API data to separate values:
         LAST_UPDATED = format_utc(latest_data['added'])
 
-# network
         CHANNEL_COUNT = format_quantity(latest_data['channel_count'])
         CHANNEL_CHANGE_1W = format_quantity(latest_data['channel_count'] - previous_data['channel_count'])
         CHANNEL_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['channel_count'], latest_data['channel_count']))
@@ -380,14 +383,9 @@ def write_latest_values():
         CAPACITY_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['total_capacity'], latest_data['total_capacity']))
         
         CAPACITY_AVG_COUNT = format_currency(latest_data['avg_capacity'] / 100_000_000, config.currency_crypto_ticker, 4)
-        CAPACITY_AVG_CHANGE_1W = format_currency((latest_data['avg_capacity'] - previous_data['avg_capacity']) / 100_000_000, config.currency_crypto_ticker, 4)
+        CAPACITY_AVG_CHANGE_1W = format_currency((latest_data['avg_capacity'] - previous_data['avg_capacity']) / 100_000_000, config.currency_crypto_ticker, decimal=4)
         CAPACITY_AVG_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_capacity'], latest_data['avg_capacity']))
         
-
-        
-
-# nodes
-
         NODE_COUNT = format_quantity(latest_data['node_count'])
         NODE_CHANGE_1W = format_quantity(latest_data['node_count'] - previous_data['node_count'])
         NODE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['node_count'], latest_data['node_count']))
@@ -408,29 +406,28 @@ def write_latest_values():
         NODE_UNANNOUNCED_CHANGE_1W = format_quantity(latest_data['unannounced_nodes'] - previous_data['unannounced_nodes'])
         NODE_UNANNOUNCED_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['unannounced_nodes'], latest_data['unannounced_nodes']))
     
-#fees
-        FEE_AVG_RATE_COUNT = format_currency(latest_data['avg_fee_rate'], '', 0)
-        FEE_AVG_RATE_CHANGE_1W = format_currency(latest_data['avg_fee_rate'] - previous_data['avg_fee_rate'], '', 0)
+        FEE_AVG_RATE_COUNT = format_currency(latest_data['avg_fee_rate'], '', decimal=0)
+        FEE_AVG_RATE_CHANGE_1W = format_currency(latest_data['avg_fee_rate'] - previous_data['avg_fee_rate'], '', decimal=0)
         FEE_AVG_RATE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_fee_rate'], latest_data['avg_fee_rate']))
 
-        FEE_BASE_AVG_RATE_COUNT = format_currency(latest_data['avg_base_fee_mtokens'], '', 0)
-        FEE_BASE_AVG_RATE_CHANGE_1W = format_currency(latest_data['avg_base_fee_mtokens'] - previous_data['avg_base_fee_mtokens'], '', 0)
+        FEE_BASE_AVG_RATE_COUNT = format_currency(latest_data['avg_base_fee_mtokens'], '', decimal=0)
+        FEE_BASE_AVG_RATE_CHANGE_1W = format_currency(latest_data['avg_base_fee_mtokens'] - previous_data['avg_base_fee_mtokens'], '', decimal=0)
         FEE_BASE_AVG_RATE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_base_fee_mtokens'], latest_data['avg_base_fee_mtokens']))
 
         # Format values text for user presentation:
-        info_network = f'[Network]\n' \
+        info_network = f'[Channels]\n' \
             f'Channels: {CHANNEL_COUNT}\n' \
             f'1w: {CHANNEL_CHANGE_PERCENTAGE_1W} ({CHANNEL_CHANGE_1W})\n' \
             f'Capacity: {CAPACITY_COUNT}\n' \
             f'1w: {CAPACITY_CHANGE_PERCENTAGE_1W} ({CAPACITY_CHANGE_1W})\n' \
-            f'Avg Cp/Ch: {CAPACITY_AVG_COUNT}\n' \
+            f'Avg: {CAPACITY_AVG_COUNT}/ch\n' \
             f'1w: {CAPACITY_AVG_CHANGE_PERCENTAGE_1W} ({CAPACITY_AVG_CHANGE_1W})\n' 
         info_node = f'[Nodes]\n' \
             f'Total: {NODE_COUNT}\n' \
             f'1w: {NODE_CHANGE_PERCENTAGE_1W} ({NODE_CHANGE_1W})\n' \
             f'Clearnet: {NODE_CLEARNET_COUNT}\n' \
             f'1w: {NODE_CLEARNET_PERCENTAGE_1W} ({NODE_CLEARNET_1W})\n' \
-            f'Clr/Drknt: {NODE_CLEARDARKNET_COUNT}\n' \
+            f'Greynet: {NODE_CLEARDARKNET_COUNT}\n' \
             f'1w: {NODE_CLEARDARKNET_CHANGE_PERCENTAGE_1W} ({NODE_CLEARDARKNET_CHANGE_1W})\n' \
             f'Darknet: {NODE_DARKNET_COUNT}\n' \
             f'1w: {NODE_DARKNET_CHANGE_PERCENTAGE_1W} ({NODE_DARKNET_CHANGE_1W})\n' \
@@ -441,11 +438,11 @@ def write_latest_values():
             f'1w: {FEE_AVG_RATE_CHANGE_PERCENTAGE_1W} ({FEE_AVG_RATE_CHANGE_1W} sats)\n' \
             f'Avg Base: {FEE_BASE_AVG_RATE_COUNT} sats\n' \
             f'1w: {FEE_BASE_AVG_RATE_CHANGE_PERCENTAGE_1W} ({FEE_BASE_AVG_RATE_CHANGE_1W} sats)\n'
-        info_update = f'{LAST_UPDATED}\n'
+        info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (latest_values_file, 'w') as latest_values:
-            latest_values.write(f"```md\n{info_network}\n{info_node}\n{info_fees}\n{info_update}\n```")
+            latest_values.write(f"```markdown\n{info_network}\n{info_node}\n{info_fees}\n{info_update}```")
 
 
 

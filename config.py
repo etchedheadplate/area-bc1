@@ -46,7 +46,7 @@ databases = {
         },
         'update': {
             'time': '05:00',
-            'interval': 24
+            'interval': 1
         }
     },
     'lightning_history_chart': {

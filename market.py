@@ -317,9 +317,13 @@ def make_plot(days):
     ax2.tick_params(axis="y", labelcolor=plot_colors['total_volume'])
 
     # Set axies ticks text size:
-    for label in ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels():
+    for label in ax1.get_xticklabels():
         label.set_fontproperties(plot_font)
-        label.set_fontsize(14)
+        label.set_fontsize(12)
+
+    for label in ax1.get_yticklabels() + ax2.get_yticklabels():
+        label.set_fontproperties(plot_font)
+        label.set_fontsize(18)
 
     # Set axies order (higher value puts layer to the front):
     ax1.set_zorder(2)
@@ -329,9 +333,13 @@ def make_plot(days):
     ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.3)
 
     # Set plot legend proxies and actual legend:
+    legend_days_change = str(days) + 'd'
+    if days == 1:
+        legend_days_change = '24h'
+
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
     legend_proxy_volume = Line2D([0], [0], label=f'Volume, {config.currency_vs_ticker}')
-    legend_proxy_market = Line2D([0], [0], label=f'Market: {plot_key_metric_movement_format}')
+    legend_proxy_market = Line2D([0], [0], label=f'{legend_days_change} Price {plot_key_metric_movement_format}')
     legend = ax1.legend(handles=[legend_proxy_price, legend_proxy_volume, legend_proxy_market], loc="upper left", prop=plot_font, handlelength=0)
     
     # Set legend colors
@@ -343,7 +351,7 @@ def make_plot(days):
 
     # Set legend text size
     for text in legend.get_texts():
-        text.set_fontsize(12)
+        text.set_fontsize(16)
 
     # Save plot image without background in memory buffer and transfer it to PIL.Image module:
     buffer = io.BytesIO()
@@ -426,11 +434,11 @@ def write_latest_values():
             f'Price: {ALL_TIME_HIGH}\n' \
             f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
             f'Date: {ALL_TIME_HIGH_DATE}\n'
-        info_update = f'{LAST_UPDATED}\n'
+        info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (latest_values_file, 'w') as latest_values:
-            latest_values.write(f"```md\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}\n```")
+            latest_values.write(f"```markdown\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}```")
 
 
 def write_history_values(days):
@@ -537,7 +545,7 @@ def write_history_values(days):
             
             # Write latest values to Markdown file:
             with open (history_values_file, 'w') as latest_values:
-                latest_values.write(f'```md\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n```')
+                latest_values.write(f'```markdown\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}```')
 
         else:
 
@@ -602,7 +610,7 @@ def write_history_values(days):
 
             # Write latest values to Markdown file:
             with open (history_values_file, 'w') as latest_values:
-                latest_values.write(f'```md\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}\n```')
+                latest_values.write(f'```markdown\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}```')
 
 
 
