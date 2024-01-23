@@ -1,11 +1,13 @@
 import logging
 import os
+import concurrent.futures
 from telegram import ParseMode
 from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters
 
 import config
+import market as db_market
+from tools import update_all_databases
 from api.telegram import TOKEN
-from market import make_plot, write_history_values
 
 
 # Enable logging
@@ -30,11 +32,11 @@ def start(update, context):
 
 def market(update, context):
 
-    path = config.databases['market_latest_chart']['file']['path']
-    plot = path + 'latest_plot.png'
-    values = path + 'latest_values.md'
+    path = config.databases['charts']['market']['file']['path']
+    plot = path + 'market.jpg'
+    markdown = path + 'market.md'
     with open(plot, 'rb') as img_file:
-        with open(values, 'r') as text_file:
+        with open(markdown, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -55,11 +57,11 @@ def history(update, context):
 
 def network(update, context):
 
-    path = config.databases['network_history_chart']['file']['path']
-    plot = path + 'history_plot.png'
-    values = path + 'latest_values.md'
+    path = config.databases['charts']['network']['file']['path']
+    plot = path + 'network.jpg'
+    markdown = path + 'network.md'
     with open(plot, 'rb') as img_file:
-        with open(values, 'r') as text_file:
+        with open(markdown, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -72,11 +74,11 @@ def network(update, context):
 
 def lightning(update, context):
 
-    path = config.databases['lightning_history_chart']['file']['path']
-    plot = path + 'history_plot.png'
-    values = path + 'latest_values.md'
+    path = config.databases['charts']['lightning']['file']['path']
+    plot = path + 'lightning.jpg'
+    markdown = path + 'lightning.md'
     with open(plot, 'rb') as img_file:
-        with open(values, 'r') as text_file:
+        with open(markdown, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -109,26 +111,23 @@ def handle_days(update, context):
 
     user_message = update.message.text
     if user_message.isdigit():
-        if user_message == '1':
-            user_number = 'latest'
-        else:
-            user_number = int(user_message)
+        user_number = int(user_message)
     elif user_message == 'max':
         user_number = 'max'
     else:
          update.message.reply_text('Please send number')
 
     days = user_number
-    path = config.databases['market_history_chart_days_max']['file']['path']
-    plot = path + f'history_plot_days_{days}.png'
-    values = path + f'history_values_days_{days}.md'
+    path = config.databases['charts']['market']['file']['path']
+    plot = path + f'market_days_{days}.jpg'
+    markdown = path + f'market_days_{days}.md'
     if not os.path.exists(plot):
-        make_plot(days)
-    if not os.path.exists(values):
-        write_history_values(days)
+        db_market.draw_plot(days)
+    if not os.path.exists(markdown):
+        db_market.write_history_markdown(days)
 
     with open(plot, 'rb') as img_file:
-        with open(values, 'r') as text_file:
+        with open(markdown, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -174,4 +173,9 @@ def start_bot():
 
 
 if __name__ == '__main__':
-    start_bot()
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        run_database_update = executor.submit(update_all_databases)
+        run_bot = executor.submit(start_bot)
+
+        concurrent.futures.wait([run_database_update] + [run_bot])

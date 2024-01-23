@@ -15,206 +15,239 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Database related variables
 databases = {
-    'fees_latest_raw_values': {
+    'charts' :{
+        'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoint': ('fees/recommended'),
+            'endpoints': ['lightning/statistics/1m'],
             'params': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/fees/',
-            'name': 'fees_latest_raw_values.json',
-            'columns': False
-        },
-        'update': {
-            'time': '00:30',
-            'interval': 0.05
-        }
-    },
-    'lightning_latest_raw_values': {
-        'api': {
-            'base': 'https://mempool.space/api/v1/',
-            'endpoint': ('lightning/statistics/latest'),
-            'params': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/lightning/',
-            'name': 'lightning_latest_raw_values.json',
-            'columns': False
-        },
-        'update': {
-            'time': '05:00',
-            'interval': 1
-        }
-    },
-    'lightning_history_chart': {
-        'api': {
-            'base': 'https://mempool.space/api/v1/',
-            'endpoint': ('lightning/statistics/1w'),
-            'params': False,
-            'subdict': False
+            'subdict': False,
+            'response_type': dict
         },
         'file': {
             'path': f'db/lightning/',
-            'name': 'lightning_history_chart.csv',
+            'name': 'lightning.csv',
             'columns': {
-                'added': 'Date',
-                'channel_count': 'Channel Count',
-                'total_capacity': 'Total Capacity',
-                'tor_nodes': 'Nodes Tor',
-                'clearnet_nodes': 'Nodes Clearnet',
-                'unannounced_nodes': 'Nodes Unannounced',
-                'clearnet_tor_nodes': 'Nodes Clearnet Tor'
+                'lightning/statistics/1m': {
+                    'added': 'date',
+                    'channel_count': 'channels',
+                    'total_capacity': 'capacity',
+                    'tor_nodes': 'nodes_darknet',
+                    'clearnet_nodes': 'nodes_clearnet',
+                    'unannounced_nodes': 'nodes_unknown',
+                    'clearnet_tor_nodes': 'nodes_greynet'
+                }
             }
         },
         'update': {
-            'time': '03:00',
-            'interval': 24
+            'interval': 1,
+            'seconds': ':00'
         }
     },
-    'market_latest_raw_values': {
-        'api': {
-            'base': 'https://api.coingecko.com/api/v3/',
-            'endpoint': (f'coins/{currency_crypto}'),
-            'params': {
-                    'localization': 'false',
-                    'tickers': 'false',
-                    'market_data': 'true',
-                    'community_data': 'false',
-                    'developer_data': 'false'
-                },
-            'subdict': 'market_data'
-        },
-        'file': {
-            'path': f'db/market/{currency_pair}/latest/',
-            'name': 'latest_raw_values.json',
-            'columns': False
-        },
-        'update': {
-            'time': '00:30',
-            'interval': 0.25
-        }
-    },
-    'market_latest_chart': {
-        'api': {
-            'base': 'https://api.coingecko.com/api/v3/',
-            'endpoint': (f'coins/{currency_crypto}/market_chart'),
-            'params': {
-                    'vs_currency': f'{currency_vs}',
-                    'days': '1',
-                    'interval': '',
-                    'precision': '2'
-                },
-            'subdict': False
-        },
-        'file': {
-            'path': f'db/market/{currency_pair}/latest/',
-            'name': 'market_latest_chart.csv',
-            'columns': {
-                'Price': 'prices',
-                'Market Cap': 'market_caps',
-                'Total Volume': 'total_volumes'
+        'market': {
+            'api': {
+                'base': 'https://api.coingecko.com/api/v3/',
+                'endpoints': [f'coins/{currency_crypto}/market_chart'],
+                'params': {
+                        'vs_currency': f'{currency_vs}',
+                        'days': '1',
+                        'interval': '',
+                        'precision': '2'
+                    },
+                'subdict': False,
+                'response_type': list
+            },
+            'file': {
+                'path': f'db/market/{currency_pair}/',
+                'name': 'market.csv',
+                'columns': {
+                    f'coins/{currency_crypto}/market_chart': {
+                        'prices': 'price',
+                        'market_caps': 'market_cap',
+                        'total_volumes': 'total_volume'
+                    }
+                }
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':00'
             }
         },
-        'update': {
-            'time': '50:30',
-            'interval': 0.25
-        }
-    },
-    'market_history_chart_days_90': {
-        'api': {
-            'base': 'https://api.coingecko.com/api/v3/',
-            'endpoint': (f'coins/{currency_crypto}/market_chart'),
-            'params': {
-                    'vs_currency': f'{currency_vs}',
-                    'days': '90',
-                    'interval': '',
-                    'precision': '2'
-                },
-            'subdict': False
-        },
-        'file': {
-            'path': f'db/market/{currency_pair}/history/',
-            'name': 'market_history_chart_days_90.csv',
-            'columns': {
-                'Price': 'prices',
-                'Market Cap': 'market_caps',
-                'Total Volume': 'total_volumes'
+        'market_days_90': {
+            'api': {
+                'base': 'https://api.coingecko.com/api/v3/',
+                'endpoints': [f'coins/{currency_crypto}/market_chart'],
+                'params': {
+                        'vs_currency': f'{currency_vs}',
+                        'days': '90',
+                        'interval': '',
+                        'precision': '2'
+                    },
+                'subdict': False,
+                'response_type': list
+            },
+            'file': {
+                'path': f'db/market/{currency_pair}/',
+                'name': 'market_days_90.csv',
+                'columns': {
+                    f'coins/{currency_crypto}/market_chart': {
+                        'prices': 'price',
+                        'market_caps': 'market_cap',
+                        'total_volumes': 'total_volume'
+                    }
+                }
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':30'
             }
         },
-        'update': {
-            'time': '10:30',
-            'interval': 1
-        }
-    },
-    'market_history_chart_days_max': {
-        'api': {
-            'base': 'https://api.coingecko.com/api/v3/',
-            'endpoint': (f'coins/{currency_crypto}/market_chart'),
-            'params': {
-                    'vs_currency': f'{currency_vs}',
-                    'days': 'max',
-                    'interval': '',
-                    'precision': '2'
-                },
-            'subdict': False
-        },
-        'file': {
-            'path': f'db/market/{currency_pair}/history/',
-            'name': 'market_history_chart_days_max.csv',
-            'columns': {
-                'Price': 'prices',
-                'Market Cap': 'market_caps',
-                'Total Volume': 'total_volumes'
+        'market_days_max': {
+            'api': {
+                'base': 'https://api.coingecko.com/api/v3/',
+                'endpoints': [f'coins/{currency_crypto}/market_chart'],
+                'params': {
+                        'vs_currency': f'{currency_vs}',
+                        'days': 'max',
+                        'interval': '',
+                        'precision': '2'
+                    },
+                'subdict': False,
+                'response_type': list
+            },
+            'file': {
+                'path': f'db/market/{currency_pair}/',
+                'name': 'market_days_max.csv',
+                'columns': {
+                    f'coins/{currency_crypto}/market_chart': {
+                        'prices': 'price',
+                        'market_caps': 'market_cap',
+                        'total_volumes': 'total_volume'
+                    }
+                }
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':45'
             }
         },
-        'update': {
-            'time': '00:55:30',
-            'interval': 24
-        }
-    },
-    'network_latest_raw_values': {
-        'api': {
-            'base': 'https://api.blockchain.info/',
-            'endpoint': ('stats'),
-            'params': {
-                ''
-                },
-            'subdict': ''
-        },
-        'file': {
-            'path': 'db/network/',
-            'name': 'network_latest_raw_values.json',
-            'columns': False
-        },
-        'update': {
-            'time': '00:00',
-            'interval': 0.25
-        }
-    },
-    'network_history_chart': {
-        'api': {
-            'base': 'https://api.blockchain.info/',
-            'endpoint': ('charts/market-price', 'charts/hash-rate', 'charts/n-transactions-per-block', 'charts/cost-per-transaction'),
-            'params': {
-                    'timespan': '44days',
+        'network': {
+            'api': {
+                'base': 'https://api.blockchain.info/',
+                'endpoints': [
+                    'charts/market-price',
+                    'charts/hash-rate',
+                    'charts/n-transactions-per-block',
+                    'charts/cost-per-transaction'
+                    ],
+                'params': {
+                    'timespan': '1months',
                     'rollingAverage': '2days',
                     'start': '',
                     'format': 'json',
                     'sampled': 'true'
-                },
-            'subdict': 'values'
+                    },
+                'subdict': 'values',
+                'response_type': dict
+            },
+            'file': {
+                'path': 'db/network/',
+                'name': 'network.csv',
+                'columns': {
+                    'charts/market-price': {
+                        'x': 'date',
+                        'y': 'price'
+                    },
+                        'charts/hash-rate': {
+                        'x': 'date',
+                        'y': 'hashrate'
+                    },
+                        'charts/n-transactions-per-block': {
+                        'x': 'date',
+                        'y': 'trx_per_block'
+                    },
+                        'charts/cost-per-transaction': {
+                        'x': 'date',
+                        'y': 'trx_cost'
+                    }
+                }
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':00'
+            }
+        }
+    },
+    'snapshots': {
+        'fees': {
+            'api': {
+                'base': 'https://mempool.space/api/v1/',
+                'endpoints': ('fees/recommended'),
+                'params': False,
+                'subdict': False
+            },
+            'file': {
+                'path': 'db/fees/',
+                'name': 'fees.json',
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':30'
+            }
         },
-        'file': {
-            'path': 'db/network/',
-            'name': 'network_history_chart.csv',
-            'columns': ('Price', 'Hashrate', 'TRX Per Block', 'TRX Cost')
+        'lightning': {
+            'api': {
+                'base': 'https://mempool.space/api/v1/',
+                'endpoints': ('lightning/statistics/latest'),
+                'params': False,
+                'subdict': False
+            },
+            'file': {
+                'path': 'db/lightning/',
+                'name': 'lightning.json',
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':15'
+            }
         },
-        'update': {
-            'time': '00:05',
-            'interval': 1
+        'market': {
+            'api': {
+                'base': 'https://api.coingecko.com/api/v3/',
+                'endpoints': (f'coins/{currency_crypto}'),
+                'params': {
+                        'localization': 'false',
+                        'tickers': 'false',
+                        'market_data': 'true',
+                        'community_data': 'false',
+                        'developer_data': 'false'
+                    },
+                'subdict': 'market_data'
+            },
+            'file': {
+                'path': f'db/market/{currency_pair}/',
+                'name': 'market.json',
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':15'
+            }
+        },
+        'network': {
+            'api': {
+                'base': 'https://api.blockchain.info/',
+                'endpoints': ('stats'),
+                'params': False,
+                'subdict': ''
+            },
+            'file': {
+                'path': 'db/network/',
+                'name': 'network.json',
+            },
+            'update': {
+                'interval': 1,
+                'seconds': ':15'
+            }
         }
     }
 }
@@ -227,25 +260,25 @@ plot = {
         'font': 'src/font/font.ttf',
         'colors': {
             'date': '#F9F9F9',
-            'channel_count': '#B93554',
-            'total_capacity': '#F7931A',
-            'nodes_clearnet': '#6a6866',
-            'nodes_clearnet_tor': '#4e4e4c',
-            'nodes_tor': '#343331',
-            'nodes_unannounced': '#191716',
+            'channels': '#B93554',
+            'capacity': '#F7931A',
+            'nodes_clearnet': '#6A6866',
+            'nodes_greynet': '#4E4E4C',
+            'nodes_darknet': '#343331',
+            'nodes_unknown': '#191716',
             'frame': '#191716',
             'frame_nodes': '#FFFFFF',
-            'total_capacity_down': '#CB2B1B',
-            'total_capacity_up': '#2BD713',
+            'capacity_down': '#CB2B1B',
+            'capacity_up': '#2BD713',
         },
         'backgrounds': {
-            'total_capacity_down': {
-                    'path': 'src/image/plot/backgrounds/lightning_total_capacity_down.png',
+            'capacity_down': {
+                    'path': 'src/image/plot/backgrounds/lightning_capacity_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (795, 5)
             },
-            'total_capacity_up': {
-                    'path': 'src/image/plot/backgrounds/lightning_total_capacity_up.png',
+            'capacity_up': {
+                    'path': 'src/image/plot/backgrounds/lightning_capacity_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (795, 5)
             }
@@ -281,14 +314,23 @@ plot = {
         'colors': {
             'date': '#F9F9F9',
             'price': '#F7931A',
-            'hashrate': '#26A530',
-            'trx_per_block': '#F9F9F9',
-            'frame': '#191716'
+            'hashrate': '#CACACA',
+            'trx_per_block': '#717171',
+            'frame': '#191716',
+            'hashrate_down': '#CB2B1B',
+            'hashrate_up': '#2BD713'
         },
-        'background': {
-            'path': 'src/image/plot/backgrounds/network.png',
-            'range': (-float('inf'), float('inf')),
-            'coordinates': (25, 5)
+        'backgrounds': {
+            'hashrate_down': {
+                    'path': 'src/image/plot/backgrounds/network_hashrate_down.png',
+                    'range': (-float('inf'), 0),
+                    'coordinates': (795, 5)
+            },
+            'hashrate_up': {
+                    'path': 'src/image/plot/backgrounds/network_hashrate_up.png',
+                    'range': (0, float('inf')),
+                    'coordinates': (795, 5)
+            }
         }
     }
 }
