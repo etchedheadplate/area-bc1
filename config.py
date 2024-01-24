@@ -254,7 +254,23 @@ databases = {
 
 
 # Market plot related variables
-plot = {
+images = {
+    'fees': {
+        'path': 'db/fees/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'date': '#F9F9F9',
+            'text': '#F9F9F9',
+            'subtext': '#191716',
+            'fees_satvb_fastest': '#B93554',
+            'fees_satvb_half_hour': '#F7931A',
+            'fees_satvb_hour': '#6A6866',
+            'fees_satvb_economy': '#4E4E4C',
+            'fees_satvb_minimum': '#343331'
+        },
+        'background': 'src/image/backgrounds/fees.png',
+        'coordinates': (795, 5)
+    },
     'lightning': {
         'path': 'db/lightning/',
         'font': 'src/font/font.ttf',
@@ -273,12 +289,12 @@ plot = {
         },
         'backgrounds': {
             'capacity_down': {
-                    'path': 'src/image/plot/backgrounds/lightning_capacity_down.png',
+                    'path': 'src/image/backgrounds/lightning_capacity_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (795, 5)
             },
             'capacity_up': {
-                    'path': 'src/image/plot/backgrounds/lightning_capacity_up.png',
+                    'path': 'src/image/backgrounds/lightning_capacity_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (795, 5)
             }
@@ -297,12 +313,12 @@ plot = {
         },
         'backgrounds': {
             'price_down': {
-                    'path': 'src/image/plot/backgrounds/market_price_down.png',
+                    'path': 'src/image/backgrounds/market_price_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (25, 5)
             },
             'price_up': {
-                    'path': 'src/image/plot/backgrounds/market_price_up.png',
+                    'path': 'src/image/backgrounds/market_price_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (25, 5)
             }
@@ -322,12 +338,12 @@ plot = {
         },
         'backgrounds': {
             'hashrate_down': {
-                    'path': 'src/image/plot/backgrounds/network_hashrate_down.png',
+                    'path': 'src/image/backgrounds/network_hashrate_down.png',
                     'range': (-float('inf'), 0),
                     'coordinates': (795, 5)
             },
             'hashrate_up': {
-                    'path': 'src/image/plot/backgrounds/network_hashrate_up.png',
+                    'path': 'src/image/backgrounds/network_hashrate_up.png',
                     'range': (0, float('inf')),
                     'coordinates': (795, 5)
             }

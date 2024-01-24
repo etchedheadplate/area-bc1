@@ -254,7 +254,7 @@ def write_markdown():
 
         TOTAL_VOLUME = format_amount(snapshot_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
 #        SUPPLY_TOTAL = format_amount(snapshot_data['total_supply'], config.currency_crypto_ticker)
-        SUPPLY_CIRCULATING = format_amount(snapshot_data['circulating_supply'], config.currency_crypto_ticker)
+        SUPPLY_CIRCULATING = format_currency(snapshot_data['circulating_supply'], config.currency_crypto_ticker, decimal=0)
     
         # Format text for user presentation:
         info_price = f'[Trade]\n' \
@@ -266,12 +266,12 @@ def write_markdown():
         info_market_cap = f'[Capitalization]\n' \
             f'Market Cap: {MARKET_CAP}\n' \
             f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
-            f'Diluted: {FULLY_DILUTED_VALUATION}\n' \
-            f'Supply: {SUPPLY_CIRCULATING}/21M\n'
+            f'Supply: {SUPPLY_CIRCULATING}\n' \
+            f'Diluted: {FULLY_DILUTED_VALUATION}\n'
         info_ath = f'[All-Time-High]\n' \
-            f'price: {ALL_TIME_HIGH}\n' \
+            f'Price: {ALL_TIME_HIGH}\n' \
             f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
-            f'date: {ALL_TIME_HIGH_DATE}\n'
+            f'Date: {ALL_TIME_HIGH_DATE}\n'
         info_update = f'UTC {LAST_UPdATED}\n'
 
         # Write text to Markdown file:
@@ -373,7 +373,7 @@ def write_history_markdown(days):
                 f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
                 f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
                 f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
-            info_market_cap = f'[Market-Cap]\n' \
+            info_market_cap = f'[Capitalization]\n' \
                 f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
                 f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                 f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
@@ -427,7 +427,7 @@ def write_history_markdown(days):
             
             # Format text for user presentation:
             info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
-            info_price = f'[price]\n' \
+            info_price = f'[Price]\n' \
                 f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
                 f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                 f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \

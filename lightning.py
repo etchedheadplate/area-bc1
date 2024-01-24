@@ -241,18 +241,22 @@ def write_markdown():
 #        NODE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['node_count'], latest_data['node_count']))
 
         NODE_CLEARNET_COUNT = format_quantity(latest_data['clearnet_nodes'])
+        NODE_CLEARNET_PERCENTAGE = f"{round(latest_data['clearnet_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_CLEARNET_1W = format_quantity(latest_data['clearnet_nodes'] - previous_data['clearnet_nodes'])
 #        NODE_CLEARNET_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['clearnet_nodes'], latest_data['clearnet_nodes']))
 
         NODE_CLEARDARKNET_COUNT = format_quantity(latest_data['clearnet_tor_nodes'])
+        NODE_CLEARDARKNET_PERCENTAGE = f"{round(latest_data['clearnet_tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_CLEARDARKNET_CHANGE_1W = format_quantity(latest_data['clearnet_tor_nodes'] - previous_data['clearnet_tor_nodes'])
 #        NODE_CLEARDARKNET_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['clearnet_tor_nodes'], latest_data['clearnet_tor_nodes']))
 
         NODE_DARKNET_COUNT = format_quantity(latest_data['tor_nodes'])
+        NODE_DARKNET_PERCENTAGE = f"{round(latest_data['tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_DARKNET_CHANGE_1W = format_quantity(latest_data['tor_nodes'] - previous_data['tor_nodes'])
 #        NODE_DARKNET_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['tor_nodes'], latest_data['tor_nodes']))
 
         NODE_UNKNOWN_COUNT = format_quantity(latest_data['unannounced_nodes'])
+        NODE_UNKNOWN_PERCENTAGE = f"{round(latest_data['unannounced_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_UNKNOWN_CHANGE_1W = format_quantity(latest_data['unknown_nodes'] - previous_data['unknown_nodes'])
 #        NODE_UNKNOWN_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['unknown_nodes'], latest_data['unknown_nodes']))
     
@@ -265,16 +269,16 @@ def write_markdown():
 #        FEE_BASE_AVG_RATE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_base_fee_mtokens'], latest_data['avg_base_fee_mtokens']))
 
         # Format text for user presentation:
-        info_network = f'[Channels]\n' \
+        info_network = f'[Volume]\n' \
             f'Channels: {CHANNELS}\n' \
             f'Capacity: {CAPACITY_COUNT}\n' \
-            f'Avg: {CAPACITY_AVG_COUNT}/ch\n'
+            f'Avg: {CAPACITY_AVG_COUNT}/channel\n'
         info_node = f'[Nodes]\n' \
-            f'Total: {NODE_COUNT}\n' \
-            f'Clearnet: {NODE_CLEARNET_COUNT}\n' \
-            f'Greynet: {NODE_CLEARDARKNET_COUNT}\n' \
-            f'Darknet: {NODE_DARKNET_COUNT}\n' \
-            f'Unknown: {NODE_UNKNOWN_COUNT}\n'
+            f'Overall: {NODE_COUNT}\n' \
+            f'Clearnet: {NODE_CLEARNET_PERCENTAGE} ({NODE_CLEARNET_COUNT})\n' \
+            f'Greynet: {NODE_CLEARDARKNET_PERCENTAGE} ({NODE_CLEARDARKNET_COUNT})\n' \
+            f'Darknet: {NODE_DARKNET_PERCENTAGE} ({NODE_DARKNET_COUNT})\n' \
+            f'Unknown: {NODE_UNKNOWN_PERCENTAGE} ({NODE_UNKNOWN_COUNT})\n'
         info_fees = f'[Fees]\n' \
             f'Avg Rate: {FEE_AVG_RATE_COUNT} sats\n' \
             f'Avg Base: {FEE_BASE_AVG_RATE_COUNT} sats\n'

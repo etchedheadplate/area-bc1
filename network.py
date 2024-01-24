@@ -213,9 +213,10 @@ def write_markdown():
         HASHRATE = format_amount(snapshot_data['hash_rate'] / 1_000)
         DIFFICULTY = format_amount(snapshot_data['difficulty'])
         RETARGET_HEIGHT = format_quantity(snapshot_data['nextretarget'])
+        RETARGET_IN = format_quantity(snapshot_data['nextretarget'] - snapshot_data['n_blocks_total'])
     
         # Format values text for user presentation:
-        info_blocks = f'[Block]\n' \
+        info_blocks = f'[Blocks]\n' \
             f'Height: {BLOCKS_HEIGHT}\n' \
             f'24h Mined: {BLOCKS_MINED} blocks\n' \
             f'24h Size: {BLOCKS_SIZE} MB/block\n' \
@@ -228,11 +229,11 @@ def write_markdown():
         info_transactions = f'[Transactions]\n' \
             f'Avg: {TRANSACTIONS_BLOCK}/block\n' \
             f'24h Total: {TRANSACTIONS_MADE}\n' \
-            f'24h Cost: {TRANSACTIONS_COST}/TRX\n'
-        info_network = f'[Mining]\n' \
-            f'Hashrate: {HASHRATE} TH/s\n' \
-            f'Difficulty Level: {DIFFICULTY}\n' \
-            f'Change Height: {RETARGET_HEIGHT}\n'
+            f'24h Cost: {TRANSACTIONS_COST}/trx\n'
+        info_network = f'[Difficulty]\n' \
+            f'Current Target: {DIFFICULTY}\n' \
+            f'Retarget: in {RETARGET_IN} blocks\n' \
+            f'Hashrate: {HASHRATE} TH/s\n'
         info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
