@@ -1,3 +1,4 @@
+import os
 import io
 import json
 
@@ -10,7 +11,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime, timedelta
 
 import config
 from tools import (define_key_metric_movement,
@@ -42,9 +44,11 @@ def draw_plot():
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
+    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
+    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
 
     # Plot-related variables:
-    plot = config.plot['network']
+    plot = config.images['network']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
@@ -65,12 +69,13 @@ def draw_plot():
     plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
     plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
     plot_key_metric_movement_format = format_percentage(plot_key_metric_movement)
-    plot_key_metric_movement_color = define_key_metric_movement(plot, plot_key_metric_movement)
 
     # Background-related variables:
     background = define_key_metric_movement(plot, plot_key_metric_movement)
+#    background = 'hashrate_up'
     background_path = plot_background[f'{background}']['path']
     background_coordinates = plot_background[f'{background}']['coordinates']
+    background_colors = plot_background[f'{background}']['colors']
 
     # Creation of plot axies:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
@@ -131,17 +136,13 @@ def draw_plot():
     ax3.set_yticks([])
 
     # Set plot legend proxies and actual legend:
-    legend_period =chart['api']['params']['timespan'][0:2]
-
     legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
     legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
-    legend_proxy_key_metric_movement = Line2D([0], [0], label=f'{legend_period} Hashrate {plot_key_metric_movement_format}')
 
     legend = ax2.legend(handles=[legend_proxy_hashrate,
                                  legend_proxy_trx_per_block,
-                                 legend_proxy_price,
-                                 legend_proxy_key_metric_movement],
+                                 legend_proxy_price],
                                  loc="upper left",
                                  prop=plot_font,
                                  handlelength=0)
@@ -150,7 +151,6 @@ def draw_plot():
     legend.get_texts()[0].set_color(plot_colors['hashrate'])
     legend.get_texts()[1].set_color(plot_colors['trx_per_block'])
     legend.get_texts()[2].set_color(plot_colors['price'])
-    legend.get_texts()[3].set_color(plot_colors[f'{plot_key_metric_movement_color}'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
 
@@ -158,18 +158,48 @@ def draw_plot():
     for text in legend.get_texts():
         text.set_fontsize(16)
 
-    # Save plot image without background in memory buffer and transfer it to PIL.Image module:
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
+    # Open memory buffer and save plot to memory buffer:
+    plot_buffer = io.BytesIO()
+    plt.savefig(plot_buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
     matplotlib.pyplot.close()
-    background_image = Image.open(background_path).convert("RGB")
-    buffer.seek(0)
-    background_overlay = Image.open(buffer)
 
-    # Save plot image with background:
+    # Open background image, draw Network title and save image to memory buffer:
+    title_image = Image.open(background_path)
+    draw = ImageDraw.Draw(title_image)
+
+    # Network title related variables:
+    title_font = plot['font']
+    title_list = [
+            [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
+            {'text': 'network activity stats', 'position': background_colors['api'][2], 'font_size': 20, 'text_color': background_colors['api'][0]}],
+
+            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
+            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 20, 'text_color': background_colors['metric'][0]}]
+    ]
+    
+    for title in title_list:
+        for param in title:
+            text = param.get('text')
+            position = param.get('position')
+            size = param.get('font_size')
+            font = ImageFont.truetype(title_font, size)
+            text_color = param.get('text_color')
+
+            draw.text(position, text, font=font, fill=text_color)
+
+    title_buffer = io.BytesIO()
+    title_image.save(title_buffer, 'PNG')
+
+    # Overlay plot buffer with Network title buffer and save final image:
+    background_image = Image.open(title_buffer).convert("RGB")
+    title_buffer.seek(0)
+    background_overlay = Image.open(plot_buffer)
+    plot_buffer.seek(0)
+
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
     background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
-    buffer.close()
+    title_buffer.close()
+    plot_buffer.close()
 
 
 def write_markdown():
