@@ -1,5 +1,4 @@
 import io
-import os
 import json
 
 import numpy as np
@@ -11,8 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
-from PIL import Image, ImageDraw, ImageFont
-from datetime import datetime, timedelta
+from PIL import Image
 
 import config
 from tools import (define_key_metric_movement,
@@ -44,11 +42,9 @@ def draw_plot():
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
-    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
-    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
 
     # Plot-related variables:
-    plot = config.images['lightning']
+    plot = config.plot['lightning']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
@@ -69,13 +65,12 @@ def draw_plot():
     plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
     plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
     plot_key_metric_movement_format = format_percentage(plot_key_metric_movement)
+    plot_key_metric_movement_color = define_key_metric_movement(plot, plot_key_metric_movement)
 
     # Background-related variables:
     background = define_key_metric_movement(plot, plot_key_metric_movement)
-#    background = 'capacity_up'
     background_path = plot_background[f'{background}']['path']
     background_coordinates = plot_background[f'{background}']['coordinates']
-    background_colors = plot_background[f'{background}']['colors']
 
     # Creation of plot axies:
     axis_date = plot_df['date']
@@ -150,8 +145,11 @@ def draw_plot():
     ax3.set_zorder(1)
 
     # Set plot and stacked area legend proxies:
+    legend_period = list(chart['file']['columns'].keys())[0][-2:]
+
     plot_legend_proxy_capacity = Line2D([0], [0], label=f'Capacity, {config.currency_crypto_ticker}')
-    plot_legend_proxy_channels = Line2D([0], [0], label='Channels')
+    plot_legend_proxy_channels = Line2D([0], [0], label='Channels Count')
+    plot_legend_proxy_key_metric_movement = Line2D([0], [0], label=f'{legend_period} Capacity {plot_key_metric_movement_format}')
     
     stacked_legend_proxy_nodes_unknown = Line2D([0], [0], label='Clearnet')
     stacked_legend_proxy_nodes_darknet = Line2D([0], [0], label='Greynet')
@@ -160,7 +158,8 @@ def draw_plot():
     
     # Set actual plot and stacked area legend:
     plot_legend = ax1.legend(handles=[plot_legend_proxy_capacity,
-                                 plot_legend_proxy_channels],
+                                 plot_legend_proxy_channels,
+                                 plot_legend_proxy_key_metric_movement],
                                  loc="upper left", prop=plot_font, handlelength=0)
     
     stacked_legend = ax3.legend(handles=[stacked_legend_proxy_nodes_unknown,
@@ -172,6 +171,7 @@ def draw_plot():
     # Set plot and stacked area legend colors:
     plot_legend.get_texts()[0].set_color(plot_colors['capacity'])
     plot_legend.get_texts()[1].set_color(plot_colors['channels'])
+    plot_legend.get_texts()[2].set_color(plot_colors[f'{plot_key_metric_movement_color}'])
     plot_legend.get_frame().set_facecolor(plot_colors['frame'])
     plot_legend.get_frame().set_alpha(0.95)
 
@@ -189,48 +189,18 @@ def draw_plot():
     for text in stacked_legend.get_texts():
         text.set_fontsize(16)
 
-    # Open memory buffer and save plot to memory buffer:
-    plot_buffer = io.BytesIO()
-    plt.savefig(plot_buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
+    # Save plot image without background in memory buffer and transfer it to PIL.Image module:
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
     matplotlib.pyplot.close()
+    background_image = Image.open(background_path).convert("RGB")
+    buffer.seek(0)
+    background_overlay = Image.open(buffer)
 
-    # Open background image, draw Lightning title and save image to memory buffer:
-    title_image = Image.open(background_path)
-    draw = ImageDraw.Draw(title_image)
-
-    # Lightning title related variables:
-    title_font = plot['font']
-    title_list = [
-            [{'text': 'mempool.space', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
-            {'text': 'lightning statistics', 'position': background_colors['api'][2], 'font_size': 21, 'text_color': background_colors['api'][0]}],
-
-            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 21, 'text_color': background_colors['metric'][0]}]
-    ]
-    
-    for title in title_list:
-        for param in title:
-            text = param.get('text')
-            position = param.get('position')
-            size = param.get('font_size')
-            font = ImageFont.truetype(title_font, size)
-            text_color = param.get('text_color')
-
-            draw.text(position, text, font=font, fill=text_color)
-
-    title_buffer = io.BytesIO()
-    title_image.save(title_buffer, 'PNG')
-
-    # Overlay plot buffer with Lightning title buffer and save final image:
-    background_image = Image.open(title_buffer).convert("RGB")
-    title_buffer.seek(0)
-    background_overlay = Image.open(plot_buffer)
-    plot_buffer.seek(0)
-
+    # Save plot image with background:
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
     background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
-    title_buffer.close()
-    plot_buffer.close()
+    buffer.close()
 
 
 def write_markdown():

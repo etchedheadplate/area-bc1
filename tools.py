@@ -49,7 +49,7 @@ def make_chart_data(database):
     api_endpoints = chart['api']['endpoints']
     api_params = chart['api']['params']
     api_subdict = chart['api']['subdict']
-    api_parsed = chart['api']['parsed']
+    api_response_type = chart['api']['response_type']
 
     file_path = chart['file']['path']
     file_name = chart['file']['name']
@@ -72,23 +72,13 @@ def make_chart_data(database):
                 api_subdict)
         
         # Response proccesed differently if data returned as list or dict:
-        if type(file_columns) is dict:
-            if api_parsed == list:
-                for row, column in file_columns[api_endpoint].items():
-                    response_data = pd.DataFrame(response[row], columns=['date', f'{column}'])
-                    response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
-            elif api_parsed == dict:
-                response_data = pd.DataFrame(response).rename(columns=file_columns[api_endpoint])
+        if api_response_type == list:
+            for row, column in file_columns[api_endpoint].items():
+                response_data = pd.DataFrame(response[row], columns=['date', f'{column}'])
                 response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
-            else:
-                print(f'Unknown type of parsed api response: {type(api_parsed)}')
-        
-        elif type(file_columns) is list:
-            response_columns = pd.DataFrame(list(response.items()), columns=file_columns)
-
         else:
-            print(f'Unknown type of config param file_columns: {type(file_columns)}')
-
+            response_data = pd.DataFrame(response).rename(columns=file_columns[api_endpoint])
+            response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
 
     # DataFrame with response data saved to file:
     response_columns.to_csv(file, index=False)

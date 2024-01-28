@@ -22,7 +22,7 @@ databases = {
             'endpoints': ['lightning/statistics/1m'],
             'params': False,
             'subdict': False,
-            'parsed': dict
+            'response_type': dict
         },
         'file': {
             'path': f'db/lightning/',
@@ -55,7 +55,7 @@ databases = {
                         'precision': '2'
                     },
                 'subdict': False,
-                'parsed': list
+                'response_type': list
             },
             'file': {
                 'path': f'db/market/{currency_pair}/',
@@ -84,7 +84,7 @@ databases = {
                         'precision': '2'
                     },
                 'subdict': False,
-                'parsed': list
+                'response_type': list
             },
             'file': {
                 'path': f'db/market/{currency_pair}/',
@@ -113,7 +113,7 @@ databases = {
                         'precision': '2'
                     },
                 'subdict': False,
-                'parsed': list
+                'response_type': list
             },
             'file': {
                 'path': f'db/market/{currency_pair}/',
@@ -148,7 +148,7 @@ databases = {
                     'sampled': 'true'
                     },
                 'subdict': 'values',
-                'parsed': dict
+                'response_type': dict
             },
             'file': {
                 'path': 'db/network/',
@@ -171,26 +171,6 @@ databases = {
                         'y': 'trx_cost'
                     }
                 }
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':00'
-            }
-        },
-        'pools': {
-            'api': {
-                'base': 'https://api.blockchain.info/',
-                'endpoints': ['pools'],
-                'params': {
-                    'timespan': '7days'
-                    },
-                'subdict': False,
-                'parsed': dict
-            },
-            'file': {
-                'path': 'db/pools/',
-                'name': 'pools.csv',
-                'columns': ['pool', 'mined']
             },
             'update': {
                 'interval': 1,
@@ -279,59 +259,44 @@ images = {
         'path': 'db/fees/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'blocks': '#F9F9F9',
-            'subblocks': '#c1c0c0',
-            'fees_satvb_fastest': '#f48e1d',
-            'fees_satvb_half_hour': '#e87c28',
-            'fees_satvb_hour': '#db6934',
-            'fees_satvb_economy': '#cf5640',
-            'fees_satvb_minimum': '#c2434b',
-            'fees_currency_fastest': '#ee8523',
-            'fees_currency_half_hour': '#e1722e',
-            'fees_currency_hour': '#d55f3a',
-            'fees_currency_economy': '#c84c46',
-            'fees_currency_minimum': '#bc3a51'
+            'date': '#F9F9F9',
+            'text': '#F9F9F9',
+            'subtext': '#191716',
+            'fees_satvb_fastest': '#B93554',
+            'fees_satvb_half_hour': '#F7931A',
+            'fees_satvb_hour': '#6A6866',
+            'fees_satvb_economy': '#4E4E4C',
+            'fees_satvb_minimum': '#343331'
         },
-        'backgrounds': {
-            'path': 'src/image/backgrounds/fees.png',
-            'colors': {
-                'api': ('#bc3a51', (100, 65), (100, 100)),
-                'metric': ('#F7931A', (415, 65), (415, 95)),
-            }
-        }
+        'background': 'src/image/backgrounds/fees.png',
+        'coordinates': (795, 5)
     },
     'lightning': {
         'path': 'db/lightning/',
         'font': 'src/font/font.ttf',
         'colors': {
             'date': '#F9F9F9',
-            'channels': '#e8086d',
+            'channels': '#B93554',
             'capacity': '#F7931A',
-            'nodes_clearnet': '#8b065a',
-            'nodes_greynet': '#6f055a',
-            'nodes_darknet': '#54055a',
-            'nodes_unknown': '#38055a',
+            'nodes_clearnet': '#6A6866',
+            'nodes_greynet': '#4E4E4C',
+            'nodes_darknet': '#343331',
+            'nodes_unknown': '#191716',
             'frame': '#191716',
             'frame_nodes': '#FFFFFF',
+            'capacity_down': '#CB2B1B',
+            'capacity_up': '#2BD713',
         },
         'backgrounds': {
-            'key_metric_down': {
-                'path': 'src/image/backgrounds/lightning_down.png',
-                'range': (-float('inf'), 0),
-                'coordinates': (795, 5),
-                'colors': {
-                    'api': ('#bc3a51', (100, 900), (100, 935)),
-                    'metric': ('#C20000', (415, 900), (415, 935)),
-                }
+            'capacity_down': {
+                    'path': 'src/image/backgrounds/lightning_capacity_down.png',
+                    'range': (-float('inf'), 0),
+                    'coordinates': (795, 5)
             },
-            'key_metric_up': {
-                'path': 'src/image/backgrounds/lightning_up.png',
-                'range': (0, float('inf')),
-                'coordinates': (795, 5),
-                'colors': {
-                    'api': ('#bc3a51', (100, 900), (100, 935)),
-                    'metric': ('#2BD713', (415, 900), (415, 935)),
-                }
+            'capacity_up': {
+                    'path': 'src/image/backgrounds/lightning_capacity_up.png',
+                    'range': (0, float('inf')),
+                    'coordinates': (795, 5)
             }
         }
     },
@@ -341,28 +306,21 @@ images = {
         'colors': {
             'date': '#F9F9F9',
             'price': '#F7931A',
-            'total_volume': '#0F95BE',
+            'total_volume': '#17E2E8',
             'frame': '#191716',
+            'price_down': '#CB2B1B',
+            'price_up': '#2BD713'
         },
         'backgrounds': {
-            'key_metric_down': {
-                'path': 'src/image/backgrounds/market_down.png',
-                'range': (-float('inf'), 0),
-                'coordinates': (25, 5),
-                'colors': {
-                    'api': ('#55CDF1', (1850, 65), (1850, 100)),
-                    'metric': ('#C20000', (1850, 150), (1850, 185)),
-                }
+            'price_down': {
+                    'path': 'src/image/backgrounds/market_price_down.png',
+                    'range': (-float('inf'), 0),
+                    'coordinates': (25, 5)
             },
-            'key_metric_up': {
-                'path': 'src/image/backgrounds/market_up.png',
-                'range': (0, float('inf')),
-                'coordinates': (25, 5),
-                'colors': {
-                    'api': ('#55CDF1', (1900, 815), (1900, 850)),
-                    'metric': ('#2BD713', (1900, 900), (1900, 935)),
-                    
-                }
+            'price_up': {
+                    'path': 'src/image/backgrounds/market_price_up.png',
+                    'range': (0, float('inf')),
+                    'coordinates': (25, 5)
             }
         }
     },
@@ -372,45 +330,22 @@ images = {
         'colors': {
             'date': '#F9F9F9',
             'price': '#F7931A',
-            'hashrate': '#ffff66',
-            'trx_per_block': '#665cff',
+            'hashrate': '#CACACA',
+            'trx_per_block': '#717171',
             'frame': '#191716',
+            'hashrate_down': '#CB2B1B',
+            'hashrate_up': '#2BD713'
         },
         'backgrounds': {
-            'key_metric_down': {
-                'path': 'src/image/backgrounds/network_down.png',
-                'range': (-float('inf'), 0),
-                'coordinates': (795, 5),
-                'colors': {
-                    'api': ('#CACACA', (100, 930), (100, 965)),
-                    'metric': ('#C20000', (425, 930), (425, 965)),
-                }
+            'hashrate_down': {
+                    'path': 'src/image/backgrounds/network_hashrate_down.png',
+                    'range': (-float('inf'), 0),
+                    'coordinates': (795, 5)
             },
-            'key_metric_up': {
-                'path': 'src/image/backgrounds/network_up.png',
-                'range': (0, float('inf')),
-                'coordinates': (795, 5),
-                'colors': {
-                    'api': ('#CACACA', (100, 820), (100, 855)),
-                    'metric': ('#2BD713', (100, 905), (100, 940)),
-                }
-            }
-        }
-    },
-    'pools': {
-        'path': 'db/pools/',
-        'font': 'src/font/font.ttf',
-        'colors': {
-            'percentage': '#c1c0c0',
-            'bitcoin': '#F7931A',
-            'slices': ['#E8086D', '#60079B', '#430EBE', '#183EE9', '#2385E7', '#0F95BE']
-        },
-        'backgrounds': {
-            'path': 'src/image/backgrounds/pools.png',
-            'coordinates': (680, -15),
-            'colors': {
-                'api': '#E8086D',
-                'period': '#0F95BE',
+            'hashrate_up': {
+                    'path': 'src/image/backgrounds/network_hashrate_up.png',
+                    'range': (0, float('inf')),
+                    'coordinates': (795, 5)
             }
         }
     }
