@@ -1,4 +1,5 @@
 import io
+import os
 import json
 from datetime import datetime, timezone
 
@@ -11,7 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime, timedelta
 
 import config
 from tools import (define_key_metric_movement,
@@ -94,7 +96,7 @@ def draw_plot(days=1):
     chart_file = chart_file_path + chart_file_name
 
     # Plot-related variables:
-    plot = config.plot['market']
+    plot = config.images['market']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
@@ -110,6 +112,9 @@ def draw_plot(days=1):
     if days == 'max':
         days = len(plot_df) - 2
 
+    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
+    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
+
     # Specification of chart indexes for plot axies:
     chart_interval = calculate_rows_interval(days)
     plot_index_last = len(plot_df) - 1
@@ -123,12 +128,12 @@ def draw_plot(days=1):
     plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
     plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
     plot_key_metric_movement_format = format_percentage(plot_key_metric_movement)
-    plot_key_metric_movement_color = define_key_metric_movement(plot, plot_key_metric_movement)
 
     # Background-related variables:
     background = define_key_metric_movement(plot, plot_key_metric_movement)
     background_path = plot_background[f'{background}']['path']
     background_coordinates = plot_background[f'{background}']['coordinates']
+    background_colors = plot_background[f'{background}']['colors']
 
     # Creation of plot axies:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
@@ -183,19 +188,13 @@ def draw_plot(days=1):
     ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.3)
 
     # Set plot legend proxies and actual legend:
-    legend_days_change = str(days) + 'd'
-    if days == 1:
-        legend_days_change = '24h'
-
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
     legend_proxy_volume = Line2D([0], [0], label=f'Volume, {config.currency_vs_ticker}')
-    legend_proxy_market = Line2D([0], [0], label=f'{legend_days_change} Price {plot_key_metric_movement_format}')
-    legend = ax1.legend(handles=[legend_proxy_price, legend_proxy_volume, legend_proxy_market], loc="upper left", prop=plot_font, handlelength=0)
+    legend = ax1.legend(handles=[legend_proxy_price, legend_proxy_volume], loc="upper left", prop=plot_font, handlelength=0)
     
     # Set legend colors:
     legend.get_texts()[0].set_color(plot_colors['price'])
     legend.get_texts()[1].set_color(plot_colors['total_volume'])
-    legend.get_texts()[2].set_color(plot_colors[f'{plot_key_metric_movement_color}'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
 
@@ -203,18 +202,48 @@ def draw_plot(days=1):
     for text in legend.get_texts():
         text.set_fontsize(16)
 
-    # Save plot image without background in memory buffer and transfer it to PIL.Image module:
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
+    # Open memory buffer and save plot to memory buffer:
+    plot_buffer = io.BytesIO()
+    plt.savefig(plot_buffer, format='png', bbox_inches='tight', transparent=True, dpi=150)
     matplotlib.pyplot.close()
-    background_image = Image.open(background_path).convert("RGB")
-    buffer.seek(0)
-    background_overlay = Image.open(buffer)
 
-    # Save plot image with background:
+    # Open background image, draw Market title and save image to memory buffer:
+    title_image = Image.open(background_path)
+    draw = ImageDraw.Draw(title_image)
+
+    # Market title related variables:
+    title_font = plot['font']
+    title_list = [
+            [{'text': 'coingecko.com', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
+            {'text': f'{config.currency_pair} market stats', 'position': background_colors['api'][2], 'font_size': 20, 'text_color': background_colors['api'][0]}],
+
+            [{'text': f'{config.currency_crypto_ticker} {plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
+            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 20, 'text_color': background_colors['metric'][0]}]
+    ]
+    
+    for title in title_list:
+        for param in title:
+            text = param.get('text')
+            position = param.get('position')
+            size = param.get('font_size')
+            font = ImageFont.truetype(title_font, size)
+            text_color = param.get('text_color')
+
+            draw.text(position, text, font=font, fill=text_color)
+
+    title_buffer = io.BytesIO()
+    title_image.save(title_buffer, 'PNG')
+
+    # Overlay plot buffer with Market title buffer and save final image:
+    background_image = Image.open(title_buffer).convert("RGB")
+    title_buffer.seek(0)
+    background_overlay = Image.open(plot_buffer)
+    plot_buffer.seek(0)
+
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
     background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
-    buffer.close()
+    title_buffer.close()
+    plot_buffer.close()
 
 
 def write_markdown():
@@ -453,7 +482,7 @@ def write_history_markdown(days):
 
 if __name__ == '__main__':
     
-    days = [1, 3, 7, 90, 366, 1826, 'max']
+    days = [1, 3]
     for day in days:
         draw_plot(day)
         write_history_markdown(day)
