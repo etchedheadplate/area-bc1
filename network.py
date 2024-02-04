@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
 import config
+from logger import main_logger
 from tools import (define_key_metric_movement,
                    calculate_percentage_change,
                    convert_timestamp_to_utc,
@@ -36,11 +37,11 @@ to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_plot():
+def draw_network():
     # Draws Network plot with properties specified in user configuration.
     
     # User configuration related variables:
-    chart = config.databases['charts']['network']
+    chart = config.charts['network']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
@@ -72,7 +73,6 @@ def draw_plot():
 
     # Background-related variables:
     background = define_key_metric_movement(plot, plot_key_metric_movement)
-#    background = 'hashrate_up'
     background_path = plot_background[f'{background}']['path']
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
@@ -201,19 +201,21 @@ def draw_plot():
     title_buffer.close()
     plot_buffer.close()
 
+    main_logger.info(f'[image] network plot drawn')
 
-def write_markdown():
+
+def write_network():
     # Writes Network markdown with properties specified in user configuration.
 
     # User configuration related variables:
-    snapshot = config.databases['snapshots']['network']
+    snapshot = config.snapshots['network']
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
     markdown_file = snapshot_file_path + 'network.md'
 
-    chart = config.databases['charts']['network']
+    chart = config.charts['network']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
@@ -270,10 +272,12 @@ def write_markdown():
         with open (markdown_file, 'w') as markdown:
             markdown.write(f"```Network\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```")
 
+    main_logger.info(f'[markdown] network text written')
+
 
 
 
 if __name__ == '__main__':
-    
-    draw_plot()
-    write_markdown()
+
+    draw_network()
+    write_network()

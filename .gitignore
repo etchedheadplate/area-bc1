@@ -1,9 +1,9 @@
 *.pyc
 *.pyo
-*.txt
 *.csv
 *.jpg
 *.png
+*.log
 *.DS_Store
 __pycache__/
 api/

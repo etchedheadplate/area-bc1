@@ -4,14 +4,15 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 import config
+from logger import main_logger
 from tools import format_currency
 
 
-def draw_info():
+def draw_fees():
     # Draws Recomended Fees image with properties specified in user configuration.
     
     # User configuration related variables:
-    snapshot = config.databases['snapshots']['fees']
+    snapshot = config.snapshots['fees']
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
@@ -23,10 +24,10 @@ def draw_info():
     info_background = info['backgrounds']['path']
     info_background_colors = info['backgrounds']['colors']
     info_output = info['path'] + 'fees.jpg'
-    info_datetime = datetime.fromtimestamp(os.path.getctime(snapshot_file)).strftime('%Y-%m-%d %H:%M')
+    info_datetime = datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime('%Y-%m-%d %H:%M')
 
     # Get current price from Market snapshot:
-    market = config.databases['snapshots']['market']
+    market = config.snapshots['market']
     market_file_path = market['file']['path']
     market_file_name = market['file']['name']
     market_file = market_file_path + market_file_name
@@ -64,8 +65,8 @@ def draw_info():
             fees_currency_economy = ''
             fees_currency_minimum = ''
 
-            market_currency_pair = ''
-            market_price = ''
+            market_currency_pair = 'PAIR'
+            market_price = 'COULDNT LOAD'
 
         # Set text, position, size and color parameters:
         info_list = [
@@ -114,7 +115,12 @@ def draw_info():
                 draw.text(position, text, font=font, fill=text_color)
 
         image.save(info_output)
+        
+        main_logger.info(f'[image] fees info drawn')
 
 
 
-draw_info()
+
+if __name__ == '__main__':
+
+    draw_fees()

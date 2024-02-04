@@ -1,10 +1,4 @@
-'''
-Variables used for API calls and data display. Can be adjusted manually
-within this module or/and via user interface in bot. All paths are relative.
-'''
-
-
-# Currency related variables
+# Currency related variables:
 currency_crypto = 'bitcoin'
 currency_vs = 'usd'
 currency_crypto_ticker = 'BTC'
@@ -12,17 +6,15 @@ currency_vs_ticker = currency_vs.upper()
 currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 
-
-# Database related variables
-databases = {
-    'charts' :{
-        'lightning': {
+# Dictionaries for managing databases:
+charts = {
+    'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
             'endpoints': ['lightning/statistics/1m'],
             'params': False,
             'subdict': False,
-            'parsed': dict
+            'parsed': 'dict'
         },
         'file': {
             'path': f'db/lightning/',
@@ -38,243 +30,249 @@ databases = {
                     'clearnet_tor_nodes': 'nodes_greynet'
                 }
             }
-        },
-        'update': {
-            'interval': 1,
-            'seconds': ':00'
         }
     },
-        'market': {
-            'api': {
-                'base': 'https://api.coingecko.com/api/v3/',
-                'endpoints': [f'coins/{currency_crypto}/market_chart'],
-                'params': {
-                        'vs_currency': f'{currency_vs}',
-                        'days': '1',
-                        'interval': '',
-                        'precision': '2'
-                    },
-                'subdict': False,
-                'parsed': list
-            },
-            'file': {
-                'path': f'db/market/{currency_pair}/',
-                'name': 'market.csv',
-                'columns': {
-                    f'coins/{currency_crypto}/market_chart': {
-                        'prices': 'price',
-                        'market_caps': 'market_cap',
-                        'total_volumes': 'total_volume'
-                    }
-                }
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':00'
-            }
+    'market': {
+        'api': {
+            'base': 'https://api.coingecko.com/api/v3/',
+            'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'params': {
+                    'vs_currency': f'{currency_vs}',
+                    'days': '1',
+                    'interval': '',
+                    'precision': '2'
+                },
+            'subdict': False,
+            'parsed': 'list'
         },
-        'market_days_90': {
-            'api': {
-                'base': 'https://api.coingecko.com/api/v3/',
-                'endpoints': [f'coins/{currency_crypto}/market_chart'],
-                'params': {
-                        'vs_currency': f'{currency_vs}',
-                        'days': '90',
-                        'interval': '',
-                        'precision': '2'
-                    },
-                'subdict': False,
-                'parsed': list
-            },
-            'file': {
-                'path': f'db/market/{currency_pair}/',
-                'name': 'market_days_90.csv',
-                'columns': {
-                    f'coins/{currency_crypto}/market_chart': {
-                        'prices': 'price',
-                        'market_caps': 'market_cap',
-                        'total_volumes': 'total_volume'
-                    }
+        'file': {
+            'path': f'db/market/{currency_pair}/',
+            'name': 'market.csv',
+            'columns': {
+                f'coins/{currency_crypto}/market_chart': {
+                    'prices': 'price',
+                    'market_caps': 'market_cap',
+                    'total_volumes': 'total_volume'
                 }
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':30'
-            }
-        },
-        'market_days_max': {
-            'api': {
-                'base': 'https://api.coingecko.com/api/v3/',
-                'endpoints': [f'coins/{currency_crypto}/market_chart'],
-                'params': {
-                        'vs_currency': f'{currency_vs}',
-                        'days': 'max',
-                        'interval': '',
-                        'precision': '2'
-                    },
-                'subdict': False,
-                'parsed': list
-            },
-            'file': {
-                'path': f'db/market/{currency_pair}/',
-                'name': 'market_days_max.csv',
-                'columns': {
-                    f'coins/{currency_crypto}/market_chart': {
-                        'prices': 'price',
-                        'market_caps': 'market_cap',
-                        'total_volumes': 'total_volume'
-                    }
-                }
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':45'
-            }
-        },
-        'network': {
-            'api': {
-                'base': 'https://api.blockchain.info/',
-                'endpoints': [
-                    'charts/market-price',
-                    'charts/hash-rate',
-                    'charts/n-transactions-per-block',
-                    'charts/cost-per-transaction'
-                    ],
-                'params': {
-                    'timespan': '1months',
-                    'rollingAverage': '2days',
-                    'start': '',
-                    'format': 'json',
-                    'sampled': 'true'
-                    },
-                'subdict': 'values',
-                'parsed': dict
-            },
-            'file': {
-                'path': 'db/network/',
-                'name': 'network.csv',
-                'columns': {
-                    'charts/market-price': {
-                        'x': 'date',
-                        'y': 'price'
-                    },
-                        'charts/hash-rate': {
-                        'x': 'date',
-                        'y': 'hashrate'
-                    },
-                        'charts/n-transactions-per-block': {
-                        'x': 'date',
-                        'y': 'trx_per_block'
-                    },
-                        'charts/cost-per-transaction': {
-                        'x': 'date',
-                        'y': 'trx_cost'
-                    }
-                }
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':00'
-            }
-        },
-        'pools': {
-            'api': {
-                'base': 'https://api.blockchain.info/',
-                'endpoints': ['pools'],
-                'params': {
-                    'timespan': '7days'
-                    },
-                'subdict': False,
-                'parsed': dict
-            },
-            'file': {
-                'path': 'db/pools/',
-                'name': 'pools.csv',
-                'columns': ['pool', 'mined']
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':00'
             }
         }
     },
-    'snapshots': {
-        'fees': {
-            'api': {
-                'base': 'https://mempool.space/api/v1/',
-                'endpoints': ('fees/recommended'),
-                'params': False,
-                'subdict': False
-            },
-            'file': {
-                'path': 'db/fees/',
-                'name': 'fees.json',
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':30'
-            }
+    'market_days_90': {
+        'api': {
+            'base': 'https://api.coingecko.com/api/v3/',
+            'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'params': {
+                    'vs_currency': f'{currency_vs}',
+                    'days': '90',
+                    'interval': '',
+                    'precision': '2'
+                },
+            'subdict': False,
+            'parsed': 'list'
         },
-        'lightning': {
-            'api': {
-                'base': 'https://mempool.space/api/v1/',
-                'endpoints': ('lightning/statistics/latest'),
-                'params': False,
-                'subdict': False
-            },
-            'file': {
-                'path': 'db/lightning/',
-                'name': 'lightning.json',
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':15'
+        'file': {
+            'path': f'db/market/{currency_pair}/',
+            'name': 'market_days_90.csv',
+            'columns': {
+                f'coins/{currency_crypto}/market_chart': {
+                    'prices': 'price',
+                    'market_caps': 'market_cap',
+                    'total_volumes': 'total_volume'
+                }
             }
+        }
+    },
+    'market_days_max': {
+        'api': {
+            'base': 'https://api.coingecko.com/api/v3/',
+            'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'params': {
+                    'vs_currency': f'{currency_vs}',
+                    'days': 'max',
+                    'interval': '',
+                    'precision': '2'
+                },
+            'subdict': False,
+            'parsed': 'list'
         },
-        'market': {
-            'api': {
-                'base': 'https://api.coingecko.com/api/v3/',
-                'endpoints': (f'coins/{currency_crypto}'),
-                'params': {
-                        'localization': 'false',
-                        'tickers': 'false',
-                        'market_data': 'true',
-                        'community_data': 'false',
-                        'developer_data': 'false'
-                    },
-                'subdict': 'market_data'
-            },
-            'file': {
-                'path': f'db/market/{currency_pair}/',
-                'name': 'market.json',
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':15'
+        'file': {
+            'path': f'db/market/{currency_pair}/',
+            'name': 'market_days_max.csv',
+            'columns': {
+                f'coins/{currency_crypto}/market_chart': {
+                    'prices': 'price',
+                    'market_caps': 'market_cap',
+                    'total_volumes': 'total_volume'
+                }
             }
+        }
+    },
+    'network': {
+        'api': {
+            'base': 'https://api.blockchain.info/',
+            'endpoints': [
+                'charts/market-price',
+                'charts/hash-rate',
+                'charts/n-transactions-per-block',
+                'charts/cost-per-transaction'
+                ],
+            'params': {
+                'timespan': '1months',
+                'rollingAverage': '2days',
+                'start': '',
+                'format': 'json',
+                'sampled': 'true'
+                },
+            'subdict': 'values',
+            'parsed': 'dict'
         },
-        'network': {
-            'api': {
-                'base': 'https://api.blockchain.info/',
-                'endpoints': ('stats'),
-                'params': False,
-                'subdict': ''
-            },
-            'file': {
-                'path': 'db/network/',
-                'name': 'network.json',
-            },
-            'update': {
-                'interval': 1,
-                'seconds': ':15'
+        'file': {
+            'path': 'db/network/',
+            'name': 'network.csv',
+            'columns': {
+                'charts/market-price': {
+                    'x': 'date',
+                    'y': 'price'
+                },
+                    'charts/hash-rate': {
+                    'x': 'date',
+                    'y': 'hashrate'
+                },
+                    'charts/n-transactions-per-block': {
+                    'x': 'date',
+                    'y': 'trx_per_block'
+                },
+                    'charts/cost-per-transaction': {
+                    'x': 'date',
+                    'y': 'trx_cost'
+                }
             }
+        }
+    },
+    'pools': {
+        'api': {
+            'base': 'https://api.blockchain.info/',
+            'endpoints': ['pools'],
+            'params': {
+                'timespan': '7days'
+                },
+            'subdict': False,
+            'parsed': 'dict'
+        },
+        'file': {
+            'path': 'db/pools/',
+            'name': 'pools.csv',
+            'columns': ['pool', 'mined']
         }
     }
 }
 
+snapshots = {
+    'fees': {
+        'api': {
+            'base': 'https://mempool.space/api/v1/',
+            'endpoints': ('fees/recommended'),
+            'params': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/fees/',
+            'name': 'fees.json',
+        }
+    },
+    'lightning': {
+        'api': {
+            'base': 'https://mempool.space/api/v1/',
+            'endpoints': ('lightning/statistics/latest'),
+            'params': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/lightning/',
+            'name': 'lightning.json',
+        }
+    },
+    'market': {
+        'api': {
+            'base': 'https://api.coingecko.com/api/v3/',
+            'endpoints': (f'coins/{currency_crypto}'),
+            'params': {
+                    'localization': 'false',
+                    'tickers': 'false',
+                    'market_data': 'true',
+                    'community_data': 'false',
+                    'developer_data': 'false'
+                },
+            'subdict': 'market_data'
+        },
+        'file': {
+            'path': f'db/market/{currency_pair}/',
+            'name': 'market.json',
+        }
+    },
+    'network': {
+        'api': {
+            'base': 'https://api.blockchain.info/',
+            'endpoints': ('stats'),
+            'params': False,
+            'subdict': ''
+        },
+        'file': {
+            'path': 'db/network/',
+            'name': 'network.json',
+        }
+    }
+}
 
-# Market plot related variables
-images = {
+delay = 15
+
+updates = {
+    # All numbers are primes to minimize chance of rate limit risk between diffirent databases with same API.
+    # Charts and snapshots within same database updated with {delay} for the this reason also.
+
+    # Databases are updated every {minutes} at :{seconds}, if current time is 13:12:00, {minutes} = 179 and
+    # {seconds} = 11, then update will be at 16:11:11, 19:10:11, 22:09:11, 01:08:11, etc.
+
+    # {seconds} -> chart -> + {delay} seconds -> snapshot -> + {delay} seconds -> image -> markdown.
+    # Overal scheme should not exceed 59 seconds, {seconds} should be set accordingly.
+
+    # API mempool.space:
+    'fees': { # snapshot + image
+        'minutes': 7,
+        'seconds': 31
+    },
+    'lightning': { # chart + snapshot + image + markdown
+        'minutes': 113,
+        'seconds': 5
+    },
+    # API CoinGecko:
+    'market': { # chart + snapshot + image + markdown
+        'minutes': 7,
+        'seconds': 2
+    },
+    'market_days_90': { # chart
+        'minutes': 13,
+        'seconds': 29
+    },
+    'market_days_max': { # chart
+        'minutes': 599,
+        'seconds': 43
+    },
+    # API Blockchain.com:
+    'network': { # chart + snapshot + image + markdown
+        'minutes': 113,
+        'seconds': 11
+    },
+    'pools': { # chart + image 
+        'minutes': 179,
+        'seconds': 37
+    }
+}
+
+
+
+# Dictionary for creation of images:
+images = {#
     'fees': {
         'path': 'db/fees/',
         'font': 'src/font/font.ttf',
@@ -415,3 +413,4 @@ images = {
         }
     }
 }
+

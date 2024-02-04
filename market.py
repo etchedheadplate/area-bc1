@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
 import config
+from logger import main_logger
 from tools import (define_key_metric_movement,
                    calculate_percentage_change,
                    format_time_axis,
@@ -24,6 +25,8 @@ from tools import (define_key_metric_movement,
                    format_utc,
                    format_currency,
                    format_percentage)
+
+
 
 
 '''
@@ -84,13 +87,13 @@ def calculate_rows_interval(days=1):
     return interval
 
 
-def draw_plot(days=1):
+def draw_market(days=1):
     # Draws Market plot with properties specified in user configuration.
     
     chart_name = select_chart(days)[0]
 
     # User configuration related variables:
-    chart = config.databases['charts'][f'{chart_name}']
+    chart = config.charts[f'{chart_name}']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
@@ -114,6 +117,8 @@ def draw_plot(days=1):
 
     chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
+    if chart_time_from < '2013-04-28':
+        chart_time_from = '2013-04-28'
 
     # Specification of chart indexes for plot axies:
     chart_interval = calculate_rows_interval(days)
@@ -245,246 +250,238 @@ def draw_plot(days=1):
     title_buffer.close()
     plot_buffer.close()
 
-
-def write_markdown():
-    # Writes Market markdown with properties specified in user configuration.
-
-    # User configuration related variables:
-    snapshot = config.databases['snapshots']['market']
-    snapshot_file_path = snapshot['file']['path']
-    snapshot_file_name = snapshot['file']['name']
-    snapshot_file = snapshot_file_path + snapshot_file_name
-
-    markdown_file = snapshot_file_path + 'market.md'
-
-    with open (snapshot_file, 'r') as json_file:
-
-        snapshot_data = json.load(json_file)
-
-        # Parse snapshot to separate values:
-        LAST_UPdATED = format_utc(snapshot_data['last_updated'])
-
-        PRICE_CURRENT = format_currency(snapshot_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(snapshot_data['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
-        PRICE_CHANGE_24H_IN_CURRENCY = format_currency(snapshot_data['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_HIGH_24H = format_currency(snapshot_data['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        PRICE_LOW_24H = format_currency(snapshot_data['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        
-        MARKET_CAP = format_amount(snapshot_data['market_cap'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        MARKET_CAP_CHANGE_24H_PERCENTAGE = format_percentage(snapshot_data['market_cap_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
-        MARKET_CAP_CHANGE_24H = format_amount(snapshot_data['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        FULLY_DILUTED_VALUATION = format_amount(snapshot_data['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        
-        ALL_TIME_HIGH = format_currency(snapshot_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
-        ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(snapshot_data['ath_change_percentage'][f'{config.currency_vs}'])
-#        ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['ath'][f'{config.currency_vs}'] - snapshot_data['SNAPSHOT_PRICE'][f'{config.currency_vs}']), config.currency_vs_ticker)
-        ALL_TIME_HIGH_DATE = snapshot_data['ath_date'][f'{config.currency_vs}'][:10]    
-        ALL_TIME_HIGH_DAYS = (datetime.now(timezone.utc) - datetime.fromisoformat(snapshot_data['ath_date'][f'{config.currency_vs}'].replace('Z', '+00:00'))).days
-
-        TOTAL_VOLUME = format_amount(snapshot_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
-#        SUPPLY_TOTAL = format_amount(snapshot_data['total_supply'], config.currency_crypto_ticker)
-        SUPPLY_CIRCULATING = format_currency(snapshot_data['circulating_supply'], config.currency_crypto_ticker, decimal=0)
-    
-        # Format text for user presentation:
-        info_price = f'[Trade]\n' \
-            f'Price: {PRICE_CURRENT}\n' \
-            f'24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
-            f'24h High: {PRICE_HIGH_24H}\n' \
-            f'24h Low: {PRICE_LOW_24H}\n' \
-            f'24h Volume: {TOTAL_VOLUME}\n'
-        info_market_cap = f'[Capitalization]\n' \
-            f'Market Cap: {MARKET_CAP}\n' \
-            f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
-            f'Supply: {SUPPLY_CIRCULATING}\n' \
-            f'Diluted: {FULLY_DILUTED_VALUATION}\n'
-        info_ath = f'[All-Time-High]\n' \
-            f'Price: {ALL_TIME_HIGH}\n' \
-            f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
-            f'Date: {ALL_TIME_HIGH_DATE}\n'
-        info_update = f'UTC {LAST_UPdATED}\n'
-
-        # Write text to Markdown file:
-        with open (markdown_file, 'w') as markdown:
-            markdown.write(f"```Market\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}```")
+    main_logger.info(f'[image] market (days {days}) plot drawn')
 
 
-def write_history_markdown(days):
+def write_market(days=1):
     # Writes Market markdown for user set days period with properties specified in user configuration.
 
-    chart_name = select_chart(days)[1]
-
     # User configuration related variables:
-    chart = config.databases['charts'][f'{chart_name}']
-    chart_file_path = chart['file']['path']
-    chart_file_name = chart['file']['name']
-    chart_file = chart_file_path + chart_file_name
-    chart_data = pd.read_csv(chart_file)
-
-    chart_markdown_file = chart_file_path + f'market_days_{days}.md'
-
-    if days == 'max':
-        days = len(chart_data) - 1
-
-    chart_data_index_last = len(chart_data)
-    chart_data_index_first = chart_data_index_last - days
-    if chart_data_index_first < 1:
-        chart_data_index_first = 1
-
-    chart_date = chart_data['date'][chart_data_index_first : chart_data_index_last]
-    chart_price = chart_data['price'][chart_data_index_first : chart_data_index_last]
-    chart_market_cap = chart_data['market_cap'][chart_data_index_first : chart_data_index_last]
-    chart_total_volume = chart_data['total_volume'][chart_data_index_first : chart_data_index_last]
-
-    snapshot = config.databases['snapshots']['market']
+    snapshot = config.snapshots['market']
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
-    with open (snapshot_file, 'r') as json_file:
+    if days == 1:
+        markdown_file = snapshot_file_path + 'market.md'
+
+        with open (snapshot_file, 'r') as json_file:
+            snapshot_data = json.load(json_file)
+
+            # Parse snapshot to separate values:
+            LAST_UPdATED = format_utc(snapshot_data['last_updated'])
+
+            PRICE_CURRENT = format_currency(snapshot_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(snapshot_data['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
+            PRICE_CHANGE_24H_IN_CURRENCY = format_currency(snapshot_data['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            PRICE_HIGH_24H = format_currency(snapshot_data['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            PRICE_LOW_24H = format_currency(snapshot_data['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            
+            MARKET_CAP = format_amount(snapshot_data['market_cap'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            MARKET_CAP_CHANGE_24H_PERCENTAGE = format_percentage(snapshot_data['market_cap_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
+            MARKET_CAP_CHANGE_24H = format_amount(snapshot_data['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            FULLY_DILUTED_VALUATION = format_amount(snapshot_data['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            
+            ALL_TIME_HIGH = format_currency(snapshot_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(snapshot_data['ath_change_percentage'][f'{config.currency_vs}'])
+    #        ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['ath'][f'{config.currency_vs}'] - snapshot_data['SNAPSHOT_PRICE'][f'{config.currency_vs}']), config.currency_vs_ticker)
+            ALL_TIME_HIGH_DATE = snapshot_data['ath_date'][f'{config.currency_vs}'][:10]    
+            ALL_TIME_HIGH_DAYS = (datetime.now(timezone.utc) - datetime.fromisoformat(snapshot_data['ath_date'][f'{config.currency_vs}'].replace('Z', '+00:00'))).days
+
+            TOTAL_VOLUME = format_amount(snapshot_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
+    #        SUPPLY_TOTAL = format_amount(snapshot_data['total_supply'], config.currency_crypto_ticker)
+            SUPPLY_CIRCULATING = format_currency(snapshot_data['circulating_supply'], config.currency_crypto_ticker, decimal=0)
         
-        snapshot_data = json.load(json_file)
-
-        # CoinGecko does not provide Volume information before 2013-12-27:
-        if chart_data_index_first > 244:
-
-            # Parse snapshot and chart to separate values:
-            SNAPSHOT_DATE = format_utc(snapshot_data['last_updated'])[:-9]
-            SNAPSHOT_PRICE = snapshot_data['current_price'][f'{config.currency_vs}']
-            SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
-            SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
-
-            CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
-            CHART_PRICE = chart_price.iloc[0]
-            CHART_MARKET_CAP = chart_market_cap.iloc[0]
-            CHART_TOTAL_VOLUME = chart_total_volume.iloc[0]
-
-            CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=0)
-            CHANGE_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP - CHART_MARKET_CAP, f'{config.currency_vs}')
-            CHANGE_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME - CHART_TOTAL_VOLUME, f'{config.currency_vs}')
-
-            PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(CHART_PRICE, SNAPSHOT_PRICE))
-            PERCENTAGE_CHANGE_MARKET_CAP = format_percentage(calculate_percentage_change(CHART_MARKET_CAP, SNAPSHOT_MARKET_CAP))
-            PERCENTAGE_CHANGE_TOTAL_VOLUME = format_percentage(calculate_percentage_change(CHART_TOTAL_VOLUME, SNAPSHOT_TOTAL_VOLUME))
-
-            HIGH_PRICE = format_currency(chart_price.max().max(), f'{config.currency_vs}', decimal=0)
-            HIGH_MARKET_CAP = format_amount(chart_market_cap.max().max(), f'{config.currency_vs}')
-            HIGH_TOTAL_VOLUME = format_amount(chart_total_volume.max().max(), f'{config.currency_vs}')
-
-            DATE_HIGH_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmax()])[:-9]
-            DATE_HIGH_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmax()])[:-9]
-            DATE_HIGH_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmax()])[:-9]
-
-            LOW_PRICE = format_currency(chart_price.min().min(), f'{config.currency_vs}', decimal=0)
-            LOW_MARKET_CAP = format_amount(chart_market_cap.min().min(), f'{config.currency_vs}')
-            LOW_TOTAL_VOLUME = format_amount(chart_total_volume.min().min(), f'{config.currency_vs}')
-
-            DATE_LOW_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmin()])[:-9]
-            DATE_LOW_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmin()])[:-9]
-            DATE_LOW_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmin()])[:-9]
-
-            SNAPSHOT_PRICE = format_currency(SNAPSHOT_PRICE, f'{config.currency_vs}', decimal=0)
-            SNAPSHOT_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP, f'{config.currency_vs}')
-            SNAPSHOT_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME, f'{config.currency_vs}')
-
-            CHART_PRICE = format_currency(CHART_PRICE, f'{config.currency_vs}', decimal=0)
-            CHART_MARKET_CAP = format_amount(CHART_MARKET_CAP, f'{config.currency_vs}')
-            CHART_TOTAL_VOLUME = format_amount(CHART_TOTAL_VOLUME, f'{config.currency_vs}')
-            
             # Format text for user presentation:
-            info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
-            info_price = f'[Price]\n' \
-                f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
-                f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
-                f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
-                f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-            info_total_volume = f'[Volume]\n' \
-                f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
-                f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
-                f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
-                f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
+            info_price = f'[Trade]\n' \
+                f'Price: {PRICE_CURRENT}\n' \
+                f'24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
+                f'24h High: {PRICE_HIGH_24H}\n' \
+                f'24h Low: {PRICE_LOW_24H}\n' \
+                f'24h Volume: {TOTAL_VOLUME}\n'
             info_market_cap = f'[Capitalization]\n' \
-                f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
-                f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
-                f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
-                f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
-            
-            # Write text to Markdown file:
-            with open (chart_markdown_file, 'w') as markdown:
-                markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}```')
-
-        else:
-
-            # Parse snapshot and chart to separate values:
-            SNAPSHOT_DATE = format_utc(snapshot_data['last_updated'])[:-9]
-            SNAPSHOT_PRICE = snapshot_data['current_price'][f'{config.currency_vs}']
-            SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
-            SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
-
-            CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
-            CHART_PRICE = chart_price.iloc[0]
-            CHART_MARKET_CAP = chart_market_cap.iloc[0]
-            CHART_TOTAL_VOLUME = 'Unknown'
-
-            CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=0)
-            CHANGE_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP - CHART_MARKET_CAP, f'{config.currency_vs}')
-
-            PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(CHART_PRICE, SNAPSHOT_PRICE))
-            PERCENTAGE_CHANGE_MARKET_CAP = format_percentage(calculate_percentage_change(CHART_MARKET_CAP, SNAPSHOT_MARKET_CAP))
-
-            HIGH_PRICE = format_currency(chart_price.max().max(), f'{config.currency_vs}', decimal=0)
-            HIGH_MARKET_CAP = format_amount(chart_market_cap.max().max(), f'{config.currency_vs}')
-            HIGH_TOTAL_VOLUME = format_amount(chart_total_volume.max().max(), f'{config.currency_vs}')
-
-            DATE_HIGH_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmax()])[:-9]
-            DATE_HIGH_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmax()])[:-9]
-            DATE_HIGH_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmax()])[:-9]
-
-            LOW_PRICE = format_currency(chart_price.min().min(), f'{config.currency_vs}', decimal=0)
-            LOW_MARKET_CAP = format_amount(chart_market_cap.min().min(), f'{config.currency_vs}')
-            LOW_TOTAL_VOLUME = format_amount(chart_total_volume.min().min(), f'{config.currency_vs}')
-
-            DATE_LOW_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmin()])[:-9]
-            DATE_LOW_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmin()])[:-9]
-            DATE_LOW_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmin()])[:-9]
-
-            SNAPSHOT_PRICE = format_currency(SNAPSHOT_PRICE, f'{config.currency_vs}', decimal=0)
-            SNAPSHOT_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP, f'{config.currency_vs}')
-            SNAPSHOT_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME, f'{config.currency_vs}')
-
-            CHART_PRICE = format_currency(CHART_PRICE, f'{config.currency_vs}', decimal=0)
-            CHART_MARKET_CAP = format_amount(CHART_MARKET_CAP, f'{config.currency_vs}')
-            
-            # Format text for user presentation:
-            info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
-            info_price = f'[Price]\n' \
-                f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
-                f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
-                f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
-                f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-            info_total_volume = f'[Volume]\n' \
-                f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
-                f'{days}d: Unknown\n' \
-                f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
-                f'Low: Unknown\n'
-            info_market_cap = f'[Market-Cap]\n' \
-                f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
-                f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
-                f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
-                f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
-            info_limitations = 'CoinGecko API does not provide Volume information before 2013-12-27\n'
+                f'Market Cap: {MARKET_CAP}\n' \
+                f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
+                f'Supply: {SUPPLY_CIRCULATING}\n' \
+                f'Diluted: {FULLY_DILUTED_VALUATION}\n'
+            info_ath = f'[All-Time-High]\n' \
+                f'Price: {ALL_TIME_HIGH}\n' \
+                f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
+                f'Date: {ALL_TIME_HIGH_DATE}\n'
+            info_update = f'UTC {LAST_UPdATED}\n'
 
             # Write text to Markdown file:
-            with open (chart_markdown_file, 'w') as markdown:
-                markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}```')
+            with open (markdown_file, 'w') as markdown:
+                markdown.write(f"```Market\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}```")
+
+    else:
+        chart_name = select_chart(days)[1]
+
+        # User configuration related variables:
+        chart = config.charts[f'{chart_name}']
+        chart_file_path = chart['file']['path']
+        chart_file_name = chart['file']['name']
+        chart_file = chart_file_path + chart_file_name
+        chart_data = pd.read_csv(chart_file)
+
+        chart_markdown_file = chart_file_path + f'market_days_{days}.md'
+
+        if days == 'max':
+            days = len(chart_data) - 1
+
+        chart_data_index_last = len(chart_data)
+        chart_data_index_first = chart_data_index_last - days
+        if chart_data_index_first < 1:
+            chart_data_index_first = 1
+
+        chart_date = chart_data['date'][chart_data_index_first : chart_data_index_last]
+        chart_price = chart_data['price'][chart_data_index_first : chart_data_index_last]
+        chart_market_cap = chart_data['market_cap'][chart_data_index_first : chart_data_index_last]
+        chart_total_volume = chart_data['total_volume'][chart_data_index_first : chart_data_index_last]
+
+        with open (snapshot_file, 'r') as json_file:
+            snapshot_data = json.load(json_file)
+
+            # CoinGecko does not provide Volume information before 2013-12-27:
+            if chart_data_index_first > 244:
+                # Parse snapshot and chart to separate values:
+                SNAPSHOT_DATE = format_utc(snapshot_data['last_updated'])[:-9]
+                SNAPSHOT_PRICE = snapshot_data['current_price'][f'{config.currency_vs}']
+                SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
+                SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
+
+                CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
+                CHART_PRICE = chart_price.iloc[0]
+                CHART_MARKET_CAP = chart_market_cap.iloc[0]
+                CHART_TOTAL_VOLUME = chart_total_volume.iloc[0]
+
+                CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=0)
+                CHANGE_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP - CHART_MARKET_CAP, f'{config.currency_vs}')
+                CHANGE_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME - CHART_TOTAL_VOLUME, f'{config.currency_vs}')
+
+                PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(CHART_PRICE, SNAPSHOT_PRICE))
+                PERCENTAGE_CHANGE_MARKET_CAP = format_percentage(calculate_percentage_change(CHART_MARKET_CAP, SNAPSHOT_MARKET_CAP))
+                PERCENTAGE_CHANGE_TOTAL_VOLUME = format_percentage(calculate_percentage_change(CHART_TOTAL_VOLUME, SNAPSHOT_TOTAL_VOLUME))
+
+                HIGH_PRICE = format_currency(chart_price.max().max(), f'{config.currency_vs}', decimal=0)
+                HIGH_MARKET_CAP = format_amount(chart_market_cap.max().max(), f'{config.currency_vs}')
+                HIGH_TOTAL_VOLUME = format_amount(chart_total_volume.max().max(), f'{config.currency_vs}')
+
+                DATE_HIGH_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmax()])[:-9]
+                DATE_HIGH_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmax()])[:-9]
+                DATE_HIGH_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmax()])[:-9]
+
+                LOW_PRICE = format_currency(chart_price.min().min(), f'{config.currency_vs}', decimal=0)
+                LOW_MARKET_CAP = format_amount(chart_market_cap.min().min(), f'{config.currency_vs}')
+                LOW_TOTAL_VOLUME = format_amount(chart_total_volume.min().min(), f'{config.currency_vs}')
+
+                DATE_LOW_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmin()])[:-9]
+                DATE_LOW_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmin()])[:-9]
+                DATE_LOW_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmin()])[:-9]
+
+                SNAPSHOT_PRICE = format_currency(SNAPSHOT_PRICE, f'{config.currency_vs}', decimal=0)
+                SNAPSHOT_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP, f'{config.currency_vs}')
+                SNAPSHOT_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME, f'{config.currency_vs}')
+
+                CHART_PRICE = format_currency(CHART_PRICE, f'{config.currency_vs}', decimal=0)
+                CHART_MARKET_CAP = format_amount(CHART_MARKET_CAP, f'{config.currency_vs}')
+                CHART_TOTAL_VOLUME = format_amount(CHART_TOTAL_VOLUME, f'{config.currency_vs}')
+                
+                # Format text for user presentation:
+                info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
+                info_price = f'[Price]\n' \
+                    f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                    f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
+                    f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
+                info_total_volume = f'[Volume]\n' \
+                    f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
+                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
+                    f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
+                info_market_cap = f'[Market-Cap]\n' \
+                    f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
+                    f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
+                    f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
+                
+                # Write text to Markdown file:
+                with open (chart_markdown_file, 'w') as markdown:
+                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}```')
+
+            else:
+                # Parse snapshot and chart to separate values:
+                SNAPSHOT_DATE = format_utc(snapshot_data['last_updated'])[:-9]
+                SNAPSHOT_PRICE = snapshot_data['current_price'][f'{config.currency_vs}']
+                SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
+                SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
+
+                CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
+                CHART_PRICE = chart_price.iloc[0]
+                CHART_MARKET_CAP = chart_market_cap.iloc[0]
+                CHART_TOTAL_VOLUME = 'Unknown'
+
+                CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=0)
+                CHANGE_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP - CHART_MARKET_CAP, f'{config.currency_vs}')
+
+                PERCENTAGE_CHANGE_PRICE = format_percentage(calculate_percentage_change(CHART_PRICE, SNAPSHOT_PRICE))
+                PERCENTAGE_CHANGE_MARKET_CAP = format_percentage(calculate_percentage_change(CHART_MARKET_CAP, SNAPSHOT_MARKET_CAP))
+
+                HIGH_PRICE = format_currency(chart_price.max().max(), f'{config.currency_vs}', decimal=0)
+                HIGH_MARKET_CAP = format_amount(chart_market_cap.max().max(), f'{config.currency_vs}')
+                HIGH_TOTAL_VOLUME = format_amount(chart_total_volume.max().max(), f'{config.currency_vs}')
+
+                DATE_HIGH_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmax()])[:-9]
+                DATE_HIGH_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmax()])[:-9]
+                DATE_HIGH_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmax()])[:-9]
+
+                LOW_PRICE = format_currency(chart_price.min().min(), f'{config.currency_vs}', decimal=0)
+                LOW_MARKET_CAP = format_amount(chart_market_cap.min().min(), f'{config.currency_vs}')
+                LOW_TOTAL_VOLUME = format_amount(chart_total_volume.min().min(), f'{config.currency_vs}')
+
+                DATE_LOW_PRICE = convert_timestamp_to_utc(chart_date[chart_price.idxmin()])[:-9]
+                DATE_LOW_MARKET_CAP = convert_timestamp_to_utc(chart_date[chart_market_cap.idxmin()])[:-9]
+                DATE_LOW_TOTAL_VOLUME = convert_timestamp_to_utc(chart_date[chart_total_volume.idxmin()])[:-9]
+
+                SNAPSHOT_PRICE = format_currency(SNAPSHOT_PRICE, f'{config.currency_vs}', decimal=0)
+                SNAPSHOT_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP, f'{config.currency_vs}')
+                SNAPSHOT_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME, f'{config.currency_vs}')
+
+                CHART_PRICE = format_currency(CHART_PRICE, f'{config.currency_vs}', decimal=0)
+                CHART_MARKET_CAP = format_amount(CHART_MARKET_CAP, f'{config.currency_vs}')
+                
+                # Format text for user presentation:
+                info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
+                info_price = f'[Price]\n' \
+                    f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
+                    f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
+                    f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
+                info_total_volume = f'[Volume]\n' \
+                    f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                    f'{days}d: Unknown\n' \
+                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
+                    f'Low: Unknown\n'
+                info_market_cap = f'[Market-Cap]\n' \
+                    f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
+                    f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
+                    f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
+                info_limitations = 'CoinGecko API does not provide Volume information before 2013-12-27\n'
+
+                # Write text to Markdown file:
+                with open (chart_markdown_file, 'w') as markdown:
+                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}```')
+
+    main_logger.info(f'[markdown] market (days {days}) text written')
 
 
 
 
 if __name__ == '__main__':
     
-    days = [1, 3]
-    for day in days:
-        draw_plot(day)
-        write_history_markdown(day)
+    days = [1, 3, 100, 1000, 6667, 'max']
     
-    write_markdown()
+    for day in days:
+        draw_market(day)
+        write_market(day)

@@ -9,12 +9,14 @@ from matplotlib import font_manager
 from PIL import Image, ImageDraw, ImageFont
 
 import config
+from logger import main_logger
 
-def draw_diagram():
+
+def draw_pools():
     # Draws Pools diagram with properties specified in user configuration.
     
     # User configuration related variables:
-    chart = config.databases['charts']['pools']
+    chart = config.charts['pools']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
@@ -114,10 +116,14 @@ def draw_diagram():
     miners_buffer.close()
     diagram_buffer.close()
 
+    main_logger.info(f'[image] pools diagram drawn')
 
 
 
-draw_diagram()
+
+if __name__ == '__main__':
+
+    draw_pools()
 
 
 

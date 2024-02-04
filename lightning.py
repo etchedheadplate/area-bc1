@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
 import config
+from logger import main_logger
 from tools import (define_key_metric_movement,
                    calculate_percentage_change,
                    format_time_axis,
@@ -36,11 +37,11 @@ scaling to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_plot():
+def draw_lightning():
     # Draws Lightning plot with properties specified in user configuration.
     
     # User configuration related variables:
-    chart = config.databases['charts']['lightning']
+    chart = config.charts['lightning']
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
@@ -72,7 +73,6 @@ def draw_plot():
 
     # Background-related variables:
     background = define_key_metric_movement(plot, plot_key_metric_movement)
-#    background = 'capacity_up'
     background_path = plot_background[f'{background}']['path']
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
@@ -231,13 +231,15 @@ def draw_plot():
     background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
     title_buffer.close()
     plot_buffer.close()
+    
+    main_logger.info(f'[image] lightning plot drawn')
 
 
-def write_markdown():
+def write_lightning():
     # Writes Lightning markdown with properties specified in user configuration.
 
     # User configuration related variables:
-    snapshot = config.databases['snapshots']['lightning']
+    snapshot = config.snapshots['lightning']
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
@@ -318,10 +320,12 @@ def write_markdown():
         with open (markdown_file, 'w') as markdown:
             markdown.write(f"```Lightning\n{info_network}\n{info_node}\n{info_fees}\n{info_update}```")
 
+        main_logger.info(f'[markdown] lightning text written')
+
 
 
 
 if __name__ == '__main__':
-    
-    draw_plot()
-    write_markdown()
+
+    draw_lightning()
+    write_lightning()

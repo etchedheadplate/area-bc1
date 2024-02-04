@@ -1,14 +1,19 @@
 import os
 import json
+import time
 import requests
 import schedule
 import importlib
+import functools
 import pandas as pd
 
 from datetime import datetime
 from currency_symbols import CurrencySymbols
 
 import config
+from logger import main_logger
+
+
 
 
 '''
@@ -41,8 +46,7 @@ def make_chart_data(database):
     # Creates chart path if it doesn't exists. Distributes API data to columns using
     # 'date' column as common denominator. Saves data to database as CSV file.
 
-    time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
-    chart = config.databases['charts'][f'{database}']
+    chart = config.charts[f'{database}']
 
     # User configuration related variables:
     api_base = chart['api']['base']
@@ -73,47 +77,30 @@ def make_chart_data(database):
         
         # Response proccesed differently if data returned as list or dict:
         if type(file_columns) is dict:
-            if api_parsed == list:
+            if api_parsed == 'list':
                 for row, column in file_columns[api_endpoint].items():
                     response_data = pd.DataFrame(response[row], columns=['date', f'{column}'])
                     response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
-            elif api_parsed == dict:
+            elif api_parsed == 'dict':
                 response_data = pd.DataFrame(response).rename(columns=file_columns[api_endpoint])
                 response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
             else:
-                print(f'Unknown type of parsed api response: {type(api_parsed)}')
-        
+                main_logger.warning(f'unknown type of parsed api response: {type(api_parsed)}')
         elif type(file_columns) is list:
             response_columns = pd.DataFrame(list(response.items()), columns=file_columns)
-
         else:
-            print(f'Unknown type of config param file_columns: {type(file_columns)}')
+            main_logger.warning(f'unknown type of config param file_columns: {type(file_columns)}')
 
 
     # DataFrame with response data saved to file:
     response_columns.to_csv(file, index=False)
-    print(time_current, f'[{database}] chart made')
-
-    try:
-        # Dynamically import module associated with database and draw plot:
-        module_name = database
-        module = importlib.import_module(module_name)
-        draw_plot_function = getattr(module, 'draw_plot', None)
-
-        if draw_plot_function is not None and callable(draw_plot_function):
-            draw_plot_function()
-            print(time_current, f'[{database}] plot drawn')
-        else:
-            print(time_current, f'[{database}] draw_plot() not found in module {module_name}')
-    except ImportError:
-        print(time_current, f'[{database}] module not found')
+    main_logger.info(f'[chart] {database} updated')
     
 
 def make_snapshot_data(database):
     # Creates snapshot path if it doesn't exists. Saves data to database as JSON file.
 
-    time_current = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
-    snapshot = config.databases['snapshots'][f'{database}']
+    snapshot = config.snapshots[f'{database}']
 
     # User configuration related variables:
     api_base = snapshot['api']['base']
@@ -138,37 +125,80 @@ def make_snapshot_data(database):
 
     with open(file, 'w') as json_file:
         json.dump(response, json_file)
-        print(time_current, f'[{database}] snapshot made')
+        main_logger.info(f'[snapshot] {database} updated')
 
-    # Dynamically import module associated with database and make markdown:
-    module_name = database
-    module = importlib.import_module(module_name)
-    write_markdown_function = getattr(module, 'write_markdown', None)
 
-    if write_markdown_function is not None and callable(write_markdown_function):
-        write_markdown_function()
-        print(time_current, f'[{database}] markdown written')
+def format_update_seconds(seconds):
+    # Formats seconds to schedule module format.
+
+    seconds = round(abs(seconds))
+
+    if seconds >= 60:
+        seconds = int(seconds - seconds // 60 * 60)
     else:
-        print(time_current, f'[{database}] write_markdown() not found in module {module_name}')
+        seconds = seconds
+
+    if seconds >= 10:
+        formatted_seconds = f':{seconds}'
+    else:
+        formatted_seconds = f':0{seconds}'
+
+    return formatted_seconds
 
 
-def update_all_databases():
-    # Assigns proper function to handle database. Schedules regular updates
-    # based on user configuration.
-    
-    for db_type, db_list in config.databases.items():
-        for db_name, params in db_list.items():
-            update_interval = params['update']['interval']
-            update_seconds = params['update']['seconds']
-            update_function = make_chart_data if db_type == 'charts' else make_snapshot_data
-            schedule.every(update_interval).minutes.at(update_seconds).do(update_function, db_name)
-    
+def update_databases():
+    # Initializes databases. Assigns proper function to handle each database.
+    # Schedules regular updates for each database based on user configuration.
+
+    charts = config.charts
+    snapshots = config.snapshots
+    updates = config.updates
+    delay = config.delay
+
+    main_logger.info(f'[chart] initialazing databases (~{len(charts) * delay} seconds)')
+    for chart_name in charts.keys():
+        make_chart_data(chart_name) # Database chart initialized for the first time
+        time.sleep(delay) # Delay to not exceed rate limits for charts with same API
+
+    for chart_name in charts.keys():
+        chart_update_minutes = updates[f'{chart_name}']['minutes']
+        chart_update_seconds = format_update_seconds(updates[f'{chart_name}']['seconds'])
+        schedule.every(chart_update_minutes).minutes.at(chart_update_seconds).do(make_chart_data, chart_name)
+    main_logger.info('[chart] future updates scheduled')
+
+    main_logger.info(f'[snapshot] initialazing databases (~{len(snapshots) * delay} seconds)')
+    for snapshot_name in snapshots.keys():
+        make_snapshot_data(snapshot_name) # Database snapshot initialized for the first time
+        time.sleep(delay) # Delay to not exceed rate limits for snapshots with same API
+
+    for snapshot_name in snapshots.keys():
+        snapshot_update_minutes = updates[f'{snapshot_name}']['minutes']
+        snapshot_update_seconds = format_update_seconds(updates[f'{snapshot_name}']['seconds'] + delay)
+        schedule.every(snapshot_update_minutes).minutes.at(snapshot_update_seconds).do(make_snapshot_data, snapshot_name)
+    main_logger.info('[snapshot] future updates scheduled')
+
+    # List of all databases no matter if chart or snapshot:
+    databases = list(charts.keys() | snapshots.keys())
+
+    for database in databases:
+        module_file = f'{database}.py'
+        if os.path.exists(module_file):
+            module = importlib.import_module(database)
+            module_draw_image = getattr(module, f'draw_{database}', None)
+            module_write_markdown = getattr(module, f'write_{database}', None)
+            module_update_minutes = updates[f'{database}']['minutes']
+            module_update_seconds = format_update_seconds(updates[f'{chart_name}']['seconds'])
+            module_functions = [module_draw_image, module_write_markdown]
+            for module_function in module_functions:
+                if callable(module_function): # Each database module checked if contains image and/or markdown functions
+                    module_function()
+                    schedule.every(module_update_minutes).minutes.at(module_update_seconds).do(functools.partial(module_function))
+    main_logger.info('[image] future updates scheduled')
+    main_logger.info('[markdown] future updates scheduled')
+
     while True:
         schedule.run_pending()
 
-'''
-Functions related to formatting plot data.
-'''
 
 def define_key_metric_movement(plot, key_metric_change_percentage):
     # Defines % of price change as market movement in given period. Based on
@@ -307,6 +337,20 @@ def convert_utc_date_to_timestamp(utc):
     utc_date = datetime.strptime(utc, '%Y-%m-%d')
     timestamp = int(utc_date.timestamp())
     return timestamp
+
+
+def convert_date_to_days(date):
+    if date.isdigit():
+        days = int(date)
+        return days
+    else:
+        try:
+            datetime_past = datetime.strptime(date, '%d-%m-%Y')
+        except ValueError:
+            return 'error'
+        datetime_now_utc = datetime.utcnow()
+        days = (datetime_now_utc - datetime_past).days
+        return days
 
 
 def calculate_percentage_change(old, new):
