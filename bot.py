@@ -1,4 +1,5 @@
 import concurrent.futures
+from memory_profiler import profile
 from telegram import ParseMode
 from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters
 
@@ -164,9 +165,12 @@ def start_bot():
     updater.start_polling()
     updater.idle()
 
-
-if __name__ == '__main__':
+@profile
+def run_bot():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         run_bot = executor.submit(start_bot)
         run_database_update = executor.submit(update_databases)
         concurrent.futures.wait([run_bot] + [run_database_update])
+
+if __name__ == '__main__':
+    run_bot()

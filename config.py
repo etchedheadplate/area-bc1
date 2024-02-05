@@ -293,8 +293,8 @@ images = {#
         'backgrounds': {
             'path': 'src/image/backgrounds/fees.png',
             'colors': {
-                'api': ('#bc3a51', (100, 65), (100, 100)),
-                'metric': ('#F7931A', (415, 65), (415, 95)),
+                'api': ('#bc3a51', (100, 65), (100, 105)),
+                'metric': ('#F7931A', (455, 65), (455, 100)),
             }
         }
     },
@@ -318,8 +318,8 @@ images = {#
                 'range': (-float('inf'), 0),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#bc3a51', (100, 900), (100, 935)),
-                    'metric': ('#C20000', (415, 900), (415, 935)),
+                    'api': ('#bc3a51', (100, 805), (100, 845)),
+                    'metric': ('#e5383b', (100, 895), (100, 935)),
                 }
             },
             'key_metric_up': {
@@ -327,8 +327,8 @@ images = {#
                 'range': (0, float('inf')),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#bc3a51', (100, 900), (100, 935)),
-                    'metric': ('#2BD713', (415, 900), (415, 935)),
+                    'api': ('#bc3a51', (100, 805), (100, 845)),
+                    'metric': ('#2BD713', (100, 895), (100, 935)),
                 }
             }
         }
@@ -339,7 +339,7 @@ images = {#
         'colors': {
             'date': '#F9F9F9',
             'price': '#F7931A',
-            'total_volume': '#0F95BE',
+            'total_volume': '#00a5cf',
             'frame': '#191716',
         },
         'backgrounds': {
@@ -348,8 +348,8 @@ images = {#
                 'range': (-float('inf'), 0),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#55CDF1', (1850, 65), (1850, 100)),
-                    'metric': ('#C20000', (1850, 150), (1850, 185)),
+                    'api': ('#ffd60a', (1850, 65), (1850, 105)),
+                    'metric': ('#e5383b', (1850, 155), (1850, 195)),
                 }
             },
             'key_metric_up': {
@@ -357,8 +357,8 @@ images = {#
                 'range': (0, float('inf')),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#55CDF1', (1900, 815), (1900, 850)),
-                    'metric': ('#2BD713', (1900, 900), (1900, 935)),
+                    'api': ('#ffd60a', (1850, 805), (1850, 845)),
+                    'metric': ('#2BD713', (1850, 895), (1850, 935)),
                     
                 }
             }
@@ -370,8 +370,8 @@ images = {#
         'colors': {
             'date': '#F9F9F9',
             'price': '#F7931A',
-            'hashrate': '#ffff66',
-            'trx_per_block': '#665cff',
+            'hashrate': '#2a9d8f',
+            'trx_per_block': '#e71d36',
             'frame': '#191716',
         },
         'backgrounds': {
@@ -380,8 +380,8 @@ images = {#
                 'range': (-float('inf'), 0),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#CACACA', (100, 930), (100, 965)),
-                    'metric': ('#C20000', (425, 930), (425, 965)),
+                    'api': ('#CACACA', (100, 805), (100, 845)),
+                    'metric': ('#e5383b', (100, 895), (100, 935)),
                 }
             },
             'key_metric_up': {
@@ -389,8 +389,8 @@ images = {#
                 'range': (0, float('inf')),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#CACACA', (100, 820), (100, 855)),
-                    'metric': ('#2BD713', (100, 905), (100, 940)),
+                    'api': ('#CACACA', (100, 805), (100, 845)),
+                    'metric': ('#2BD713', (100, 895), (100, 935)),
                 }
             }
         }
@@ -401,14 +401,14 @@ images = {#
         'colors': {
             'percentage': '#c1c0c0',
             'bitcoin': '#F7931A',
-            'slices': ['#E8086D', '#60079B', '#430EBE', '#183EE9', '#2385E7', '#0F95BE']
+            'slices': ['#E8086D', '#60079B', '#430EBE', '#183EE9', '#2385E7', '#00a5cf']
         },
         'backgrounds': {
             'path': 'src/image/backgrounds/pools.png',
             'coordinates': (680, -15),
             'colors': {
-                'api': '#E8086D',
-                'period': '#0F95BE',
+                'api': ('#CACACA', (100, 65), (100, 105)),
+                'period': ('#00a5cf', (455, 65), (455, 100))
             }
         }
     }

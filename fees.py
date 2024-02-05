@@ -24,7 +24,7 @@ def draw_fees():
     info_background = info['backgrounds']['path']
     info_background_colors = info['backgrounds']['colors']
     info_output = info['path'] + 'fees.jpg'
-    info_datetime = datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime('%Y-%m-%d %H:%M')
+    info_datetime = f'UTC {datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime("%Y-%m-%d %H:%M")}'
 
     # Get current price from Market snapshot:
     market = config.snapshots['market']
@@ -56,7 +56,7 @@ def draw_fees():
             fees_currency_economy = format_currency(((fees_satvb_economy * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
             fees_currency_minimum = format_currency(((fees_satvb_minimum * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
 
-            market_currency_pair = config.currency_pair
+            market_cryptocurrency = f'{config.currency_crypto_ticker} Price'
             market_price = format_currency(market_price, config.currency_vs_ticker, decimal=0)
         else:
             fees_currency_fastest = ''
@@ -65,15 +65,15 @@ def draw_fees():
             fees_currency_economy = ''
             fees_currency_minimum = ''
 
-            market_currency_pair = 'PAIR'
+            market_cryptocurrency = 'PAIR'
             market_price = 'COULDNT LOAD'
 
         # Set text, position, size and color parameters:
         info_list = [
-            [{'text': 'mempool.space', 'position': info_background_colors['api'][1], 'font_size': 30, 'text_color': info_background_colors['api'][0]},
-            {'text': 'recommended fees by', 'position': info_background_colors['api'][2], 'font_size': 21, 'text_color': info_background_colors['api'][0]},
-            {'text': f'{market_currency_pair}: {market_price}', 'position': info_background_colors['metric'][1], 'font_size': 26, 'text_color': info_background_colors['metric'][0]},
-            {'text': f'{info_datetime}', 'position': info_background_colors['metric'][2], 'font_size': 26, 'text_color': info_background_colors['metric'][0]}],
+            [{'text': 'mempool.space', 'position': info_background_colors['api'][1], 'font_size': 36, 'text_color': info_background_colors['api'][0]},
+            {'text': f'recommended {config.currency_crypto_ticker} fees', 'position': info_background_colors['api'][2], 'font_size': 24, 'text_color': info_background_colors['api'][0]},
+            {'text': f'{market_cryptocurrency}: {market_price}', 'position': info_background_colors['metric'][1], 'font_size': 30, 'text_color': info_background_colors['metric'][0]},
+            {'text': f'{info_datetime}', 'position': info_background_colors['metric'][2], 'font_size': 30, 'text_color': info_background_colors['metric'][0]}],
               
             [{'text': 'Next block:', 'position': (100, 210), 'font_size': 50, 'text_color': info_colors['blocks']},
             {'text': '1-2 blocks:', 'position': (100, 360), 'font_size': 50, 'text_color': info_colors['blocks']},

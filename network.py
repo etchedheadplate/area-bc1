@@ -92,8 +92,8 @@ def draw_network():
     ax3 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=10)
-    ax2.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=6)
+    ax1.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=14)
+    ax2.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=8)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="price", alpha=0.0, linewidth=0.0)
 
     # Set axies left and right borders to first and last date of period. Bottom
@@ -132,7 +132,7 @@ def draw_network():
     ax3.set_zorder(1)
     
     # Set axies color filling and ticks visability:
-    ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.4)
+    ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.8)
     ax3.set_yticks([])
 
     # Set plot legend proxies and actual legend:
@@ -140,7 +140,7 @@ def draw_network():
     legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
 
-    legend = ax2.legend(handles=[legend_proxy_hashrate,
+    legend = ax1.legend(handles=[legend_proxy_hashrate,
                                  legend_proxy_trx_per_block,
                                  legend_proxy_price],
                                  loc="upper left",
@@ -153,7 +153,7 @@ def draw_network():
     legend.get_texts()[2].set_color(plot_colors['price'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
-
+    
     # Set legend text size:
     for text in legend.get_texts():
         text.set_fontsize(16)
@@ -170,11 +170,11 @@ def draw_network():
     # Network title related variables:
     title_font = plot['font']
     title_list = [
-            [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
-            {'text': 'network activity stats', 'position': background_colors['api'][2], 'font_size': 20, 'text_color': background_colors['api'][0]}],
+            [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
+            {'text': f'{config.currency_crypto_ticker} network activity', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
 
-            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 20, 'text_color': background_colors['metric'][0]}]
+            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:

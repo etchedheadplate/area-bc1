@@ -100,8 +100,8 @@ def draw_lightning():
     ax3 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_capacity, color=plot_colors['capacity'], label="capacity", linewidth=10)
-    ax2.plot(axis_date, axis_channels, color=plot_colors['channels'], label="channels", linewidth=6)
+    ax1.plot(axis_date, axis_capacity, color=plot_colors['capacity'], label="capacity", linewidth=14)
+    ax2.plot(axis_date, axis_channels, color=plot_colors['channels'], label="channels", linewidth=8)
 
     # Set stacked area colors:
     stacked_nodes_colors = [plot_colors['nodes_unknown'],
@@ -163,7 +163,7 @@ def draw_lightning():
                                  plot_legend_proxy_channels],
                                  loc="upper left", prop=plot_font, handlelength=0)
     
-    stacked_legend = ax3.legend(handles=[stacked_legend_proxy_nodes_unknown,
+    stacked_legend = ax2.legend(handles=[stacked_legend_proxy_nodes_unknown,
                                  stacked_legend_proxy_nodes_darknet,
                                  stacked_legend_proxy_nodes_greynet,
                                  stacked_legend_proxy_nodes_clearnet],
@@ -201,11 +201,11 @@ def draw_lightning():
     # Lightning title related variables:
     title_font = plot['font']
     title_list = [
-            [{'text': 'mempool.space', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
-            {'text': 'lightning statistics', 'position': background_colors['api'][2], 'font_size': 21, 'text_color': background_colors['api'][0]}],
+            [{'text': 'mempool.space', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
+            {'text': 'lightning statistics', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]}],
 
-            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 21, 'text_color': background_colors['metric'][0]}]
+            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:

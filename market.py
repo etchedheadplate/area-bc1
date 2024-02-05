@@ -153,7 +153,7 @@ def draw_market(days=1):
     ax2 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=6)
+    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=8)
     ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="total_volume", alpha=0.3, linewidth=0.1)
 
     # Set axies left and right borders to first and last date of period. Bottom border
@@ -190,7 +190,7 @@ def draw_market(days=1):
     ax2.set_zorder(1)
     
     # Set axies color filling:
-    ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.3)
+    ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.8)
 
     # Set plot legend proxies and actual legend:
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
@@ -219,11 +219,11 @@ def draw_market(days=1):
     # Market title related variables:
     title_font = plot['font']
     title_list = [
-            [{'text': 'coingecko.com', 'position': background_colors['api'][1], 'font_size': 30, 'text_color': background_colors['api'][0]},
-            {'text': f'{config.currency_pair} market stats', 'position': background_colors['api'][2], 'font_size': 20, 'text_color': background_colors['api'][0]}],
+            [{'text': 'coingecko.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
+            {'text': f'{config.currency_pair} market trade', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]}],
 
-            [{'text': f'{config.currency_crypto_ticker} {plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 30, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 20, 'text_color': background_colors['metric'][0]}]
+            [{'text': f'{config.currency_crypto_ticker} {plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:
@@ -298,7 +298,7 @@ def write_market(days=1):
                 f'24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
                 f'24h High: {PRICE_HIGH_24H}\n' \
                 f'24h Low: {PRICE_LOW_24H}\n' \
-                f'24h Volume: {TOTAL_VOLUME}\n'
+                f'Trade Volume: {TOTAL_VOLUME}\n'
             info_market_cap = f'[Capitalization]\n' \
                 f'Market Cap: {MARKET_CAP}\n' \
                 f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
@@ -480,7 +480,7 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [1, 3, 100, 1000, 6667, 'max']
+    days = [1, 100]
     
     for day in days:
         draw_market(day)

@@ -69,10 +69,10 @@ def draw_pools():
     # Miners-related variables:
     miners_font = diagram['font']
     miners_list = [
-            [{'text': 'blockchain.com', 'position': (100, 65), 'font_size': 30, 'text_color': background_colors['api']},
-             {'text': 'hashrate distribution', 'position': (100, 100), 'font_size': 21, 'text_color': background_colors['api']},
-             {'text': f'from: {chart_time_from}', 'position': (425, 65), 'font_size': 26, 'text_color': background_colors['period']},
-             {'text': f'till: {chart_time_till}', 'position': (425, 95), 'font_size': 26, 'text_color': background_colors['period']}],
+            [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
+             {'text': 'mining pools hashrate', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]},
+             {'text': f'from: {chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
+             {'text': f'till: {chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
             
             [{'text': 'BTC:', 'position': (1735, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
              {'text': 'mining pool:', 'position': (1935, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']}],

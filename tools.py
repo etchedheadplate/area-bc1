@@ -7,6 +7,7 @@ import importlib
 import functools
 import pandas as pd
 
+from memory_profiler import profile
 from datetime import datetime
 from currency_symbols import CurrencySymbols
 
@@ -145,7 +146,7 @@ def format_update_seconds(seconds):
 
     return formatted_seconds
 
-
+@profile
 def update_databases():
     # Initializes databases. Assigns proper function to handle each database.
     # Schedules regular updates for each database based on user configuration.
