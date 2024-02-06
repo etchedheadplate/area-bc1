@@ -346,7 +346,7 @@ def convert_date_to_days(date):
         return days
     else:
         try:
-            datetime_past = datetime.strptime(date, '%d-%m-%Y')
+            datetime_past = datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             return 'error'
         datetime_now_utc = datetime.utcnow()

@@ -1,5 +1,6 @@
 import io
 import os
+import math
 import json
 from datetime import datetime, timezone
 
@@ -53,7 +54,7 @@ def select_chart(days=1):
         if days <= 1:
             chart = 'market'
             chart_for_markdown = chart
-        elif days <= 90:
+        elif days <= 88: # 88 days condition instead of 90 for correct rolling average
             chart = 'market_days_90'
             chart_for_markdown = 'market_days_max'
         else:
@@ -74,7 +75,7 @@ def calculate_rows_interval(days=1):
         if days <= 1:
             days_as_five_minutes_chunks = days * 288
             interval = days_as_five_minutes_chunks
-        elif days <= 90:
+        elif days <= 88: # 88 days condition instead of 90 for correct rolling average
             days_as_one_hour_chunks = days * 24 - 1
             interval = days_as_one_hour_chunks
         else:
@@ -113,7 +114,7 @@ def draw_market(days=1):
     plot_df = pd.read_csv(chart_file)
 
     if days == 'max':
-        days = len(plot_df) - 2
+        days = len(plot_df) - 1
 
     chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
@@ -121,9 +122,9 @@ def draw_market(days=1):
         chart_time_from = '2013-04-28'
 
     # Specification of chart indexes for plot axies:
-    chart_interval = calculate_rows_interval(days)
+    plot_interval = calculate_rows_interval(days)
     plot_index_last = len(plot_df) - 1
-    plot_index_first = plot_index_last - chart_interval
+    plot_index_first = plot_index_last - plot_interval
     if plot_index_first < 1:
         plot_index_first = 1
 
@@ -140,10 +141,17 @@ def draw_market(days=1):
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
-    # Creation of plot axies:
+    # Set rolling avearge to 2% of plot interval:
+    percent_rolling_average = 0.02
+    percent_interval_index = calculate_percentage_change(plot_interval, plot_index_last) / 100
+    rolling_average = math.ceil(plot_interval * percent_rolling_average)
+
+    # Creation of plot axies
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
-    axis_price = plot_df['price'][plot_index_first:plot_index_last]
-    axis_total_volume = plot_df['total_volume'][plot_index_first:plot_index_last]
+    axis_price = plot_df['price'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
+    axis_total_volume = plot_df['total_volume'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
+    if percent_interval_index - percent_rolling_average <= 0: 
+        axis_total_volume = plot_df['total_volume'][plot_index_first:plot_index_last]
 
     # Creation of plot figure:
     fig, ax1 = plt.subplots(figsize=(12, 7.4))
@@ -153,13 +161,13 @@ def draw_market(days=1):
     ax2 = ax1.twinx()
 
     # Set axies lines:    
-    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=8)
+    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=10)
     ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="total_volume", alpha=0.3, linewidth=0.1)
 
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to min total_volume value and 99% of min price value for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_price) * 0.99, max(axis_price) * 1.01)
+#    ax1.set_ylim(min(axis_price) * 0.99, max(axis_price) * 1.01)
     ax2.set_ylim(min(axis_total_volume), max(axis_total_volume) * 1.05)
 
     # Set axies text format:
@@ -329,7 +337,7 @@ def write_market(days=1):
         if days == 'max':
             days = len(chart_data) - 1
 
-        chart_data_index_last = len(chart_data)
+        chart_data_index_last = len(chart_data) - 1
         chart_data_index_first = chart_data_index_last - days
         if chart_data_index_first < 1:
             chart_data_index_first = 1
@@ -480,8 +488,14 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [1, 100]
-    
+    days = [1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 'max', 70000]
     for day in days:
+        draw_market(day)
+        write_market(day)
+  
+    from tools import convert_date_to_days
+    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    for date in dates:
+        day = convert_date_to_days(date)
         draw_market(day)
         write_market(day)
