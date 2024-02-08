@@ -311,6 +311,7 @@ images = {#
             'nodes_unknown': '#38055a',
             'frame': '#191716',
             'frame_nodes': '#FFFFFF',
+            'outline': '#FFFFFF'
         },
         'backgrounds': {
             'key_metric_down': {
