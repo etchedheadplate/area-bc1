@@ -272,7 +272,40 @@ updates = {
 
 
 # Dictionary for creation of images:
-images = {#
+images = {
+    'address': {
+        'path': 'db/blockchain/address/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'titles': '#c1c0c0',
+            'titles_fiat': '#2b9348',
+            'titles_crypto': '#F7931A',
+            'titles_other': '#F9F9F9'
+        },
+        'backgrounds': {
+            'path': 'src/image/backgrounds/address.png',
+            'colors': {
+                'api': ('#F9F9F9', (950, 65), (950, 105)),
+                'metric': ('#CACACA', (1315, 65), (1315, 105))
+            }
+        }
+    },
+    'block': {
+        'path': 'db/blockchain/block/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'titles': '#c1c0c0',
+            'titles_crypto': '#F7931A',
+            'titles_other': '#F9F9F9'
+        },
+        'backgrounds': {
+            'path': 'src/image/backgrounds/block.png',
+            'colors': {
+                'api': ('#F9F9F9', (950, 65), (950, 105)),
+                'metric': ('#CACACA', (1315, 65), (1315, 105))
+            }
+        }
+    },
     'fees': {
         'path': 'db/fees/',
         'font': 'src/font/font.ttf',
@@ -294,7 +327,7 @@ images = {#
             'path': 'src/image/backgrounds/fees.png',
             'colors': {
                 'api': ('#bc3a51', (100, 65), (100, 105)),
-                'metric': ('#F7931A', (455, 65), (455, 100)),
+                'metric': ('#F7931A', (455, 65), (455, 100))
             }
         }
     },
@@ -320,7 +353,7 @@ images = {#
                 'coordinates': (795, 5),
                 'colors': {
                     'api': ('#bc3a51', (100, 805), (100, 845)),
-                    'metric': ('#e5383b', (100, 895), (100, 935)),
+                    'metric': ('#e5383b', (100, 895), (100, 935))
                 }
             },
             'key_metric_up': {
@@ -329,7 +362,7 @@ images = {#
                 'coordinates': (795, 5),
                 'colors': {
                     'api': ('#bc3a51', (100, 805), (100, 845)),
-                    'metric': ('#2BD713', (100, 895), (100, 935)),
+                    'metric': ('#2BD713', (100, 895), (100, 935))
                 }
             }
         }
@@ -350,7 +383,7 @@ images = {#
                 'coordinates': (25, 5),
                 'colors': {
                     'api': ('#ffd60a', (1850, 65), (1850, 105)),
-                    'metric': ('#e5383b', (1850, 155), (1850, 195)),
+                    'metric': ('#e5383b', (1850, 155), (1850, 195))
                 }
             },
             'key_metric_up': {
@@ -359,7 +392,7 @@ images = {#
                 'coordinates': (25, 5),
                 'colors': {
                     'api': ('#ffd60a', (1850, 805), (1850, 845)),
-                    'metric': ('#2BD713', (1850, 895), (1850, 935)),
+                    'metric': ('#2BD713', (1850, 895), (1850, 935))
                     
                 }
             }
@@ -382,7 +415,7 @@ images = {#
                 'coordinates': (795, 5),
                 'colors': {
                     'api': ('#CACACA', (100, 805), (100, 845)),
-                    'metric': ('#e5383b', (100, 895), (100, 935)),
+                    'metric': ('#e5383b', (100, 895), (100, 935))
                 }
             },
             'key_metric_up': {
@@ -391,7 +424,7 @@ images = {#
                 'coordinates': (795, 5),
                 'colors': {
                     'api': ('#CACACA', (100, 805), (100, 845)),
-                    'metric': ('#2BD713', (100, 895), (100, 935)),
+                    'metric': ('#2BD713', (100, 895), (100, 935))
                 }
             }
         }
@@ -412,6 +445,32 @@ images = {#
                 'period': ('#00a5cf', (455, 65), (455, 100))
             }
         }
-    }
+    },
+    'transaction': {
+        'path': 'db/blockchain/transaction/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'titles': '#c1c0c0',
+            'titles_fiat': '#2b9348',
+            'titles_crypto': '#F7931A',
+            'titles_other': '#F9F9F9'
+        },
+        'backgrounds': {
+            'key_metric_down': {
+                'path': 'src/image/backgrounds/transaction_down.png',
+                'colors': {
+                    'api': ('#F9F9F9', (100, 65), (100, 105)),
+                    'metric': ('#e5383b', (465, 65), (465, 105))
+                }
+            },
+            'key_metric_up': {
+                'path': 'src/image/backgrounds/transaction_up.png',
+                'colors': {
+                    'api': ('#F9F9F9', (100, 65), (100, 105)),
+                    'metric': ('#2BD713', (465, 65), (465, 105))
+                }
+            }
+        }
+    },
 }
 

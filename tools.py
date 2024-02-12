@@ -276,24 +276,22 @@ def format_amount(amount, ticker=False):
         return formatted_amount
 
 
-def format_currency(amount, ticker, decimal=False):
+def format_currency(amount, ticker=False, decimal=False):
     # Formats integer value to currency format (e.g. 1234567.89 -> 1,234,567.89 $).
     # If currency symbol is unknown, replaced by ticker (e.g. 1234567.89 -> 1,234,567.89 USD).
     # If decimal is True, format amount with N decimal places.
 
-    # Check if currency symbol is available
-    currency_symbol = CurrencySymbols().get_symbol(ticker)
-
-    # Set decimal places based on decimal argument
-    decimal_places = 2 if decimal is False else decimal
-
-    # Format amount with the specified decimal places
+    string_amount = str(amount) + '.'
+    decimal_places = len(string_amount.split('.')[1]) if decimal is False else decimal
     formatted_amount = '{:,.{}f}'.format(amount, decimal_places)
-
-    if currency_symbol:
-        return currency_symbol + formatted_amount
+    if ticker: # Check if currency symbol is available
+        currency_symbol = CurrencySymbols().get_symbol(ticker)
+        if currency_symbol:
+            return currency_symbol + formatted_amount
+        else:
+            return ticker + formatted_amount
     else:
-        return ticker + formatted_amount
+        return formatted_amount
 
 
 def format_percentage(percentage):

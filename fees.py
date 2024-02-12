@@ -50,14 +50,13 @@ def draw_fees():
                 market_price = market_data['current_price'][f'{config.currency_vs}']
 
             # Transaction size assumed to be 140vB (average native SegWit):
-            fees_currency_fastest = format_currency(((fees_satvb_fastest * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
-            fees_currency_half_hour = format_currency(((fees_satvb_half_hour * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
-            fees_currency_hour = format_currency(((fees_satvb_hour * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
-            fees_currency_economy = format_currency(((fees_satvb_economy * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
-            fees_currency_minimum = format_currency(((fees_satvb_minimum * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker)
+            fees_currency_fastest = format_currency(((fees_satvb_fastest * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker, decimal=2)
+            fees_currency_half_hour = format_currency(((fees_satvb_half_hour * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker, decimal=2)
+            fees_currency_hour = format_currency(((fees_satvb_hour * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker, decimal=2)
+            fees_currency_economy = format_currency(((fees_satvb_economy * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker, decimal=2)
+            fees_currency_minimum = format_currency(((fees_satvb_minimum * 140) * (market_price/ 100_000_000)), config.currency_vs_ticker, decimal=2)
 
-            market_cryptocurrency = f'{config.currency_crypto_ticker} Price'
-            market_price = format_currency(market_price, config.currency_vs_ticker, decimal=0)
+            market_price = format_currency(market_price, config.currency_vs_ticker, decimal=2)
         else:
             fees_currency_fastest = ''
             fees_currency_half_hour = ''
@@ -65,14 +64,13 @@ def draw_fees():
             fees_currency_economy = ''
             fees_currency_minimum = ''
 
-            market_cryptocurrency = 'PAIR'
             market_price = 'COULDNT LOAD'
 
         # Set text, position, size and color parameters:
         info_list = [
             [{'text': 'mempool.space', 'position': info_background_colors['api'][1], 'font_size': 36, 'text_color': info_background_colors['api'][0]},
             {'text': f'recommended {config.currency_crypto_ticker} fees', 'position': info_background_colors['api'][2], 'font_size': 24, 'text_color': info_background_colors['api'][0]},
-            {'text': f'{market_cryptocurrency}: {market_price}', 'position': info_background_colors['metric'][1], 'font_size': 30, 'text_color': info_background_colors['metric'][0]},
+            {'text': f'{config.currency_crypto_ticker} Price: {market_price}', 'position': info_background_colors['metric'][1], 'font_size': 30, 'text_color': info_background_colors['metric'][0]},
             {'text': f'{info_datetime}', 'position': info_background_colors['metric'][2], 'font_size': 30, 'text_color': info_background_colors['metric'][0]}],
               
             [{'text': 'Next block:', 'position': (100, 210), 'font_size': 50, 'text_color': info_colors['blocks']},
