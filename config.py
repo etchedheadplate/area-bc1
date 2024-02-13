@@ -11,7 +11,7 @@ charts = {
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoints': ['lightning/statistics/1m'],
+            'endpoints': ['lightning/statistics/3y'],
             'params': False,
             'subdict': False,
             'parsed': 'dict'
@@ -20,7 +20,7 @@ charts = {
             'path': f'db/lightning/',
             'name': 'lightning.csv',
             'columns': {
-                'lightning/statistics/1m': {
+                'lightning/statistics/3y': {
                     'added': 'date',
                     'channel_count': 'channels',
                     'total_capacity': 'capacity',
@@ -117,8 +117,8 @@ charts = {
                 'charts/cost-per-transaction'
                 ],
             'params': {
-                'timespan': '1months',
-                'rollingAverage': '2days',
+                'timespan': '6years',
+                'rollingAverage': '1days',
                 'start': '',
                 'format': 'json',
                 'sampled': 'true'
@@ -352,8 +352,8 @@ images = {
                 'range': (-float('inf'), 0),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#bc3a51', (100, 805), (100, 845)),
-                    'metric': ('#e5383b', (100, 895), (100, 935))
+                    'api': ('#bc3a51', (100, 65), (100, 105)),
+                    'metric': ('#e5383b', (100, 155), (100, 195))
                 }
             },
             'key_metric_up': {
@@ -382,8 +382,8 @@ images = {
                 'range': (-float('inf'), 0),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#ffd60a', (1850, 65), (1850, 105)),
-                    'metric': ('#e5383b', (1850, 155), (1850, 195))
+                    'api': ('#ffd60a', (1900, 65), (1900, 105)),
+                    'metric': ('#e5383b', (1900, 155), (1900, 195))
                 }
             },
             'key_metric_up': {
@@ -391,8 +391,8 @@ images = {
                 'range': (0, float('inf')),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#ffd60a', (1850, 805), (1850, 845)),
-                    'metric': ('#2BD713', (1850, 895), (1850, 935))
+                    'api': ('#ffd60a', (1900, 805), (1900, 845)),
+                    'metric': ('#2BD713', (1900, 895), (1900, 935))
                     
                 }
             }
@@ -423,8 +423,8 @@ images = {
                 'range': (0, float('inf')),
                 'coordinates': (795, 5),
                 'colors': {
-                    'api': ('#CACACA', (100, 805), (100, 845)),
-                    'metric': ('#2BD713', (100, 895), (100, 935))
+                    'api': ('#CACACA', (100, 65), (100, 105)),
+                    'metric': ('#2BD713', (100, 155), (100, 195))
                 }
             }
         }

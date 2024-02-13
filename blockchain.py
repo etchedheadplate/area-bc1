@@ -19,7 +19,11 @@ def explore_address(address):
     address_endpoint = f'rawaddr/{address}'
     address_response = get_api_data(address_base, address_endpoint)
     address_path = 'db/blockchain/address/'
-    address_markdown_file = address_path + f'{address}.md'
+    address_markdown_file = address_path + f'address_{address}.md'
+
+    if 'error' in address_response.keys():
+        return False
+    
     if not os.path.isdir(address_path):
         os.makedirs(address_path, exist_ok=True)
     
@@ -142,12 +146,16 @@ def explore_block(block):
     block_endpoint = f'block-height/{block}'
     block_response = get_api_data(block_base, block_endpoint)['blocks'][0]
     block_path = 'db/blockchain/block/'
-    block_markdown_file = block_path + f'{block}.md'
+    block_markdown_file = block_path + f'block_{block}.md'
+    
+    if 'error' in block_response.keys():
+        return False
+    
     if not os.path.isdir(block_path):
         os.makedirs(block_path, exist_ok=True)
     
     # Creation of key block variables:
-    BLOCK = format_quantity(block)
+    BLOCK = format_quantity(int(block))
     BLOCK_HASH = block_response['hash']
     BLOCK_MERKLE = block_response['mrkl_root']
     BLOCK_BITS = block_response['bits']
@@ -156,7 +164,7 @@ def explore_block(block):
     BLOCK_SIZE = format_quantity(block_response['size'])
     BLOCK_WEIGHT = format_quantity(block_response['weight'])
     BLOCK_LATEST = get_api_data(block_base, 'latestblock')['height']
-    BLOCK_DEPTH = format_quantity(BLOCK_LATEST - block)
+    BLOCK_DEPTH = format_quantity(BLOCK_LATEST - int(block))
 
     BLOCK_DATE_CURRENT = datetime.utcnow().timestamp()
     BLOCK_DATE_MINED = convert_timestamp_to_utc(block_response['time'])
@@ -238,7 +246,11 @@ def explore_transaction(transaction_hash):
     transaction_endpoint = f'rawtx/{transaction_hash}'
     transaction_response = get_api_data(transaction_base, transaction_endpoint)
     transaction_path = 'db/blockchain/transaction/'
-    transaction_markdown_file = transaction_path + f'{transaction_hash}.md'
+    transaction_markdown_file = transaction_path + f'transaction_{transaction_hash}.md'
+
+    if 'error' in transaction_response.keys():
+        return False
+    
     if not os.path.isdir(transaction_path):
         os.makedirs(transaction_path, exist_ok=True)
 

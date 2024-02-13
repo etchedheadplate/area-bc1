@@ -27,7 +27,7 @@ def draw_pools():
     diagram = config.images['pools']
     diagram_font = font_manager.FontProperties(fname=diagram['font'])
     diagram_colors = diagram['colors']
-    diagram_output = diagram['path'] + 'pools.jpg'
+    diagram_file = diagram['path'] + 'pools.jpg'
 
     background_path = diagram['backgrounds']['path']
     background_coordinates = diagram['backgrounds']['coordinates']
@@ -112,11 +112,13 @@ def draw_pools():
     diagram_buffer.seek(0)
 
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
-    background_image.save(diagram_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
+    background_image.save(diagram_file, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
     miners_buffer.close()
     diagram_buffer.close()
 
     main_logger.info(f'[image] pools diagram drawn')
+
+    return diagram_file
 
 
 

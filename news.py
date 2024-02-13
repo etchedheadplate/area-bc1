@@ -12,10 +12,9 @@ def write_news():
     response = requests.get('https://coinqueror.io/?search=bitcoin')
     soup = BeautifulSoup(response.content, "html.parser")
     headlines = soup.find_all('h2')
-
+    
     news_list = []
     check_list = [config.currency_crypto.upper(), config.currency_crypto_ticker.upper()]
-
     for headline in headlines:
         headlines_list = []
         links = headline.find_all('a')
@@ -38,17 +37,19 @@ def write_news():
     news_file = news_path + 'news.md'
 
     if not os.path.isdir(news_path):
-        os.makedirs(news_path, exist_ok=True)
+        os.makedirs(news_path, exist_ok=True) 
 
     # Write News to Markdown file:
     with open (news_file, 'w') as markdown:
         for news in news_list:
             if news:
                 name, link = news
-                source = urlparse(link).netloc.replace('www.', '').replace('.', '[.]')
+                source = urlparse(link).netloc.replace('www.', '').replace('.', ' ').replace('com', '')
                 markdown.write(f'[{name}]({link}) | {source}\n\n')
 
     main_logger.info(f'[markdown] news text written')
+
+    return news_file
 
 
 

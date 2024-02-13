@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import math
 
 import numpy as np
 import pandas as pd
@@ -37,7 +38,7 @@ to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_network():
+def draw_network(days=30):
     # Draws Network plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -45,24 +46,29 @@ def draw_network():
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
-    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
-    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
 
     # Plot-related variables:
     plot = config.images['network']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
-    plot_output = plot['path'] + 'network.jpg'
         
     # Creation of plot DataFrame:
     plot_df = pd.read_csv(chart_file)
 
-    days = len(plot_df)
+    # Set days value limits and image file name:
+    days = 2 if days < 2 else days
+    days = len(plot_df) if days > len(plot_df) else days
+    plot_file = plot['path'] + f'network_days_{days}.jpg'
+
+    plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
+    plot_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
 
     # Specification of chart data indexes for plot axes:
     plot_index_last = len(plot_df)
-    plot_index_first = 0
+    plot_index_first = len(plot_df) - days
+    if plot_index_first < 1:
+        plot_index_first = 1
 
     # Key metric related variables for percentage change calculation:
     plot_key_metric = 'hashrate'
@@ -77,10 +83,13 @@ def draw_network():
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
+    # Set rolling avearge to 2% of plot interval:
+    rolling_average = math.ceil(days * 0.02)
+
     # Creation of plot axies:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
-    axis_trx_per_block = plot_df['trx_per_block'][plot_index_first:plot_index_last]
-    axis_hashrate = plot_df['hashrate'][plot_index_first:plot_index_last]
+    axis_trx_per_block = plot_df['trx_per_block'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
+    axis_hashrate = plot_df['hashrate'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
     axis_price = plot_df['price'][plot_index_first:plot_index_last]
 
     # Creation of plot figure:
@@ -99,8 +108,8 @@ def draw_network():
     # Set axies left and right borders to first and last date of period. Bottom
     # and top borders are set to 95% of plot values for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
-    ax2.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
+#    ax1.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
+#    ax2.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
     ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 1.05)
 
     # Set axies text format:
@@ -171,10 +180,10 @@ def draw_network():
     title_font = plot['font']
     title_list = [
             [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-            {'text': f'{config.currency_crypto_ticker} network activity', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
+            {'text': f'{config.currency_crypto_ticker} network performance', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
 
             [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
+            {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:
@@ -197,11 +206,13 @@ def draw_network():
     plot_buffer.seek(0)
 
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
-    background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
+    background_image.save(plot_file, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
     title_buffer.close()
     plot_buffer.close()
 
-    main_logger.info(f'[image] network plot drawn')
+    main_logger.info(f'[image] network (days {days}) plot drawn')
+
+    return plot_file
 
 
 def write_network():
@@ -233,14 +244,14 @@ def write_network():
         BLOCKS_SIZE = round(snapshot_data['blocks_size'] / (1_024**2) / int(BLOCKS_MINED), 2)
         BLOCKS_MINUTES = round(snapshot_data['minutes_between_blocks'], 1)
 
-        BTC_SUPPLY = format_currency(snapshot_data['totalbc'] / 100_000_000, config.currency_crypto_ticker, 0)
+        BTC_SUPPLY = format_currency(snapshot_data['totalbc'] / 100_000_000, config.currency_crypto_ticker, decimal=0)
         BTC_MINED = format_currency(snapshot_data['n_btc_mined'] / 100_000_000, config.currency_crypto_ticker)
-        BTC_SENT = format_currency(snapshot_data['total_btc_sent'] / 100_000_000, config.currency_crypto_ticker)
-        BTC_PRICE = format_currency(snapshot_data['market_price_usd'], config.currency_vs_ticker)
+        BTC_SENT = format_currency(snapshot_data['total_btc_sent'] / 100_000_000, config.currency_crypto_ticker, decimal=0)
+        BTC_PRICE = format_currency(snapshot_data['market_price_usd'], config.currency_vs_ticker, decimal=2)
 
         TRANSACTIONS_BLOCK = round(chart_data['trx_per_block'].iloc[-1], 2)
         TRANSACTIONS_MADE = format_quantity(snapshot_data['n_tx'])
-        TRANSACTIONS_COST = format_currency(chart_data['trx_cost'].iloc[-1], config.currency_vs_ticker)
+        TRANSACTIONS_COST = format_currency(chart_data['trx_cost'].iloc[-1], config.currency_vs_ticker, decimal=2)
 
         HASHRATE = format_amount(snapshot_data['hash_rate'] / 1_000)
         DIFFICULTY = format_amount(snapshot_data['difficulty'])
@@ -274,10 +285,21 @@ def write_network():
 
     main_logger.info(f'[markdown] network text written')
 
+    return markdown_file
+
 
 
 
 if __name__ == '__main__':
 
-    draw_network()
+    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
+    for day in days:
+        draw_network(day)
+  
+    from tools import convert_date_to_days
+    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    for date in dates:
+        day = convert_date_to_days(date)
+        draw_network(day)
+    
     write_network()

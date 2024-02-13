@@ -104,22 +104,17 @@ def draw_market(days=1):
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
-    
-    if days == 1:
-        plot_output = plot['path'] + 'market.jpg'
-    else:
-        plot_output = plot['path'] + f'market_days_{days}.jpg'
-    
+        
     # Creation of plot DataFrame:
     plot_df = pd.read_csv(chart_file)
 
-    if days == 'max':
-        days = len(plot_df) - 1
+    # Set days value limits and image file name:
+    days = 1 if days < 1 else days
+    days = len(plot_df) if days > len(plot_df) else days
+    plot_file = plot['path'] + f'market_days_{days}.jpg'
 
     chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
-    if chart_time_from < '2013-04-28':
-        chart_time_from = '2013-04-28'
 
     # Specification of chart indexes for plot axies:
     plot_interval = calculate_rows_interval(days)
@@ -254,11 +249,13 @@ def draw_market(days=1):
     plot_buffer.seek(0)
 
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
-    background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
+    background_image.save(plot_file, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
     title_buffer.close()
     plot_buffer.close()
 
     main_logger.info(f'[image] market (days {days}) plot drawn')
+
+    return plot_file
 
 
 def write_market(days=1):
@@ -270,9 +267,9 @@ def write_market(days=1):
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
-    if days == 1:
-        markdown_file = snapshot_file_path + 'market.md'
+    markdown_file = snapshot_file_path + f'market_days_{days}.md'
 
+    if days == 1:
         with open (snapshot_file, 'r') as json_file:
             snapshot_data = json.load(json_file)
 
@@ -332,10 +329,8 @@ def write_market(days=1):
         chart_file = chart_file_path + chart_file_name
         chart_data = pd.read_csv(chart_file)
 
-        chart_markdown_file = chart_file_path + f'market_days_{days}.md'
-
-        if days == 'max':
-            days = len(chart_data) - 1
+        days = 1 if days < 1 else days
+        days = len(chart_data) if days > len(chart_data) else days
 
         chart_data_index_last = len(chart_data) - 1
         chart_data_index_first = chart_data_index_last - days
@@ -414,7 +409,7 @@ def write_market(days=1):
                     f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
                 
                 # Write text to Markdown file:
-                with open (chart_markdown_file, 'w') as markdown:
+                with open (markdown_file, 'w') as markdown:
                     markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}```')
 
             else:
@@ -478,17 +473,19 @@ def write_market(days=1):
                 info_limitations = 'CoinGecko API does not provide Volume information before 2013-12-27\n'
 
                 # Write text to Markdown file:
-                with open (chart_markdown_file, 'w') as markdown:
+                with open (markdown_file, 'w') as markdown:
                     markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}```')
 
     main_logger.info(f'[markdown] market (days {days}) text written')
+
+    return markdown_file
 
 
 
 
 if __name__ == '__main__':
     
-    days = [1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 'max', 70000]
+    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
     for day in days:
         draw_market(day)
         write_market(day)

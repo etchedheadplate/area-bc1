@@ -133,18 +133,24 @@ def format_update_seconds(seconds):
     # Formats seconds to schedule module format.
 
     seconds = round(abs(seconds))
-
-    if seconds >= 60:
-        seconds = int(seconds - seconds // 60 * 60)
-    else:
-        seconds = seconds
-
-    if seconds >= 10:
-        formatted_seconds = f':{seconds}'
-    else:
-        formatted_seconds = f':0{seconds}'
-
+    seconds = int(seconds - seconds // 60 * 60) if seconds >= 60 else seconds
+    formatted_seconds = f':{seconds}' if seconds >= 10 else f':0{seconds}'
     return formatted_seconds
+
+
+def clean_databases():
+    databases_path = 'db/'
+    extentions_to_remove = ['.md', '.jpg']
+    files_removed = 0
+    for root, dirs, files in os.walk(databases_path):
+        for file in files:
+            file_name, file_extension = os.path.splitext(file)
+            if file_extension.lower() in extentions_to_remove:
+                file_path = os.path.join(root, file)
+                os.remove(file_path)
+                files_removed += 1
+    main_logger.info(f'[databases] removed {files_removed} files')
+
 
 @profile
 def update_databases():
@@ -156,31 +162,28 @@ def update_databases():
     updates = config.updates
     delay = config.delay
 
-    main_logger.info(f'[chart] initialazing databases (~{len(charts) * delay} seconds)')
+    main_logger.info(f'[databases] updating charts (~{len(charts) * delay} seconds)')
     for chart_name in charts.keys():
         make_chart_data(chart_name) # Database chart initialized for the first time
         time.sleep(delay) # Delay to not exceed rate limits for charts with same API
-
     for chart_name in charts.keys():
         chart_update_minutes = updates[f'{chart_name}']['minutes']
         chart_update_seconds = format_update_seconds(updates[f'{chart_name}']['seconds'])
         schedule.every(chart_update_minutes).minutes.at(chart_update_seconds).do(make_chart_data, chart_name)
-    main_logger.info('[chart] future updates scheduled')
+    main_logger.info('[databases] future charts updates scheduled')
 
-    main_logger.info(f'[snapshot] initialazing databases (~{len(snapshots) * delay} seconds)')
+    main_logger.info(f'[databases] updating snapshots (~{len(snapshots) * delay} seconds)')
     for snapshot_name in snapshots.keys():
         make_snapshot_data(snapshot_name) # Database snapshot initialized for the first time
         time.sleep(delay) # Delay to not exceed rate limits for snapshots with same API
-
     for snapshot_name in snapshots.keys():
         snapshot_update_minutes = updates[f'{snapshot_name}']['minutes']
         snapshot_update_seconds = format_update_seconds(updates[f'{snapshot_name}']['seconds'] + delay)
         schedule.every(snapshot_update_minutes).minutes.at(snapshot_update_seconds).do(make_snapshot_data, snapshot_name)
-    main_logger.info('[snapshot] future updates scheduled')
+    main_logger.info('[databases] future snapshots updates scheduled')
 
     # List of all databases no matter if chart or snapshot:
     databases = list(charts.keys() | snapshots.keys())
-
     for database in databases:
         module_file = f'{database}.py'
         if os.path.exists(module_file):
@@ -194,8 +197,10 @@ def update_databases():
                 if callable(module_function): # Each database module checked if contains image and/or markdown functions
                     module_function()
                     schedule.every(module_update_minutes).minutes.at(module_update_seconds).do(functools.partial(module_function))
-    main_logger.info('[image] future updates scheduled')
-    main_logger.info('[markdown] future updates scheduled')
+    main_logger.info('[databases] future image updates scheduled')
+    main_logger.info('[databases] future markdown updates scheduled')
+
+    schedule.every(1).days.at('00:00:00').do(functools.partial(clean_databases))
 
     while True:
         schedule.run_pending()
@@ -324,7 +329,7 @@ def convert_timestamp_to_utc(timestamp):
     # Converts milliseconds timestamp to seconds timestamp, then converts timestamp to UTC.
       
     if len(str(timestamp)) > 10: 
-        timestamp = int(timestamp) / 1000 
+        timestamp = int(timestamp) / 1000
     utc = datetime.utcfromtimestamp(timestamp)
     utc_str = utc.strftime('%Y-%m-%d %H:%M:%S')
     return utc_str

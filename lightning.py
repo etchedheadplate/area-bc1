@@ -1,6 +1,7 @@
 import io
 import os
 import json
+import math
 
 import numpy as np
 import pandas as pd
@@ -37,7 +38,7 @@ scaling to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_lightning():
+def draw_lightning(days=30):
     # Draws Lightning plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -45,24 +46,31 @@ def draw_lightning():
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
-    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
-    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
 
     # Plot-related variables:
     plot = config.images['lightning']
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
-    plot_output = plot['path'] + 'lightning.jpg'
         
-    # Creation of plot DataFrame:
+    # Create plot DataFrame and delete roes where any value == 0:
     plot_df = pd.read_csv(chart_file)
+    plot_df.replace(0, np.nan, inplace=True)
+    plot_df = plot_df.dropna()
     
-    days = len(plot_df)
+    # Set days value limits and image file name:
+    days = 2 if days < 2 else days
+    days = len(plot_df) if days > len(plot_df) else days
+    plot_file = plot['path'] + f'lightning_days_{days}.jpg'
+
+    plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
+    plot_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
 
     # Specification of chart indexes for plot axies:
     plot_index_last = len(plot_df)
-    plot_index_first = 0
+    plot_index_first = len(plot_df) - days
+    if plot_index_first < 1:
+        plot_index_first = 1
 
     # Key metric related variables for percentage change calculation:
     plot_key_metric = 'capacity'
@@ -77,16 +85,19 @@ def draw_lightning():
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
+    # Set rolling avearge to 2% of plot interval:
+    rolling_average = math.ceil(days * 0.02)
+
     # Creation of plot axies:
-    axis_date = plot_df['date']
-    axis_channels = plot_df['channels']
-    axis_capacity = plot_df['capacity']
+    axis_date = plot_df['date'][plot_index_first:plot_index_last]
+    axis_channels = plot_df['channels'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
+    axis_capacity = plot_df['capacity'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
 
     # Creation of plot stacked area:
     stacked_nodes = plot_df[['nodes_unknown',
                             'nodes_darknet',
                             'nodes_greynet',
-                            'nodes_clearnet']]
+                            'nodes_clearnet']][plot_index_first:plot_index_last]
 
     # Stacked area normalized for 100%:
     stacked_nodes_percentages = stacked_nodes.divide(stacked_nodes.sum(axis=1), axis=0) * 100
@@ -112,8 +123,8 @@ def draw_lightning():
 
     # Set axies borders for better scaling:
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_capacity) * 0.995, max(axis_capacity) * 1.005)
-    ax2.set_ylim(min(axis_channels) * 0.995, max(axis_channels) * 1.005)
+#    ax1.set_ylim(min(axis_capacity) * 0.995, max(axis_capacity) * 1.005)
+#    ax2.set_ylim(min(axis_channels) * 0.995, max(axis_channels) * 1.005)
     ax3.set_ylim(0, 100)
 
      # Set axies text format:
@@ -205,7 +216,7 @@ def draw_lightning():
             {'text': 'lightning statistics', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]}],
 
             [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
-            {'text': f'{chart_time_from} - {chart_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
+            {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:
@@ -228,11 +239,13 @@ def draw_lightning():
     plot_buffer.seek(0)
 
     background_image.paste(background_overlay, background_coordinates, mask=background_overlay)
-    background_image.save(plot_output, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
+    background_image.save(plot_file, "JPEG", quality=90, icc_profile=background_image.info.get('icc_profile', ''))
     title_buffer.close()
     plot_buffer.close()
     
-    main_logger.info(f'[image] lightning plot drawn')
+    main_logger.info(f'[image] lightning (days {days}) plot drawn')
+
+    return plot_file
 
 
 def write_lightning():
@@ -260,11 +273,11 @@ def write_lightning():
 #        CHANNEL_CHANGE_1W = format_quantity(latest_data['channels'] - previous_data['channels'])
 #        CHANNEL_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['channels'], latest_data['channels']))
         
-        CAPACITY_COUNT = format_currency(latest_data['total_capacity'] / 100_000_000, config.currency_crypto_ticker)
+        CAPACITY_COUNT = format_currency(latest_data['total_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=2)
 #        CAPACITY_CHANGE_1W = format_currency((latest_data['capacity'] - previous_data['capacity']) / 100_000_000, config.currency_crypto_ticker)
 #        CAPACITY_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['capacity'], latest_data['capacity']))
         
-        CAPACITY_AVG_COUNT = format_currency(latest_data['avg_capacity'] / 100_000_000, config.currency_crypto_ticker, 4)
+        CAPACITY_AVG_COUNT = format_currency(latest_data['avg_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=4)
 #        CAPACITY_AVG_CHANGE_1W = format_currency((latest_data['avg_capacity'] - previous_data['avg_capacity']) / 100_000_000, config.currency_crypto_ticker, decimal=4)
 #        CAPACITY_AVG_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_capacity'], latest_data['avg_capacity']))
         
@@ -322,10 +335,21 @@ def write_lightning():
 
         main_logger.info(f'[markdown] lightning text written')
 
+        return markdown_file
+
 
 
 
 if __name__ == '__main__':
 
-    draw_lightning()
+    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
+    for day in days:
+        draw_lightning(day)
+  
+    from tools import convert_date_to_days
+    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    for date in dates:
+        day = convert_date_to_days(date)
+        draw_lightning(day)
+
     write_lightning()

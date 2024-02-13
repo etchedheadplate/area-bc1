@@ -18,13 +18,13 @@ def draw_fees():
     snapshot_file = snapshot_file_path + snapshot_file_name
 
     # Image-related variables:
-    info = config.images['fees']
-    info_font = info['font']
-    info_colors = info['colors']
-    info_background = info['backgrounds']['path']
-    info_background_colors = info['backgrounds']['colors']
-    info_output = info['path'] + 'fees.jpg'
-    info_datetime = f'UTC {datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime("%Y-%m-%d %H:%M")}'
+    fees_image = config.images['fees']
+    fees_font = fees_image['font']
+    fees_colors = fees_image['colors']
+    fees_background = fees_image['backgrounds']['path']
+    fees_background_colors = fees_image['backgrounds']['colors']
+    fees_file = fees_image['path'] + 'fees.jpg'
+    fees_datetime = f'UTC {datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime("%Y-%m-%d %H:%M")}'
 
     # Get current price from Market snapshot:
     market = config.snapshots['market']
@@ -67,54 +67,56 @@ def draw_fees():
             market_price = 'COULDNT LOAD'
 
         # Set text, position, size and color parameters:
-        info_list = [
-            [{'text': 'mempool.space', 'position': info_background_colors['api'][1], 'font_size': 36, 'text_color': info_background_colors['api'][0]},
-            {'text': f'recommended {config.currency_crypto_ticker} fees', 'position': info_background_colors['api'][2], 'font_size': 24, 'text_color': info_background_colors['api'][0]},
-            {'text': f'{config.currency_crypto_ticker} Price: {market_price}', 'position': info_background_colors['metric'][1], 'font_size': 30, 'text_color': info_background_colors['metric'][0]},
-            {'text': f'{info_datetime}', 'position': info_background_colors['metric'][2], 'font_size': 30, 'text_color': info_background_colors['metric'][0]}],
+        fees_list = [
+            [{'text': 'mempool.space', 'position': fees_background_colors['api'][1], 'font_size': 36, 'text_color': fees_background_colors['api'][0]},
+            {'text': f'recommended {config.currency_crypto_ticker} fees', 'position': fees_background_colors['api'][2], 'font_size': 24, 'text_color': fees_background_colors['api'][0]},
+            {'text': f'{config.currency_crypto_ticker} Price: {market_price}', 'position': fees_background_colors['metric'][1], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]},
+            {'text': f'{fees_datetime}', 'position': fees_background_colors['metric'][2], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]}],
               
-            [{'text': 'Next block:', 'position': (100, 210), 'font_size': 50, 'text_color': info_colors['blocks']},
-            {'text': '1-2 blocks:', 'position': (100, 360), 'font_size': 50, 'text_color': info_colors['blocks']},
-            {'text': '2-3 blocks:', 'position': (100, 510), 'font_size': 50, 'text_color': info_colors['blocks']},
-            {'text': 'Economy:', 'position': (100, 660), 'font_size': 50, 'text_color': info_colors['blocks']},
-            {'text': 'Minimal:', 'position': (100, 810), 'font_size': 50, 'text_color': info_colors['blocks']}],
+            [{'text': 'Next block:', 'position': (100, 210), 'font_size': 50, 'text_color': fees_colors['blocks']},
+            {'text': '1-2 blocks:', 'position': (100, 360), 'font_size': 50, 'text_color': fees_colors['blocks']},
+            {'text': '2-3 blocks:', 'position': (100, 510), 'font_size': 50, 'text_color': fees_colors['blocks']},
+            {'text': 'Economy:', 'position': (100, 660), 'font_size': 50, 'text_color': fees_colors['blocks']},
+            {'text': 'Minimal:', 'position': (100, 810), 'font_size': 50, 'text_color': fees_colors['blocks']}],
 
-            [{'text': '~10 minutes', 'position': (100, 265), 'font_size': 30, 'text_color': info_colors['subblocks']},
-            {'text': '~30 minutes', 'position': (100, 415), 'font_size': 30, 'text_color': info_colors['subblocks']},
-            {'text': '~60 minutes', 'position': (100, 565), 'font_size': 30, 'text_color': info_colors['subblocks']},
-            {'text': 'Whatever', 'position': (100, 715), 'font_size': 30, 'text_color': info_colors['subblocks']},
-            {'text': 'God only knows', 'position': (100, 865), 'font_size': 30, 'text_color': info_colors['subblocks']}],
+            [{'text': '~10 minutes', 'position': (100, 265), 'font_size': 30, 'text_color': fees_colors['subblocks']},
+            {'text': '~30 minutes', 'position': (100, 415), 'font_size': 30, 'text_color': fees_colors['subblocks']},
+            {'text': '~60 minutes', 'position': (100, 565), 'font_size': 30, 'text_color': fees_colors['subblocks']},
+            {'text': 'Whatever', 'position': (100, 715), 'font_size': 30, 'text_color': fees_colors['subblocks']},
+            {'text': 'God only knows', 'position': (100, 865), 'font_size': 30, 'text_color': fees_colors['subblocks']}],
 
-            [{'text': f'{fees_satvb_fastest} sat/vB', 'position': (550, 210), 'font_size': 110, 'text_color': info_colors['fees_satvb_fastest']},
-            {'text': f'{fees_satvb_half_hour} sat/vB', 'position': (550, 360), 'font_size': 110, 'text_color': info_colors['fees_satvb_half_hour']},
-            {'text': f'{fees_satvb_hour} sat/vB', 'position': (550, 510), 'font_size': 110, 'text_color': info_colors['fees_satvb_hour']},
-            {'text': f'{fees_satvb_economy} sat/vB', 'position': (550, 660), 'font_size': 110, 'text_color': info_colors['fees_satvb_economy']},
-            {'text': f'{fees_satvb_minimum} sat/vB', 'position': (550, 810), 'font_size': 110, 'text_color': info_colors['fees_satvb_minimum']}],
+            [{'text': f'{fees_satvb_fastest} sat/vB', 'position': (550, 210), 'font_size': 110, 'text_color': fees_colors['fees_satvb_fastest']},
+            {'text': f'{fees_satvb_half_hour} sat/vB', 'position': (550, 360), 'font_size': 110, 'text_color': fees_colors['fees_satvb_half_hour']},
+            {'text': f'{fees_satvb_hour} sat/vB', 'position': (550, 510), 'font_size': 110, 'text_color': fees_colors['fees_satvb_hour']},
+            {'text': f'{fees_satvb_economy} sat/vB', 'position': (550, 660), 'font_size': 110, 'text_color': fees_colors['fees_satvb_economy']},
+            {'text': f'{fees_satvb_minimum} sat/vB', 'position': (550, 810), 'font_size': 110, 'text_color': fees_colors['fees_satvb_minimum']}],
 
-            [{'text': f'{fees_currency_fastest}', 'position': (1275, 210), 'font_size': 110, 'text_color': info_colors['fees_currency_fastest']},
-            {'text': f'{fees_currency_half_hour}', 'position': (1275, 360), 'font_size': 110, 'text_color': info_colors['fees_currency_half_hour']},
-            {'text': f'{fees_currency_hour}', 'position': (1275, 510), 'font_size': 110, 'text_color': info_colors['fees_currency_hour']},
-            {'text': f'{fees_currency_economy}', 'position': (1275, 660), 'font_size': 110, 'text_color': info_colors['fees_currency_economy']},
-            {'text': f'{fees_currency_minimum}', 'position': (1275, 810), 'font_size': 110, 'text_color': info_colors['fees_currency_minimum']}],
+            [{'text': f'{fees_currency_fastest}', 'position': (1275, 210), 'font_size': 110, 'text_color': fees_colors['fees_currency_fastest']},
+            {'text': f'{fees_currency_half_hour}', 'position': (1275, 360), 'font_size': 110, 'text_color': fees_colors['fees_currency_half_hour']},
+            {'text': f'{fees_currency_hour}', 'position': (1275, 510), 'font_size': 110, 'text_color': fees_colors['fees_currency_hour']},
+            {'text': f'{fees_currency_economy}', 'position': (1275, 660), 'font_size': 110, 'text_color': fees_colors['fees_currency_economy']},
+            {'text': f'{fees_currency_minimum}', 'position': (1275, 810), 'font_size': 110, 'text_color': fees_colors['fees_currency_minimum']}],
         ]
 
         # Open background, draw text with set parameters and save final image:
-        image = Image.open(info_background)
+        image = Image.open(fees_background)
         draw = ImageDraw.Draw(image)
 
-        for info in info_list:
-            for params in info:
+        for fees in fees_list:
+            for params in fees:
                 text = params.get('text')
                 position = params.get('position')
                 size = params.get('font_size')
-                font = ImageFont.truetype(info_font, size)
+                font = ImageFont.truetype(fees_font, size)
                 text_color = params.get('text_color')
 
                 draw.text(position, text, font=font, fill=text_color)
 
-        image.save(info_output)
+        image.save(fees_file)
         
-        main_logger.info(f'[image] fees info drawn')
+        main_logger.info(f'[image] recommended fees drawn')
+
+        return fees_file
 
 
 
