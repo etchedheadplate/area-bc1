@@ -11,7 +11,7 @@ charts = {
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoints': ['lightning/statistics/3y'],
+            'endpoints': ['lightning/statistics/6y'],
             'params': False,
             'subdict': False,
             'parsed': 'dict'
@@ -20,7 +20,7 @@ charts = {
             'path': f'db/lightning/',
             'name': 'lightning.csv',
             'columns': {
-                'lightning/statistics/3y': {
+                'lightning/statistics/6y': {
                     'added': 'date',
                     'channel_count': 'channels',
                     'total_capacity': 'capacity',

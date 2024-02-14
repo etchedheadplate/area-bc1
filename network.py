@@ -100,9 +100,16 @@ def draw_network(days=30):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines:    
-    ax1.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=14)
-    ax2.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=8)
+    # Set axies lines to change width depending on days period:
+    linewidth_hashrate = 14 - days * 0.01
+    if linewidth_hashrate < 10:
+        linewidth_hashrate = 10
+    linewidth_trx_per_block = 8 - days * 0.01
+    if linewidth_trx_per_block < 6:
+        linewidth_trx_per_block = 6
+
+    ax1.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=linewidth_hashrate)
+    ax2.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=linewidth_trx_per_block)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="price", alpha=0.0, linewidth=0.0)
 
     # Set axies left and right borders to first and last date of period. Bottom
@@ -180,7 +187,7 @@ def draw_network(days=30):
     title_font = plot['font']
     title_list = [
             [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-            {'text': f'{config.currency_crypto_ticker} network performance', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
+            {'text': f'network performance', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
 
             [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
             {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
@@ -292,14 +299,14 @@ def write_network():
 
 if __name__ == '__main__':
 
-    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
-    for day in days:
-        draw_network(day)
+#    days = [0, 1, 2, 90, 400, 1000, 70000]
+#    for day in days:
+#        draw_network(day)
   
     from tools import convert_date_to_days
-    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    dates = ['2022-03-01']
     for date in dates:
         day = convert_date_to_days(date)
         draw_network(day)
     
-    write_network()
+#    write_network()

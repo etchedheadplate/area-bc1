@@ -162,6 +162,8 @@ def update_databases():
     updates = config.updates
     delay = config.delay
 
+    clean_databases()
+
     main_logger.info(f'[databases] updating charts (~{len(charts) * delay} seconds)')
     for chart_name in charts.keys():
         make_chart_data(chart_name) # Database chart initialized for the first time
@@ -231,11 +233,11 @@ def format_time_axis(timestamp, days):
     if days <= 1:
         formatted_date = date_object.strftime('%H:%M')
     elif days <= 6:
-        formatted_date = date_object.strftime('%d.%m.%Y\n%H:%M')
+        formatted_date = date_object.strftime('%Y.%m.%d\n%H:%M')
     elif days <= 365:
-        formatted_date = date_object.strftime('%d.%m.%Y')
+        formatted_date = date_object.strftime('%Y.%m.%d')
     elif days <= 1825:
-        formatted_date = date_object.strftime('%m.%Y')
+        formatted_date = date_object.strftime('%Y.%m')
     else:
         formatted_date = date_object.strftime('%Y')
     return formatted_date

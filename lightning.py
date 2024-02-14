@@ -53,10 +53,8 @@ def draw_lightning(days=30):
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
         
-    # Create plot DataFrame and delete roes where any value == 0:
+    # Create plot DataFrame:
     plot_df = pd.read_csv(chart_file)
-    plot_df.replace(0, np.nan, inplace=True)
-    plot_df = plot_df.dropna()
     
     # Set days value limits and image file name:
     days = 2 if days < 2 else days
@@ -110,9 +108,16 @@ def draw_lightning(days=30):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines:    
-    ax1.plot(axis_date, axis_capacity, color=plot_colors['capacity'], label="capacity", linewidth=14)
-    ax2.plot(axis_date, axis_channels, color=plot_colors['channels'], label="channels", linewidth=8)
+    # Set axies lines to change width depending on days period:
+    linewidth_capacity = 14 - days * 0.01
+    if linewidth_capacity < 10:
+        linewidth_capacity = 10
+    linewidth_channels = 8 - days * 0.01
+    if linewidth_channels < 6:
+        linewidth_channels = 6
+      
+    ax1.plot(axis_date, axis_capacity, color=plot_colors['capacity'], label="capacity", linewidth=linewidth_capacity)
+    ax2.plot(axis_date, axis_channels, color=plot_colors['channels'], label="channels", linewidth=linewidth_channels)
 
     # Set stacked area colors:
     stacked_nodes_colors = [plot_colors['nodes_unknown'],
@@ -342,14 +347,14 @@ def write_lightning():
 
 if __name__ == '__main__':
 
-    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
-    for day in days:
-        draw_lightning(day)
+#    days = [0, 1, 2, 90, 400, 1000, 70000]
+#    for day in days:
+#        draw_lightning(day)
   
     from tools import convert_date_to_days
-    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    dates = ['2022-03-01', '2012-03-01']
     for date in dates:
         day = convert_date_to_days(date)
         draw_lightning(day)
 
-    write_lightning()
+#    write_lightning()

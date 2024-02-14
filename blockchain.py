@@ -144,13 +144,15 @@ def explore_block(block):
     
     block_base = 'https://blockchain.info/'
     block_endpoint = f'block-height/{block}'
-    block_response = get_api_data(block_base, block_endpoint)['blocks'][0]
+    block_response = get_api_data(block_base, block_endpoint)
     block_path = 'db/blockchain/block/'
     block_markdown_file = block_path + f'block_{block}.md'
     
     if 'error' in block_response.keys():
         return False
     
+    block_response = block_response['blocks'][0]
+
     if not os.path.isdir(block_path):
         os.makedirs(block_path, exist_ok=True)
     
@@ -229,8 +231,8 @@ def explore_block(block):
         block_text = f'Block: {BLOCK}\n' \
             f'Bits: {BLOCK_BITS}\n' \
             f'Nounce: {BLOCK_NOUNCE}\n' \
-            f'Hash: {BLOCK_HASH}\n' \
-            f'Merkle: {BLOCK_MERKLE}\n'
+            f'\nHash: {BLOCK_HASH}\n' \
+            f'\nMerkle: {BLOCK_MERKLE}\n'
         block_explorers = f'[blockstream.info](https://blockstream.info/block/{BLOCK_HASH})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/blocks/btc/{block})\n' \
             f'[mempool.space](https://mempool.space/block/{BLOCK_HASH})\n'
@@ -297,10 +299,14 @@ def explore_transaction(transaction_hash):
         transaction_outputs_list.append([TRANSACTION_OUTPUT_ADDRESS, TRANSACTION_OUTPUT_CRYPTO_AMOUNT])  
     if os.path.exists(market_days_max_file):
         market_days_max_df = pd.read_csv(market_days_max_file)
-        market_transaction_nearest_day = market_days_max_df.iloc[(market_days_max_df['date'] - TRANSACTION_DAY).abs().argsort()[:1]]['date'].values[0]
-        market_transaction_nearest_price = market_days_max_df.loc[market_days_max_df['date'] == market_transaction_nearest_day, 'price'].values[0]
-        TRANSACTION_FIAT_AMOUNT = format_currency(TRANSACTION_CRYPTO_AMOUNT * market_transaction_nearest_price / 100_000_000, config.currency_vs_ticker, decimal=2)
-        TRANSACTION_FIAT_FEE = format_currency(transaction_response['fee'] * market_transaction_nearest_price / 100_000_000, config.currency_vs_ticker, decimal=2)
+        if TRANSACTION_DAY < market_days_max_df['date'][0]:
+            TRANSACTION_FIAT_AMOUNT = 'COULDNT LOAD'
+            TRANSACTION_FIAT_FEE = 'COULDNT LOAD'
+        else:
+            market_transaction_nearest_day = market_days_max_df.iloc[(market_days_max_df['date'] - TRANSACTION_DAY).abs().argsort()[:1]]['date'].values[0]
+            market_transaction_nearest_price = market_days_max_df.loc[market_days_max_df['date'] == market_transaction_nearest_day, 'price'].values[0]
+            TRANSACTION_FIAT_AMOUNT = format_currency(TRANSACTION_CRYPTO_AMOUNT * market_transaction_nearest_price / 100_000_000, config.currency_vs_ticker, decimal=2)
+            TRANSACTION_FIAT_FEE = format_currency(transaction_response['fee'] * market_transaction_nearest_price / 100_000_000, config.currency_vs_ticker, decimal=2)
     else:
         TRANSACTION_FIAT_AMOUNT = 'COULDNT LOAD'
         TRANSACTION_FIAT_FEE = 'COULDNT LOAD'
@@ -417,6 +423,6 @@ if __name__ == '__main__':
 #        explore_transaction(trx)
 #        time.sleep(10)
 
-    explore_address('bc1q28x9udhvjp8jzwmmpsv7ehzw8za60c7g62xauh')
-    explore_block(828384)
-    explore_transaction('a3e3b2289e0047e106ace2f71e8e4d913d3493d6b6c87dd920b38da9ceb374d1')
+    explore_address('bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97')
+#    explore_block(828384)
+#    explore_transaction('edbf6be7177cd2db48aa0fc99840f53c757b8589099ea6c4361b1c6977db9a4b')

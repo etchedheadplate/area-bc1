@@ -131,10 +131,12 @@ def network(update, context):
                 error_message = 'Future is unknown'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
                 return ConversationHandler.END
-            elif days == 1:
-                plot = plot
+            elif days < 2:
+                error_message = 'Available data starts from 2 days to the past:'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                plot =  draw_network(days)
                 markdown = markdown
-            elif days >= 1:
+            else:
                 plot =  draw_network(days)
                 markdown = markdown
         else:
@@ -164,10 +166,12 @@ def lightning(update, context):
                 error_message = 'Future is unknown'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
                 return ConversationHandler.END
-            elif days == 1:
-                plot = plot
+            elif days < 2:
+                error_message = 'Available data starts from 2 days to the past:'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                plot =  draw_lightning(days)
                 markdown = markdown
-            elif days >= 1:
+            else:
                 plot =  draw_lightning(days)
                 markdown = markdown
         else:
@@ -238,6 +242,14 @@ def settings(update, context):
     main_logger.info('[bot] /settings command processed')
     return ConversationHandler.END
 
+def history(update, context):
+    markdown = 'src/text/hint_dates.md'
+    with open(markdown, 'r') as history_text:
+        history_message = history_text.read()
+        update.message.reply_text(history_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    main_logger.info('[bot] /history command processed')
+    return ConversationHandler.END
+
 def about(update, context):
     markdown = 'src/text/about.md'
     with open(markdown, 'r') as about_text:
@@ -269,6 +281,7 @@ def start_bot():
             CommandHandler("pools", pools),
             CommandHandler("transaction", transaction),
             CommandHandler("settings", settings),
+            CommandHandler("history", history),
             CommandHandler("about", about)
             ],
         states={

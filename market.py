@@ -155,9 +155,13 @@ def draw_market(days=1):
     ax1.grid(True, linestyle="dashed", linewidth=0.5, alpha=0.7)
     ax2 = ax1.twinx()
 
-    # Set axies lines:    
-    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=10)
-    ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="total_volume", alpha=0.3, linewidth=0.1)
+    # Set axies lines to change width depending on days period:
+    linewidth_price = 14 - days * 0.01
+    if linewidth_price < 10:
+        linewidth_price = 10
+      
+    ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=linewidth_price)
+    ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="total_volume", alpha=0.0, linewidth=0.0)
 
     # Set axies left and right borders to first and last date of period. Bottom border
     # is set to min total_volume value and 99% of min price value for better scaling.
@@ -274,7 +278,7 @@ def write_market(days=1):
             snapshot_data = json.load(json_file)
 
             # Parse snapshot to separate values:
-            LAST_UPdATED = format_utc(snapshot_data['last_updated'])
+            LAST_UPDATED = format_utc(snapshot_data['last_updated'])
 
             PRICE_CURRENT = format_currency(snapshot_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
             PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(snapshot_data['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
@@ -289,12 +293,12 @@ def write_market(days=1):
             
             ALL_TIME_HIGH = format_currency(snapshot_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
             ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(snapshot_data['ath_change_percentage'][f'{config.currency_vs}'])
-    #        ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['ath'][f'{config.currency_vs}'] - snapshot_data['SNAPSHOT_PRICE'][f'{config.currency_vs}']), config.currency_vs_ticker)
+#            ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['ath'][f'{config.currency_vs}'] - snapshot_data['SNAPSHOT_PRICE'][f'{config.currency_vs}']), config.currency_vs_ticker)
             ALL_TIME_HIGH_DATE = snapshot_data['ath_date'][f'{config.currency_vs}'][:10]    
             ALL_TIME_HIGH_DAYS = (datetime.now(timezone.utc) - datetime.fromisoformat(snapshot_data['ath_date'][f'{config.currency_vs}'].replace('Z', '+00:00'))).days
 
             TOTAL_VOLUME = format_amount(snapshot_data['total_volume'][f'{config.currency_vs}'], config.currency_vs_ticker)
-    #        SUPPLY_TOTAL = format_amount(snapshot_data['total_supply'], config.currency_crypto_ticker)
+#            SUPPLY_TOTAL = format_amount(snapshot_data['total_supply'], config.currency_crypto_ticker)
             SUPPLY_CIRCULATING = format_currency(snapshot_data['circulating_supply'], config.currency_crypto_ticker, decimal=0)
         
             # Format text for user presentation:
@@ -313,7 +317,7 @@ def write_market(days=1):
                 f'Price: {ALL_TIME_HIGH}\n' \
                 f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
                 f'Date: {ALL_TIME_HIGH_DATE}\n'
-            info_update = f'UTC {LAST_UPdATED}\n'
+            info_update = f'UTC {LAST_UPDATED}\n'
 
             # Write text to Markdown file:
             with open (markdown_file, 'w') as markdown:
@@ -329,13 +333,10 @@ def write_market(days=1):
         chart_file = chart_file_path + chart_file_name
         chart_data = pd.read_csv(chart_file)
 
-        days = 1 if days < 1 else days
         days = len(chart_data) if days > len(chart_data) else days
 
         chart_data_index_last = len(chart_data) - 1
         chart_data_index_first = chart_data_index_last - days
-        if chart_data_index_first < 1:
-            chart_data_index_first = 1
 
         chart_date = chart_data['date'][chart_data_index_first : chart_data_index_last]
         chart_price = chart_data['price'][chart_data_index_first : chart_data_index_last]
@@ -353,7 +354,7 @@ def write_market(days=1):
                 SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
                 SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
 
-                CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
+                CHART_DATE = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
                 CHART_PRICE = chart_price.iloc[0]
                 CHART_MARKET_CAP = chart_market_cap.iloc[0]
                 CHART_TOTAL_VOLUME = chart_total_volume.iloc[0]
@@ -419,7 +420,7 @@ def write_market(days=1):
                 SNAPSHOT_MARKET_CAP = snapshot_data['market_cap'][f'{config.currency_vs}']
                 SNAPSHOT_TOTAL_VOLUME = snapshot_data['total_volume'][f'{config.currency_vs}']
 
-                CHART_DATE = convert_timestamp_to_utc(chart_date.iloc[0])[:-9]
+                CHART_DATE = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
                 CHART_PRICE = chart_price.iloc[0]
                 CHART_MARKET_CAP = chart_market_cap.iloc[0]
                 CHART_TOTAL_VOLUME = 'Unknown'
@@ -485,13 +486,13 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [0, 1, 2, 87, 88, 89, 90, 91, 92, 93, 1000, 70000]
-    for day in days:
-        draw_market(day)
-        write_market(day)
+#    days = [0, 1, 2, 90, 400, 1000, 70000]
+#    for day in days:
+#        draw_market(day)
+#        write_market(day)
   
     from tools import convert_date_to_days
-    dates = ['2024-01-01', '2020-02-02', '2016-03-03']
+    dates = ['2024-02-12', '2024-01-01', '2020-02-02', '2017-04-01', '2013-12-26']
     for date in dates:
         day = convert_date_to_days(date)
         draw_market(day)
