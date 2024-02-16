@@ -446,6 +446,25 @@ images = {
             }
         }
     },
+    'seized': {
+        'path': 'db/seized/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'date': '#F9F9F9',
+            'usd': '#2b9348',
+            'btc': '#F7931A',
+            'price': '#F9F9F9',
+            'frame': '#191716'
+        },
+        'backgrounds': {
+            'path': 'src/image/backgrounds/seized.png',
+            'coordinates': (725, 25),
+            'colors': {
+                'api': ('#F1603F', (180, 65), (180, 105)),
+                'metric': ('#F7931A', (455, 65), (455, 100))
+            }
+        }
+    },
     'transaction': {
         'path': 'db/blockchain/transaction/',
         'font': 'src/font/font.ttf',
