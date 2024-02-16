@@ -460,8 +460,7 @@ images = {
             'path': 'src/image/backgrounds/seized.png',
             'coordinates': (725, 25),
             'colors': {
-                'api': ('#F1603F', (180, 65), (180, 105)),
-                'metric': ('#F7931A', (455, 65), (455, 100))
+                'api': ('#F1603F', (180, 65), (180, 105))
             }
         }
     },

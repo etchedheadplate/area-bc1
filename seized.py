@@ -28,8 +28,9 @@ from tools import (define_key_metric_movement,
                    format_currency,
                    format_percentage)
 
-def draw_market(days=1):
-    # Draws Market plot with properties specified in user configuration.
+
+def draw_seized(days=1):
+    # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
 #    chart = config.charts[f'{chart_name}']
@@ -55,8 +56,8 @@ def draw_market(days=1):
     background_coordinates = plot_background['coordinates']
     background_colors = plot_background['colors']
 
-    # Set rolling avearge to 2% of plot interval:
-    rolling_average = math.ceil(len(plot_df) * 0.02)
+    # Set rolling avearge to 2% of days:
+    rolling_average = math.ceil(days * 0.02)
 
     # Creation of plot axies
     axis_date = plot_df['day'].str.slice(stop=-17)
@@ -77,9 +78,9 @@ def draw_market(days=1):
     ax2.plot(axis_date, axis_btc, color=plot_colors['btc'], label="btc", alpha=0.0, linewidth=0.0)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="btc", linewidth=10)
 
-    # Set axies left and right borders to first and last date of period. Bottom border
-    # is set to min total_volume value and 99% of min price value for better scaling.
-    ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
+    # Set axies left and right borders to first and last date of period. Bottom and top
+    # border are set to persentages of axies for better scaling.
+    ax1.set_xlim(axis_date.iloc[0], axis_date[plot_df.index[-1]])  
     ax1.set_ylim(min(axis_usd) * 0.99, max(axis_usd) * 1.01)
     ax2.set_ylim(min(axis_btc), max(axis_btc) * 1.05)
 #    ax3.set_ylim(min(axis_price) * 0.75, max(axis_price) * 1.25)
@@ -89,14 +90,16 @@ def draw_market(days=1):
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     
     # Set date axis ticks and text properties:
-    axis_date_ticks_positions = np.linspace(plot_df.index[0], plot_df.index[-1], num=7) 
-    ax1.set_xticks(axis_date_ticks_positions)
+    date_range_indexes = np.linspace(0, len(axis_date) - 1, num=7, dtype=int)
+    ax1.set_xticks(date_range_indexes[::-1])
+    ax1.set_xticklabels([axis_date[i] for i in date_range_indexes], rotation=10, ha='center')
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
     # Set axies ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['usd'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['btc'])
+    ax3.set_yticks([])
 
     for label in ax1.get_xticklabels():
         label.set_fontproperties(plot_font)
@@ -141,7 +144,7 @@ def draw_market(days=1):
     title_image = Image.open(background_path)
     draw = ImageDraw.Draw(title_image)
 
-    # Market title related variables:
+    # Seized title related variables:
     title_font = plot['font']
     title_list = [
             [{'text': '21.co @ dune.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
@@ -161,7 +164,7 @@ def draw_market(days=1):
     title_buffer = io.BytesIO()
     title_image.save(title_buffer, 'PNG')
 
-    # Overlay plot buffer with Market title buffer and save final image:
+    # Overlay plot buffer with Seized title buffer and save final image:
     background_image = Image.open(title_buffer).convert("RGB")
     title_buffer.seek(0)
     background_overlay = Image.open(plot_buffer)
@@ -172,9 +175,9 @@ def draw_market(days=1):
     title_buffer.close()
     plot_buffer.close()
 
-    main_logger.info(f'[image] market (days {days}) plot drawn')
+    main_logger.info(f'[image] seized plot drawn')
 
     return plot_file
 
 
-draw_market()
+draw_seized()

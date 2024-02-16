@@ -133,6 +133,7 @@ def draw_network(days=30):
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['trx_per_block'])
+    ax3.set_yticks([])
 
     for label in ax1.get_xticklabels():
         label.set_fontproperties(plot_font)
@@ -149,7 +150,6 @@ def draw_network(days=30):
     
     # Set axies color filling and ticks visability:
     ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.8)
-    ax3.set_yticks([])
 
     # Set plot legend proxies and actual legend:
     legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
