@@ -1,9 +1,12 @@
 import re
 import os
+import sys
 import requests
+
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
+sys.path.append('.')
 import config
 from logger import main_logger
 

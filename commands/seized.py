@@ -1,30 +1,22 @@
 import io
-import os
+import sys
 import math
 import json
-from datetime import datetime, timezone
-
 import numpy as np
 import pandas as pd
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image, ImageDraw, ImageFont
-from datetime import datetime, timedelta
 
+sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
-                   calculate_percentage_change,
-                   format_time_axis,
-                   format_amount,
-                   convert_timestamp_to_utc,
-                   format_utc,
+from tools import (format_amount,
                    format_currency,
                    format_percentage)
 
@@ -33,10 +25,10 @@ def draw_seized(days=1):
     # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
-#    chart = config.charts[f'{chart_name}']
-#    chart_file_path = chart['file']['path']
-#    chart_file_name = chart['file']['name']
-    chart_file = 'db/seized/seized.csv'
+    chart = config.charts['seized']
+    chart_file_path = chart['file']['path']
+    chart_file_name = chart['file']['name']
+    chart_file = chart_file_path + chart_file_name
 
     # Plot-related variables:
     plot = config.images['seized']
@@ -49,7 +41,7 @@ def draw_seized(days=1):
 
     # Set days value limits and image file name:
     days = len(plot_df)
-    plot_file = 'db/seized/seized.jpg'
+    plot_file = chart_file_path + 'seized.jpg'
 
     # Background-related variables:
     background_path = plot_background['path']
@@ -180,4 +172,67 @@ def draw_seized(days=1):
     return plot_file
 
 
-draw_seized()
+def write_seized(days=1):
+
+    seized_chart = config.charts['seized']
+    seized_chart_file_path = seized_chart['file']['path']
+    seized_chart_file_name = seized_chart['file']['name']
+    seized_chart_file = seized_chart_file_path + seized_chart_file_name
+    
+    network_snapshot = config.snapshots['network']
+    network_snapshot_file_path = network_snapshot['file']['path']
+    network_snapshot_file_name = network_snapshot['file']['name']
+    network_snapshot_file = network_snapshot_file_path + network_snapshot_file_name
+    
+    seized_chart_data = pd.read_csv(seized_chart_file)
+    seized_date = seized_chart_data['day']
+    seized_balance_btc = seized_chart_data['BTC_Balance']
+    seized_balance_usd = seized_chart_data['USD_Balance']
+
+    markdown_file = seized_chart_file_path + 'seized.md'
+
+    LAST_UPDATE = seized_date[0][:10]
+
+    CURRENT_BALANCE_BTC = format_currency(seized_balance_btc[0], config.currency_crypto_ticker, decimal=2)
+    CURRENT_BALANCE_USD = format_currency(seized_balance_usd[0], config.currency_vs_ticker, decimal=2)
+
+    with open (network_snapshot_file, 'r') as network_file:
+        network_data = json.load(network_file)
+        network_btc_supply = network_data['totalbc'] / 100_000_000
+        CURRENT_SUPPLY_BTC = format_currency(network_btc_supply, config.currency_crypto_ticker, decimal=2)
+        CURRENT_SUPPLY_PERCENTAGE = format_percentage(seized_balance_btc[0] / network_btc_supply * 100)[1:]
+
+    MAX_BALANCE_BTC = format_currency(seized_balance_btc.max(), config.currency_crypto_ticker, decimal=2)
+    MAX_BALANCE_BTC_DATE = seized_date.loc[seized_balance_btc.idxmax()][:10]
+
+    MAX_BALANCE_USD = format_currency(seized_balance_usd.max(), config.currency_vs_ticker, decimal=2)
+    MAX_BALANCE_USD_DATE = seized_date.loc[seized_balance_usd.idxmax()][:10]
+
+    # Format text for user presentation:
+    info_balance = f'[Balance]\n' \
+        f'BTC: {CURRENT_BALANCE_BTC}\n' \
+        f'USD: {CURRENT_BALANCE_USD}\n' \
+        f'{CURRENT_SUPPLY_PERCENTAGE} of {CURRENT_SUPPLY_BTC} mined\n'
+    info_ATH = f'[All-Time-High]\n' \
+        f'BTC: {MAX_BALANCE_BTC}\n' \
+        f'at {MAX_BALANCE_BTC_DATE}\n' \
+        f'USD: {MAX_BALANCE_USD}\n' \
+        f'at {MAX_BALANCE_USD_DATE}\n'
+    info_update = f'Last update at {LAST_UPDATE}\n'
+    Info_links = f'[Source, stats & methology](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
+        f'[More countries & companies](https://bitcointreasuries.net/)\n'
+    
+    # Write text to Markdown file:
+    with open (markdown_file, 'w') as markdown:
+        markdown.write(f'```\n{info_balance}\n{info_ATH}\n{info_update}\n```\n{Info_links}')
+    
+    main_logger.info(f'[markdown] seized text written')
+
+    return markdown_file
+
+
+
+
+if __name__ == '__main__':
+    draw_seized()
+    write_seized()

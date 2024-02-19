@@ -4,11 +4,11 @@ from telegram import ParseMode
 from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters
 
 import config
-from blockchain import explore_address, explore_block, explore_transaction
-from market import draw_market, write_market
-from network import draw_network, write_network
-from lightning import draw_lightning, write_lightning
-from news import write_news
+from commands.blockchain import explore_address, explore_block, explore_transaction
+from commands.market import draw_market, write_market
+from commands.network import draw_network
+from commands.lightning import draw_lightning
+from commands.news import write_news
 from tools import update_databases, convert_date_to_days
 from logger import main_logger
 from api.telegram import TOKEN
@@ -78,9 +78,32 @@ def block(update, context):
     main_logger.info('[bot] /block command processed')
     return ConversationHandler.END
 
+def etfs(update, context):
+    etfs_image = 'db/etfs/etfs.jpg'
+    etfs_text = 'db/etfs/etfs.md'
+    with open(etfs_image, 'rb') as img_file:
+        with open(etfs_text, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
+    main_logger.info('[bot] /etfs command processed')
+
+def exchanges(update, context):
+    exchanges_image = 'db/exchanges/exchanges.jpg'
+    with open(exchanges_image, 'rb') as img_file:
+        img_data = img_file.read()
+        context.bot.send_photo(chat_id=update.effective_chat.id,
+                                photo=img_data,
+                                parse_mode=ParseMode.MARKDOWN)
+    main_logger.info('[bot] /exchanges command processed')
+    return ConversationHandler.END
+
 def fees(update, context):
-    info = 'db/fees/fees.jpg'
-    with open(info, 'rb') as img_file:
+    fees_image = 'db/fees/fees.jpg'
+    with open(fees_image, 'rb') as img_file:
         img_data = img_file.read()
         context.bot.send_photo(chat_id=update.effective_chat.id,
                                 photo=img_data,
@@ -89,8 +112,8 @@ def fees(update, context):
     return ConversationHandler.END
 
 def market(update, context):
-    plot = f'db/market/{config.currency_pair}/market_days_1.jpg'
-    markdown = f'db/market/{config.currency_pair}/market_days_1.md'
+    market_image = f'db/market/{config.currency_pair}/market_days_1.jpg'
+    market_text = f'db/market/{config.currency_pair}/market_days_1.md'
     if context.args:
         days = convert_date_to_days(context.args[0])
         if type(days) == int:
@@ -99,19 +122,19 @@ def market(update, context):
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
                 return ConversationHandler.END
             elif days == 1:
-                plot = plot
-                markdown = markdown
+                market_image = market_image
+                market_text = market_text
             elif days >= 1:
-                plot =  draw_market(days)
-                markdown = write_market(days)
+                market_image =  draw_market(days)
+                market_text = write_market(days)
         else:
             hint = 'src/text/hint_dates.md'
             with open(hint, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
             return ConversationHandler.END
-    with open(plot, 'rb') as img_file:
-        with open(markdown, 'r') as text_file:
+    with open(market_image, 'rb') as img_file:
+        with open(market_text, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -122,8 +145,8 @@ def market(update, context):
     return ConversationHandler.END
 
 def network(update, context):
-    plot = 'db/network/network_days_30.jpg'
-    markdown = 'db/network/network.md'
+    network_image = 'db/network/network_days_30.jpg'
+    network_text = 'db/network/network.md'
     if context.args:
         days = convert_date_to_days(context.args[0])
         if type(days) == int:
@@ -134,19 +157,19 @@ def network(update, context):
             elif days < 2:
                 error_message = 'Available data starts from 2 days to the past:'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-                plot =  draw_network(days)
-                markdown = markdown
+                network_image =  draw_network(days)
+                network_text = network_text
             else:
-                plot =  draw_network(days)
-                markdown = markdown
+                network_image =  draw_network(days)
+                network_text = network_text
         else:
             hint = 'src/text/hint_dates.md'
             with open(hint, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
             return ConversationHandler.END
-    with open(plot, 'rb') as img_file:
-        with open(markdown, 'r') as text_file:
+    with open(network_image, 'rb') as img_file:
+        with open(network_text, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -157,8 +180,8 @@ def network(update, context):
     return ConversationHandler.END
 
 def lightning(update, context):
-    plot = 'db/lightning/lightning_days_30.jpg'
-    markdown = 'db/lightning/lightning.md'
+    lightning_image = 'db/lightning/lightning_days_30.jpg'
+    lightning_text = 'db/lightning/lightning.md'
     if context.args:
         days = convert_date_to_days(context.args[0])
         if type(days) == int:
@@ -169,19 +192,19 @@ def lightning(update, context):
             elif days < 2:
                 error_message = 'Available data starts from 2 days to the past:'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-                plot =  draw_lightning(days)
-                markdown = markdown
+                lightning_image =  draw_lightning(days)
+                lightning_text = lightning_text
             else:
-                plot =  draw_lightning(days)
-                markdown = markdown
+                lightning_image =  draw_lightning(days)
+                lightning_text = lightning_text
         else:
             hint = 'src/text/hint_dates.md'
             with open(hint, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
             return ConversationHandler.END
-    with open(plot, 'rb') as img_file:
-        with open(markdown, 'r') as text_file:
+    with open(lightning_image, 'rb') as img_file:
+        with open(lightning_text, 'r') as text_file:
             img_data = img_file.read()
             text_caption = text_file.read()
             context.bot.send_photo(chat_id=update.effective_chat.id,
@@ -192,22 +215,35 @@ def lightning(update, context):
     return ConversationHandler.END
 
 def news(update, context):
-    news = write_news()
-    with open(news, 'r') as news_text:
-        news_message = news_text.read()
+    news_text = write_news()
+    with open(news_text, 'r') as text_file:
+        news_message = text_file.read()
         update.message.reply_text(news_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     main_logger.info('[bot] /news command processed')
     return ConversationHandler.END
 
 def pools(update, context):
-    diagram = 'db/pools/pools.jpg'
-    with open(diagram, 'rb') as img_file:
+    pools_image = 'db/pools/pools.jpg'
+    with open(pools_image, 'rb') as img_file:
         img_data = img_file.read()
         context.bot.send_photo(chat_id=update.effective_chat.id,
                                 photo=img_data,
                                 parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /pools command processed')
     return ConversationHandler.END
+
+def seized(update, context):
+    seized_image = 'db/seized/seized.jpg'
+    seized_text = 'db/seized/seized.md'
+    with open(seized_image, 'rb') as img_file:
+        with open(seized_text, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
+    main_logger.info('[bot] /seized command processed')
 
 def transaction(update, context):
     if context.args:
@@ -273,12 +309,15 @@ def start_bot():
             CommandHandler("start", start),
             CommandHandler("address", address),
             CommandHandler("block", block),
+            CommandHandler("etfs", etfs),
+            CommandHandler("exchanges", exchanges),
             CommandHandler("fees", fees),
             CommandHandler("lightning", lightning),
             CommandHandler("market", market),
             CommandHandler("network", network),
             CommandHandler("news", news),
             CommandHandler("pools", pools),
+            CommandHandler("seized", seized),
             CommandHandler("transaction", transaction),
             CommandHandler("settings", settings),
             CommandHandler("history", history),

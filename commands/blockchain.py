@@ -1,10 +1,13 @@
 import os
+import sys
 import json
 import time
 import pandas as pd
+
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
+sys.path.append('.')
 import config
 from logger import main_logger
 from tools import (get_api_data,
@@ -17,7 +20,7 @@ def explore_address(address):
     
     address_base = 'https://blockchain.info/'
     address_endpoint = f'rawaddr/{address}'
-    address_response = get_api_data(address_base, address_endpoint)
+    address_response = get_api_data(address_base, address_endpoint).json()
     address_path = 'db/blockchain/address/'
     address_markdown_file = address_path + f'address_{address}.md'
 
@@ -144,7 +147,7 @@ def explore_block(block):
     
     block_base = 'https://blockchain.info/'
     block_endpoint = f'block-height/{block}'
-    block_response = get_api_data(block_base, block_endpoint)
+    block_response = get_api_data(block_base, block_endpoint).json()
     block_path = 'db/blockchain/block/'
     block_markdown_file = block_path + f'block_{block}.md'
     
@@ -165,7 +168,7 @@ def explore_block(block):
     BLOCK_TRANSACTIONS_COUNT = format_quantity(block_response['n_tx'])
     BLOCK_SIZE = format_quantity(block_response['size'])
     BLOCK_WEIGHT = format_quantity(block_response['weight'])
-    BLOCK_LATEST = get_api_data(block_base, 'latestblock')['height']
+    BLOCK_LATEST = get_api_data(block_base, 'latestblock').json()['height']
     BLOCK_DEPTH = format_quantity(BLOCK_LATEST - int(block))
 
     BLOCK_DATE_CURRENT = datetime.utcnow().timestamp()
@@ -246,7 +249,7 @@ def explore_transaction(transaction_hash):
     
     transaction_base = 'https://blockchain.info/'
     transaction_endpoint = f'rawtx/{transaction_hash}'
-    transaction_response = get_api_data(transaction_base, transaction_endpoint)
+    transaction_response = get_api_data(transaction_base, transaction_endpoint).json()
     transaction_path = 'db/blockchain/transaction/'
     transaction_markdown_file = transaction_path + f'transaction_{transaction_hash}.md'
 
@@ -263,7 +266,7 @@ def explore_transaction(transaction_hash):
     market_days_max_file = market_days_max_file_path + market_days_max_file_name
 
     # Creation of key transaction variables:
-    TRANSACTION_BLOCK_LATEST = get_api_data(transaction_base, 'latestblock')['height']
+    TRANSACTION_BLOCK_LATEST = get_api_data(transaction_base, 'latestblock').json()['height']
 
     TRANSACTION_DATE_CURRENT = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
     TRANSACTION_DATE_TIME = convert_timestamp_to_utc(transaction_response['time'])
@@ -423,6 +426,8 @@ if __name__ == '__main__':
 #        explore_transaction(trx)
 #        time.sleep(10)
 
-    explore_address('bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97')
-#    explore_block(828384)
-#    explore_transaction('edbf6be7177cd2db48aa0fc99840f53c757b8589099ea6c4361b1c6977db9a4b')
+#    explore_address('bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97')
+#    time.sleep(10)
+    explore_block(828384)
+    time.sleep(10)
+    explore_transaction('edbf6be7177cd2db48aa0fc99840f53c757b8589099ea6c4361b1c6977db9a4b')

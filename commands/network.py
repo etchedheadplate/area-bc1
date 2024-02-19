@@ -1,20 +1,21 @@
 import os
 import io
+import sys
 import json
 import math
-
 import numpy as np
 import pandas as pd
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
+sys.path.append('.')
 import config
 from logger import main_logger
 from tools import (define_key_metric_movement,
@@ -309,4 +310,4 @@ if __name__ == '__main__':
         day = convert_date_to_days(date)
         draw_network(day)
     
-#    write_network()
+    write_network()

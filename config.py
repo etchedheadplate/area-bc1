@@ -1,3 +1,5 @@
+from api.dune import TOKEN as dune_api_token
+
 # Currency related variables:
 currency_crypto = 'bitcoin'
 currency_vs = 'usd'
@@ -8,13 +10,31 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Dictionaries for managing databases:
 charts = {
+    'etfs': {
+        'api': {
+            'base': 'https://api.dune.com/api/v1/',
+            'endpoints': ['query/3400598/results/csv'],
+            'extention': 'csv',
+            'params': {
+                'api_key': f'{dune_api_token}'
+                },
+            'parsed': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/etfs/',
+            'name': 'etfs.csv',
+            'columns': False
+        }
+    },
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
             'endpoints': ['lightning/statistics/6y'],
+            'extention': 'json',
             'params': False,
-            'subdict': False,
-            'parsed': 'dict'
+            'parsed': 'dict',
+            'subdict': False
         },
         'file': {
             'path': f'db/lightning/',
@@ -36,14 +56,15 @@ charts = {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
             'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'extention': 'json',
             'params': {
                     'vs_currency': f'{currency_vs}',
                     'days': '1',
                     'interval': '',
                     'precision': '2'
                 },
-            'subdict': False,
-            'parsed': 'list'
+            'parsed': 'list',
+            'subdict': False
         },
         'file': {
             'path': f'db/market/{currency_pair}/',
@@ -61,14 +82,15 @@ charts = {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
             'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'extention': 'json',
             'params': {
                     'vs_currency': f'{currency_vs}',
                     'days': '90',
                     'interval': '',
                     'precision': '2'
                 },
-            'subdict': False,
-            'parsed': 'list'
+            'parsed': 'list',
+            'subdict': False
         },
         'file': {
             'path': f'db/market/{currency_pair}/',
@@ -86,14 +108,15 @@ charts = {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
             'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'extention': 'json',
             'params': {
                     'vs_currency': f'{currency_vs}',
                     'days': 'max',
                     'interval': '',
                     'precision': '2'
                 },
-            'subdict': False,
-            'parsed': 'list'
+            'parsed': 'list',
+            'subdict': False
         },
         'file': {
             'path': f'db/market/{currency_pair}/',
@@ -116,6 +139,7 @@ charts = {
                 'charts/n-transactions-per-block',
                 'charts/cost-per-transaction'
                 ],
+            'extention': 'json',
             'params': {
                 'timespan': '6years',
                 'rollingAverage': '1days',
@@ -123,8 +147,8 @@ charts = {
                 'format': 'json',
                 'sampled': 'true'
                 },
-            'subdict': 'values',
-            'parsed': 'dict'
+            'parsed': 'dict',
+            'subdict': 'values'
         },
         'file': {
             'path': 'db/network/',
@@ -153,25 +177,57 @@ charts = {
         'api': {
             'base': 'https://api.blockchain.info/',
             'endpoints': ['pools'],
+            'extention': 'json',
             'params': {
                 'timespan': '7days'
                 },
-            'subdict': False,
-            'parsed': 'dict'
+            'parsed': 'dict',
+            'subdict': False
         },
         'file': {
             'path': 'db/pools/',
             'name': 'pools.csv',
             'columns': ['pool', 'mined']
         }
+    },
+    'seized': {
+        'api': {
+            'base': 'https://api.dune.com/api/v1/',
+            'endpoints': ['query/2220209/results/csv'],
+            'extention': 'csv',
+            'params': {
+                'api_key': f'{dune_api_token}'
+                },
+            'parsed': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/seized/',
+            'name': 'seized.csv',
+            'columns': False
+        }
     }
 }
 
 snapshots = {
+    'exchanges': {
+        'api': {
+            'base': 'https://api.coingecko.com/api/v3/',
+            'endpoints': ('exchanges'),
+            'extention': 'json',
+            'params': False,
+            'subdict': False
+        },
+        'file': {
+            'path': f'db/exchanges/',
+            'name': 'exchanges.json',
+        }
+    },
     'fees': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
             'endpoints': ('fees/recommended'),
+            'extention': 'json',
             'params': False,
             'subdict': False
         },
@@ -184,6 +240,7 @@ snapshots = {
         'api': {
             'base': 'https://mempool.space/api/v1/',
             'endpoints': ('lightning/statistics/latest'),
+            'extention': 'json',
             'params': False,
             'subdict': False
         },
@@ -196,6 +253,7 @@ snapshots = {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
             'endpoints': (f'coins/{currency_crypto}'),
+            'extention': 'json',
             'params': {
                     'localization': 'false',
                     'tickers': 'false',
@@ -213,6 +271,7 @@ snapshots = {
     'network': {
         'api': {
             'base': 'https://api.blockchain.info/',
+            'extention': 'json',
             'endpoints': ('stats'),
             'params': False,
             'subdict': ''
@@ -227,8 +286,8 @@ snapshots = {
 delay = 15
 
 updates = {
-    # All numbers are primes to minimize chance of rate limit risk between diffirent databases with same API.
-    # Charts and snapshots within same database updated with {delay} for the this reason also.
+    # Most of the numbers are primes to minimize chance of rate limit risk between diffirent databases with
+    # same API. Charts and snapshots within same database updated with {delay} for the this reason also.
 
     # Databases are updated every {minutes} at :{seconds}, if current time is 13:12:00, {minutes} = 179 and
     # {seconds} = 11, then update will be at 16:11:11, 19:10:11, 22:09:11, 01:08:11, etc.
@@ -246,6 +305,10 @@ updates = {
         'seconds': 5
     },
     # API CoinGecko:
+    'exchanges': { # snapshot + image
+        'minutes': 719,
+        'seconds': 13
+    },
     'market': { # chart + snapshot + image + markdown
         'minutes': 7,
         'seconds': 2
@@ -266,6 +329,15 @@ updates = {
     'pools': { # chart + image 
         'minutes': 179,
         'seconds': 37
+    },
+    # API Dune.com:
+    'etfs': { # chart + image + markdown
+        'minutes': 719,
+        'seconds': 29
+    },
+    'seized': { # chart + image + markdown
+        'minutes': 1439,
+        'seconds': 3
     }
 }
 
@@ -303,6 +375,43 @@ images = {
             'colors': {
                 'api': ('#F9F9F9', (950, 65), (950, 105)),
                 'metric': ('#CACACA', (1315, 65), (1315, 105))
+            }
+        }
+    },
+    'etfs': {
+        'path': 'db/etfs/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'date': '#F9F9F9',
+            'frame': '#191716',
+            'usd': '#2b9348',
+            'btc': '#F7931A',
+            'percentage': '#c1c0c0',
+            'bitcoin': '#F7931A',
+            'areas': ['#22577A', '#2D7D90', '#38A3A5', '#57CC99', '#80ED99', '#C7F9CC']
+        },
+        'backgrounds': {
+            'path': 'src/image/backgrounds/etfs.png',
+            'coordinates': (750, 5),
+            'colors': {
+                'api': ('#F1603F', (180, 65), (180, 105))
+            }
+        }
+    },
+    'exchanges': {
+        'path': 'db/exchanges/',
+        'font': 'src/font/font.ttf',
+        'colors': {
+            'percentage': '#fdfffc',
+            'bitcoin': '#F7931A',
+            'slices': ['#6a4c93', '#1982c4', '#2ec4b6', '#8ac926', '#fdc500', '#ff595e']
+        },
+        'backgrounds': {
+            'path': 'src/image/backgrounds/exchanges.png',
+            'coordinates': (680, -15),
+            'colors': {
+                'api': ('#ffd60a', (100, 65), (100, 105)),
+                'period': ('#fdfffc', (455, 65), (455, 100))
             }
         }
     },

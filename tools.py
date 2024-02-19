@@ -21,26 +21,17 @@ from logger import main_logger
 Functions related to fetching raw API data, creating, saving and updating database files.
 '''
 
-def get_api_data(base, endpoint, params=False, subdict=False):
-# Builds formatted URL to API based on user configuration and retrieves JSON data.
+def get_api_data(base, endpoint, params=False):
+# Builds formatted URL to API based on user configuration and retrieves API data.
 
-    # Build queries list from standart API parameters and custom database parameters:
     query_params = []
-    if params:
+    if params: # Build queries list from standart API parameters and custom database parameters
         for query, value in params.items():
             params[f'{query}']=f'{value}'
             query_params.append(f"{query}={value}")
-
-    
-    # Build formatted URL to API and get data response. If response type is JSON,
-    # check if needed data is a subdictionary of retrieved JSON:
     api_url = f"{base}{endpoint}?{'&'.join(query_params)}"
     api_response = requests.get(api_url)
-    response_data = api_response.json()
-    if subdict:
-        return response_data[subdict]
-    else:
-        return response_data
+    return api_response
 
 
 def make_chart_data(database):
@@ -52,6 +43,7 @@ def make_chart_data(database):
     # User configuration related variables:
     api_base = chart['api']['base']
     api_endpoints = chart['api']['endpoints']
+    api_extention = chart['api']['extention']
     api_params = chart['api']['params']
     api_subdict = chart['api']['subdict']
     api_parsed = chart['api']['parsed']
@@ -65,42 +57,39 @@ def make_chart_data(database):
     if not os.path.isdir(file_path):
         os.makedirs(file_path, exist_ok=True)
 
-    # Empty DataFrame for later filling with response DataFrame:
-    response_columns = pd.DataFrame({'date': []})
-
-    # Call to API and creation of DataFrame objects based on response data:
-    for api_endpoint in api_endpoints:
-        response = get_api_data(
-                api_base,
-                api_endpoint,
-                api_params,
-                api_subdict)
-        
-        # Response proccesed differently if data returned as list or dict:
-        if type(file_columns) is dict:
-            if api_parsed == 'list':
-                for row, column in file_columns[api_endpoint].items():
-                    response_data = pd.DataFrame(response[row], columns=['date', f'{column}'])
+    if api_extention == 'json':
+        response_columns = pd.DataFrame({'date': []}) # Empty DataFrame for later filling with response DataFrame:
+        for api_endpoint in api_endpoints:
+            response = get_api_data(api_base, api_endpoint, api_params)
+            response = response.json()[api_subdict] if api_subdict else response.json()
+            if type(file_columns) is dict: # Response proccesed differently if data returned as list or dict
+                if api_parsed == 'list':
+                    for row, column in file_columns[api_endpoint].items():
+                        response_data = pd.DataFrame(response[row], columns=['date', f'{column}'])
+                        response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
+                elif api_parsed == 'dict':
+                    response_data = pd.DataFrame(response).rename(columns=file_columns[api_endpoint])
                     response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
-            elif api_parsed == 'dict':
-                response_data = pd.DataFrame(response).rename(columns=file_columns[api_endpoint])
-                response_columns = response_columns.merge(response_data, on='date', how='outer').dropna().sort_values(by='date')
+                else:
+                    main_logger.warning(f'[chart] unknown type of parsed api response for {database}: {type(api_parsed)}')
+            elif type(file_columns) is list:
+                response_columns = pd.DataFrame(list(response.items()), columns=file_columns)
             else:
-                main_logger.warning(f'unknown type of parsed api response: {type(api_parsed)}')
-        elif type(file_columns) is list:
-            response_columns = pd.DataFrame(list(response.items()), columns=file_columns)
-        else:
-            main_logger.warning(f'unknown type of config param file_columns: {type(file_columns)}')
+                main_logger.warning(f'[chart] unknown type of config param file_columns for {database}: {type(file_columns)}')
+        response_columns.to_csv(file, index=False)
+    elif api_extention == 'csv':
+        for api_endpoint in api_endpoints:
+            response = get_api_data(api_base, api_endpoint, api_params)
+            with open(file, 'wb') as response_file:
+                response_file.write(response.content)
+    else:
+        main_logger.warning(f'[chart] unknown file extention for {database}')
 
-
-    # DataFrame with response data saved to file:
-    response_columns.to_csv(file, index=False)
     main_logger.info(f'[chart] {database} updated')
     
 
 def make_snapshot_data(database):
     # Creates snapshot path if it doesn't exists. Saves data to database as JSON file.
-
     snapshot = config.snapshots[f'{database}']
 
     # User configuration related variables:
@@ -118,15 +107,12 @@ def make_snapshot_data(database):
         os.makedirs(file_path, exist_ok=True)
 
     # Call to API and creation JSON file based on response data:
-    response = get_api_data(
-        api_base,
-        api_endpoints,
-        api_params,
-        api_subdict)
-
+    response = get_api_data(api_base, api_endpoints, api_params)
+    response = response.json()[api_subdict] if api_subdict else response.json()
     with open(file, 'w') as json_file:
         json.dump(response, json_file)
-        main_logger.info(f'[snapshot] {database} updated')
+    
+    main_logger.info(f'[snapshot] {database} updated')
 
 
 def format_update_seconds(seconds):
@@ -152,7 +138,7 @@ def clean_databases():
     main_logger.info(f'[databases] removed {files_removed} files')
 
 
-@profile
+# @profile
 def update_databases():
     # Initializes databases. Assigns proper function to handle each database.
     # Schedules regular updates for each database based on user configuration.
@@ -186,14 +172,16 @@ def update_databases():
 
     # List of all databases no matter if chart or snapshot:
     databases = list(charts.keys() | snapshots.keys())
+    current_directory = os.path.dirname(os.path.abspath(__file__))
     for database in databases:
-        module_file = f'{database}.py'
+        module_file = os.path.join(current_directory, 'commands', f'{database}.py')
         if os.path.exists(module_file):
-            module = importlib.import_module(database)
+            module_name = f'commands.{database}'
+            module = importlib.import_module(module_name)
             module_draw_image = getattr(module, f'draw_{database}', None)
             module_write_markdown = getattr(module, f'write_{database}', None)
             module_update_minutes = updates[f'{database}']['minutes']
-            module_update_seconds = format_update_seconds(updates[f'{chart_name}']['seconds'])
+            module_update_seconds = format_update_seconds(updates[f'{database}']['seconds'])
             module_functions = [module_draw_image, module_write_markdown]
             for module_function in module_functions:
                 if callable(module_function): # Each database module checked if contains image and/or markdown functions

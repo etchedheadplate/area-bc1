@@ -1,13 +1,15 @@
 import io
 import os
+import sys
 import pandas as pd
-from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
-
 import matplotlib
+
 from matplotlib import font_manager
+from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
 
+sys.path.append('.')
 import config
 from logger import main_logger
 

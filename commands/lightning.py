@@ -1,20 +1,21 @@
 import io
 import os
+import sys
 import json
 import math
-
 import numpy as np
 import pandas as pd
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
+sys.path.append('.')
 import config
 from logger import main_logger
 from tools import (define_key_metric_movement,
@@ -128,11 +129,9 @@ def draw_lightning(days=30):
 
     # Set axies borders for better scaling:
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-#    ax1.set_ylim(min(axis_capacity) * 0.995, max(axis_capacity) * 1.005)
-#    ax2.set_ylim(min(axis_channels) * 0.995, max(axis_channels) * 1.005)
     ax3.set_ylim(0, 100)
 
-     # Set axies text format:
+    # Set axies text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x / 100_000_000)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))

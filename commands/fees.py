@@ -1,8 +1,11 @@
 import os
+import sys
 import json
+
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
+sys.path.append('.')
 import config
 from logger import main_logger
 from tools import format_currency
