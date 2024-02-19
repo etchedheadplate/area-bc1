@@ -6,7 +6,6 @@
 *.log
 *.DS_Store
 __pycache__/
-api/coingecko.py
 api/
 db/
 src/
