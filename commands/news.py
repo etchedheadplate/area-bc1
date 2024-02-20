@@ -17,12 +17,13 @@ def write_news():
     headlines = soup.find_all('h2')
     
     news_list = []
-    check_list = [config.currency_crypto.upper(), config.currency_crypto_ticker.upper()]
+    check_list = [config.currency_crypto.upper(), config.currency_crypto_ticker.upper(), 'Lightning']
+    headline_replace_list = [' - Decrypt',  '| Bitcoinist.com']
     for headline in headlines:
         headlines_list = []
         links = headline.find_all('a')
         for link in links:
-            link_label = link.get('aria-label')
+            link_label = link.get('aria-label').replace(' - Decrypt', '').replace(' | Bitcoinist.com', '').replace(' - The Daily Hodl', '')
             link_url = link['href']
             for word in check_list:
                 pattern = re.compile(fr'{re.escape(word)}(?![a-zA-Z])')
@@ -47,8 +48,9 @@ def write_news():
         for news in news_list:
             if news:
                 name, link = news
-                source = urlparse(link).netloc.replace('www.', '').replace('.', ' ').replace('com', '')
+                source = urlparse(link).netloc.replace('www.', '').replace('.com', '').replace('.net', '').replace('.co', '').replace('.', ' ')
                 markdown.write(f'[{name}]({link}) | {source}\n\n')
+        markdown.write(f'\nPowered by [Coinqueror.io](https://coinqueror.io/)')
 
     main_logger.info(f'[markdown] news text written')
 

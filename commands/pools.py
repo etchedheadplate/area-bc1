@@ -76,8 +76,8 @@ def draw_pools():
              {'text': f'from: {chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
              {'text': f'till: {chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
             
-            [{'text': 'BTC:', 'position': (1735, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
-             {'text': 'mining pool:', 'position': (1935, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']}],
+            [{'text': 'BTC mined:', 'position': (1735, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
+             {'text': 'mining pool:', 'position': (1960, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']}],
 
             [{'text': f'{diagram_df["mined"].iloc[0]}', 'position': (1735, 185), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
             {'text': f'{diagram_df["mined"].iloc[1]}', 'position': (1735, 295), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
@@ -86,12 +86,12 @@ def draw_pools():
             {'text': f'{diagram_df["mined"].iloc[4]}', 'position': (1735, 625), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
             {'text': f'{diagram_df["mined"].iloc[5]}', 'position': (1735, 735), 'font_size': 70, 'text_color': diagram_colors['bitcoin']}],
 
-            [{'text': diagram_df['pool'].iloc[0], 'position': (1935, 185), 'font_size': 70, 'text_color': diagram_colors['slices'][0]},
-            {'text': diagram_df['pool'].iloc[1], 'position': (1935, 295), 'font_size': 70, 'text_color': diagram_colors['slices'][1]},
-            {'text': diagram_df['pool'].iloc[2], 'position': (1935, 405), 'font_size': 70, 'text_color': diagram_colors['slices'][2]},
-            {'text': diagram_df['pool'].iloc[3], 'position': (1935, 515), 'font_size': 70, 'text_color': diagram_colors['slices'][3]},
-            {'text': diagram_df['pool'].iloc[4], 'position': (1935, 625), 'font_size': 70, 'text_color': diagram_colors['slices'][4]},
-            {'text': diagram_df['pool'].iloc[5], 'position': (1935, 735), 'font_size': 70, 'text_color': diagram_colors['slices'][5]}]
+            [{'text': diagram_df['pool'].iloc[0], 'position': (1960, 185), 'font_size': 70, 'text_color': diagram_colors['slices'][0]},
+            {'text': diagram_df['pool'].iloc[1], 'position': (1960, 295), 'font_size': 70, 'text_color': diagram_colors['slices'][1]},
+            {'text': diagram_df['pool'].iloc[2], 'position': (1960, 405), 'font_size': 70, 'text_color': diagram_colors['slices'][2]},
+            {'text': diagram_df['pool'].iloc[3], 'position': (1960, 515), 'font_size': 70, 'text_color': diagram_colors['slices'][3]},
+            {'text': diagram_df['pool'].iloc[4], 'position': (1960, 625), 'font_size': 70, 'text_color': diagram_colors['slices'][4]},
+            {'text': diagram_df['pool'].iloc[5], 'position': (1960, 735), 'font_size': 70, 'text_color': diagram_colors['slices'][5]}]
     ]
 
     for miner in miners_list:

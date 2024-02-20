@@ -21,7 +21,7 @@ from tools import (calculate_percentage_change,
                    format_percentage)
 
 
-def draw_etfs(days=1):
+def draw_etfs():
     # Draws ETFs plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -51,6 +51,11 @@ def draw_etfs(days=1):
     areas_df_percent['issuer_grouped'] = areas_df_percent['issuer'].apply(lambda x: x if x in areas_df_top_issuers else 'Others')
     areas_df = areas_df_percent.pivot_table(index='time', columns='issuer_grouped', values='percent', aggfunc='sum').reset_index()
     
+    # Set time period:
+    days_df = plot_df[['time']].drop_duplicates()
+    chart_time_till = days_df['time'].iloc[-1][:10]
+    chart_time_from = days_df['time'].iloc[0][:10]
+
     # Background-related variables:
     background_path = plot_background['path']
     background_coordinates = plot_background['coordinates']
@@ -75,7 +80,7 @@ def draw_etfs(days=1):
     ax3 = ax1.twinx()
 
     # Set axies lines to change width depending on days period:
-    ax1.plot(axis_date, axis_holdings_btc, color=plot_colors['btc'], label="btc", linewidth=14)
+    ax1.plot(axis_date, axis_holdings_btc, color=plot_colors['btc'], label="btc", alpha=0.9, linewidth=14)
     ax2.plot(axis_date, axis_holdings_usd, color=plot_colors['usd'], label="usd", linewidth=10)
 
     # Set stacked area colors:
@@ -125,7 +130,7 @@ def draw_etfs(days=1):
     for issuer in issuers_df:
         issuer_percent = format_percentage(issuers_df[issuer].iloc[-1])[1:]
         plot_legend_issuer = Line2D([0], [0], label=f'{issuer_percent} {issuer}')
-        plot_legend_list.append(plot_legend_issuer)
+        plot_legend_list.insert(2, plot_legend_issuer)
         
     # Set actual plot and stacked area legend:
     plot_legend = ax1.legend(handles=plot_legend_list, loc="upper left", prop=plot_font, handlelength=0)
@@ -133,12 +138,12 @@ def draw_etfs(days=1):
     # Set plot and stacked area legend colors:
     plot_legend.get_texts()[0].set_color(plot_colors['btc'])
     plot_legend.get_texts()[1].set_color(plot_colors['usd'])
-    plot_legend.get_texts()[2].set_color(plot_colors['areas'][0])
-    plot_legend.get_texts()[3].set_color(plot_colors['areas'][1])
-    plot_legend.get_texts()[4].set_color(plot_colors['areas'][2])
-    plot_legend.get_texts()[5].set_color(plot_colors['areas'][3])
-    plot_legend.get_texts()[6].set_color(plot_colors['areas'][4])
-    plot_legend.get_texts()[7].set_color(plot_colors['areas'][5])
+    plot_legend.get_texts()[2].set_color(plot_colors['areas'][5])
+    plot_legend.get_texts()[3].set_color(plot_colors['areas'][4])
+    plot_legend.get_texts()[4].set_color(plot_colors['areas'][3])
+    plot_legend.get_texts()[5].set_color(plot_colors['areas'][2])
+    plot_legend.get_texts()[6].set_color(plot_colors['areas'][1])
+    plot_legend.get_texts()[7].set_color(plot_colors['areas'][0])
     plot_legend.get_frame().set_facecolor(plot_colors['frame'])
     plot_legend.get_frame().set_alpha(0.75)
 
@@ -159,7 +164,9 @@ def draw_etfs(days=1):
     title_font = plot['font']
     title_list = [
             [{'text': 'hildobby @ Dune.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-            {'text': 'BTC ETF issuers Marketshare', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]}]
+            {'text': 'BTC ETF issuers Marketshare', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]},
+             {'text': f'{chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
+             {'text': f'{chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}]
     ]
     
     for title in title_list:
@@ -191,7 +198,7 @@ def draw_etfs(days=1):
     return plot_file
 
 
-def write_etfs(days=1):
+def write_etfs():
     
     # User configuration related variables:
     etfs_chart = config.charts['etfs']
@@ -221,39 +228,40 @@ def write_etfs(days=1):
     LAST_UPDATE = holdings_btc_df['time'][now][:10]
 
     HOLDINGS_BTC_CURRENT = format_currency(btc_df[now], config.currency_crypto_ticker, decimal=2)
-    HOLDINGS_BTC_1W = format_currency(btc_df[now] - btc_df[now - 7], config.currency_crypto_ticker, decimal=2)
+    HOLDINGS_BTC_1W = format_amount(btc_df[now] - btc_df[now - 7], config.currency_crypto_ticker)
     HOLDINGS_BTC_1W_PERCENTAGE = format_percentage(calculate_percentage_change(btc_df[now - 7], btc_df[now]))
-    HOLDINGS_BTC_1M = format_currency(btc_df[now] - btc_df[now - 30], config.currency_crypto_ticker, decimal=2)
+    HOLDINGS_BTC_1M = format_amount(btc_df[now] - btc_df[now - 30], config.currency_crypto_ticker)
     HOLDINGS_BTC_1M_PERCENTAGE = format_percentage(calculate_percentage_change(btc_df[now - 30], btc_df[now]))
 
     with open (network_snapshot_file, 'r') as network_file:
         network_data = json.load(network_file)
         network_btc_supply = network_data['totalbc'] / 100_000_000
-        SUPPLY_BTC_CURRENT = format_currency(network_btc_supply, config.currency_crypto_ticker, decimal=2)
+        SUPPLY_BTC_CURRENT = format_amount(network_btc_supply, config.currency_crypto_ticker)
         SUPPLY_BTC_CURRENT_PERCENTAGE = format_percentage(btc_df[now] / network_btc_supply * 100)[1:]
 
     HOLDINGS_USD_CURRENT = format_currency(usd_df[now], config.currency_vs_ticker, decimal=2)
-    HOLDINGS_USD_1W = format_currency(usd_df[now] - usd_df[now - 7], config.currency_vs_ticker, decimal=2)
+    HOLDINGS_USD_1W = format_amount(usd_df[now] - usd_df[now - 7], config.currency_vs_ticker)
     HOLDINGS_USD_1W_PERCENTAGE = format_percentage(calculate_percentage_change(usd_df[now - 7], usd_df[now]))
-    HOLDINGS_USD_1M = format_currency(usd_df[now] - usd_df[now - 30], config.currency_vs_ticker, decimal=2)
+    HOLDINGS_USD_1M = format_amount(usd_df[now] - usd_df[now - 30], config.currency_vs_ticker)
     HOLDINGS_USD_1M_PERCENTAGE = format_percentage(calculate_percentage_change(usd_df[now - 30], usd_df[now]))
 
     # Format text for user presentation:
-    info_holdings = f'[Current]\n' \
+    info_holdings = \
         f'BTC: {HOLDINGS_BTC_CURRENT}\n' \
         f'USD: {HOLDINGS_USD_CURRENT}\n' \
         f'{SUPPLY_BTC_CURRENT_PERCENTAGE} of {SUPPLY_BTC_CURRENT} mined\n'
-    info_holdings_usd = f'[Trends]\n' \
+    info_holdings_btc = \
         f'BTC 1w: {HOLDINGS_BTC_1W_PERCENTAGE} ({HOLDINGS_BTC_1W})\n' \
+        f'BTC 1m: {HOLDINGS_BTC_1M_PERCENTAGE} ({HOLDINGS_BTC_1M})\n'
+    info_holdings_usd = \
         f'USD 1w: {HOLDINGS_USD_1W_PERCENTAGE} ({HOLDINGS_USD_1W})\n' \
-        f'BTC 1m: {HOLDINGS_BTC_1M_PERCENTAGE} ({HOLDINGS_BTC_1M})\n' \
         f'USD 1m: {HOLDINGS_USD_1M_PERCENTAGE} ({HOLDINGS_USD_1M})\n' 
     info_update = f'Last update at {LAST_UPDATE}\n'
-    Info_links = f'[Source & additional stats](https://dune.com/hildobby/btc-etfs)\n'
+    Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
     
     # Write text to Markdown file:
     with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```\n{info_holdings}\n{info_holdings_usd}\n{info_update}\n```\n{Info_links}')
+        markdown.write(f'```ETFs\n{info_holdings}\n{info_holdings_btc}\n{info_holdings_usd}\n{info_update}```\n{Info_links}')
     
     main_logger.info(f'[markdown] etfs text written')
 

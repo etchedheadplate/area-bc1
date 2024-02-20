@@ -100,7 +100,12 @@ def draw_lightning(days=30):
 
     # Stacked area normalized for 100%:
     stacked_nodes_percentages = stacked_nodes.divide(stacked_nodes.sum(axis=1), axis=0) * 100
-    
+
+    stacked_nodes_clearnet = format_percentage(stacked_nodes_percentages['nodes_clearnet'][plot_index_last - 1])[1:]
+    stacked_nodes_greynet = format_percentage(stacked_nodes_percentages['nodes_greynet'][plot_index_last - 1])[1:]
+    stacked_nodes_darknet = format_percentage(stacked_nodes_percentages['nodes_darknet'][plot_index_last - 1])[1:]
+    stacked_nodes_unknown = format_percentage(stacked_nodes_percentages['nodes_unknown'][plot_index_last - 1])[1:]
+
     # Creation of plot figure:
     fig, ax1 = plt.subplots(figsize=(12, 7.4))
     fig.patch.set_alpha(0.0)
@@ -167,41 +172,32 @@ def draw_lightning(days=30):
     # Set plot and stacked area legend proxies:
     plot_legend_proxy_capacity = Line2D([0], [0], label=f'Capacity, {config.currency_crypto_ticker}')
     plot_legend_proxy_channels = Line2D([0], [0], label='Channels')
-    
-    stacked_legend_proxy_nodes_unknown = Line2D([0], [0], label='Clearnet')
-    stacked_legend_proxy_nodes_darknet = Line2D([0], [0], label='Greynet')
-    stacked_legend_proxy_nodes_greynet = Line2D([0], [0], label='Darknet')
-    stacked_legend_proxy_nodes_clearnet = Line2D([0], [0], label='Unknown')
+    plot_legend_nodes_clearnet = Line2D([0], [0], label=f'{stacked_nodes_clearnet} Clearnet')
+    plot_legend_nodes_greynet = Line2D([0], [0], label=f'{stacked_nodes_greynet} Greynet')
+    plot_legend_nodes_darknet = Line2D([0], [0], label=f'{stacked_nodes_darknet} Darknet')
+    plot_legend_nodes_unknown = Line2D([0], [0], label=f'{stacked_nodes_unknown} Unknown')
     
     # Set actual plot and stacked area legend:
     plot_legend = ax1.legend(handles=[plot_legend_proxy_capacity,
-                                 plot_legend_proxy_channels],
+                                 plot_legend_proxy_channels,
+                                 plot_legend_nodes_clearnet,
+                                 plot_legend_nodes_greynet,
+                                 plot_legend_nodes_darknet,
+                                 plot_legend_nodes_unknown],
                                  loc="upper left", prop=plot_font, handlelength=0)
-    
-    stacked_legend = ax2.legend(handles=[stacked_legend_proxy_nodes_unknown,
-                                 stacked_legend_proxy_nodes_darknet,
-                                 stacked_legend_proxy_nodes_greynet,
-                                 stacked_legend_proxy_nodes_clearnet],
-                                 loc="lower left", prop=plot_font, handlelength=0)
 
     # Set plot and stacked area legend colors:
     plot_legend.get_texts()[0].set_color(plot_colors['capacity'])
     plot_legend.get_texts()[1].set_color(plot_colors['channels'])
+    plot_legend.get_texts()[2].set_color(plot_colors['nodes_clearnet'])
+    plot_legend.get_texts()[3].set_color(plot_colors['nodes_greynet'])
+    plot_legend.get_texts()[4].set_color(plot_colors['nodes_darknet'])
+    plot_legend.get_texts()[5].set_color(plot_colors['nodes_unknown'])
     plot_legend.get_frame().set_facecolor(plot_colors['frame'])
     plot_legend.get_frame().set_alpha(0.95)
 
-    stacked_legend.get_texts()[0].set_color(plot_colors['nodes_clearnet'])
-    stacked_legend.get_texts()[1].set_color(plot_colors['nodes_greynet'])
-    stacked_legend.get_texts()[2].set_color(plot_colors['nodes_darknet'])
-    stacked_legend.get_texts()[3].set_color(plot_colors['nodes_unknown'])
-    stacked_legend.get_frame().set_facecolor(plot_colors['frame_nodes'])
-    stacked_legend.get_frame().set_alpha(0.5)
-
     # Set plot and stacked area legend text size:
     for text in plot_legend.get_texts():
-        text.set_fontsize(16)
-
-    for text in stacked_legend.get_texts():
         text.set_fontsize(16)
 
     # Open memory buffer and save plot to memory buffer:
@@ -289,23 +285,23 @@ def write_lightning():
 #        NODE_CHANGE_1W = format_quantity(latest_data['node_count'] - previous_data['node_count'])
 #        NODE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['node_count'], latest_data['node_count']))
 
-        NODE_CLEARNET_COUNT = format_quantity(latest_data['clearnet_nodes'])
-        NODE_CLEARNET_PERCENTAGE = f"{round(latest_data['clearnet_nodes'] / (latest_data['node_count'] / 100), 2)}%"
+#        NODE_CLEARNET_COUNT = format_quantity(latest_data['clearnet_nodes'])
+#        NODE_CLEARNET_PERCENTAGE = f"{round(latest_data['clearnet_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_CLEARNET_1W = format_quantity(latest_data['clearnet_nodes'] - previous_data['clearnet_nodes'])
 #        NODE_CLEARNET_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['clearnet_nodes'], latest_data['clearnet_nodes']))
 
-        NODE_CLEARDARKNET_COUNT = format_quantity(latest_data['clearnet_tor_nodes'])
-        NODE_CLEARDARKNET_PERCENTAGE = f"{round(latest_data['clearnet_tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
+#        NODE_CLEARDARKNET_COUNT = format_quantity(latest_data['clearnet_tor_nodes'])
+#        NODE_CLEARDARKNET_PERCENTAGE = f"{round(latest_data['clearnet_tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_CLEARDARKNET_CHANGE_1W = format_quantity(latest_data['clearnet_tor_nodes'] - previous_data['clearnet_tor_nodes'])
 #        NODE_CLEARDARKNET_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['clearnet_tor_nodes'], latest_data['clearnet_tor_nodes']))
 
-        NODE_DARKNET_COUNT = format_quantity(latest_data['tor_nodes'])
-        NODE_DARKNET_PERCENTAGE = f"{round(latest_data['tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
+#        NODE_DARKNET_COUNT = format_quantity(latest_data['tor_nodes'])
+#        NODE_DARKNET_PERCENTAGE = f"{round(latest_data['tor_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_DARKNET_CHANGE_1W = format_quantity(latest_data['tor_nodes'] - previous_data['tor_nodes'])
 #        NODE_DARKNET_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['tor_nodes'], latest_data['tor_nodes']))
 
-        NODE_UNKNOWN_COUNT = format_quantity(latest_data['unannounced_nodes'])
-        NODE_UNKNOWN_PERCENTAGE = f"{round(latest_data['unannounced_nodes'] / (latest_data['node_count'] / 100), 2)}%"
+#        NODE_UNKNOWN_COUNT = format_quantity(latest_data['unannounced_nodes'])
+#        NODE_UNKNOWN_PERCENTAGE = f"{round(latest_data['unannounced_nodes'] / (latest_data['node_count'] / 100), 2)}%"
 #        NODE_UNKNOWN_CHANGE_1W = format_quantity(latest_data['unknown_nodes'] - previous_data['unknown_nodes'])
 #        NODE_UNKNOWN_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['unknown_nodes'], latest_data['unknown_nodes']))
     
@@ -318,24 +314,19 @@ def write_lightning():
 #        FEE_BASE_AVG_RATE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_base_fee_mtokens'], latest_data['avg_base_fee_mtokens']))
 
         # Format text for user presentation:
-        info_network = f'[Volume]\n' \
+        info_network = \
             f'Channels: {CHANNELS}\n' \
             f'Capacity: {CAPACITY_COUNT}\n' \
-            f'Avg: {CAPACITY_AVG_COUNT}/channel\n'
-        info_node = f'[Nodes]\n' \
-            f'Overall: {NODE_COUNT}\n' \
-            f'Clearnet: {NODE_CLEARNET_PERCENTAGE} ({NODE_CLEARNET_COUNT})\n' \
-            f'Greynet: {NODE_CLEARDARKNET_PERCENTAGE} ({NODE_CLEARDARKNET_COUNT})\n' \
-            f'Darknet: {NODE_DARKNET_PERCENTAGE} ({NODE_DARKNET_COUNT})\n' \
-            f'Unknown: {NODE_UNKNOWN_PERCENTAGE} ({NODE_UNKNOWN_COUNT})\n'
-        info_fees = f'[Fees]\n' \
-            f'Avg Rate: {FEE_AVG_RATE_COUNT} sats\n' \
-            f'Avg Base: {FEE_BASE_AVG_RATE_COUNT} sats\n'
+            f'Nodes: {NODE_COUNT}\n'
+        info_avgs = \
+            f'Avg Fee Rate: {FEE_AVG_RATE_COUNT} sats\n' \
+            f'Avg Fee Base: {FEE_BASE_AVG_RATE_COUNT} sats\n' \
+            f'Avg {CAPACITY_AVG_COUNT} per channel\n'
         info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write text to Markdown file:
         with open (markdown_file, 'w') as markdown:
-            markdown.write(f"```Lightning\n{info_network}\n{info_node}\n{info_fees}\n{info_update}```")
+            markdown.write(f'```Lightning\n{info_network}\n{info_avgs}\n{info_update}```')
 
         main_logger.info(f'[markdown] lightning text written')
 
@@ -346,9 +337,9 @@ def write_lightning():
 
 if __name__ == '__main__':
 
-#    days = [0, 1, 2, 90, 400, 1000, 70000]
-#    for day in days:
-#        draw_lightning(day)
+    days = [0, 1, 2, 70000]
+    for day in days:
+        draw_lightning(day)
   
     from tools import convert_date_to_days
     dates = ['2022-03-01', '2012-03-01']
@@ -356,4 +347,4 @@ if __name__ == '__main__':
         day = convert_date_to_days(date)
         draw_lightning(day)
 
-#    write_lightning()
+    write_lightning()

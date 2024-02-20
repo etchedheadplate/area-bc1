@@ -83,14 +83,14 @@ def explore_address(address):
     address_image_colors = address_image['colors']
     address_image_background_path = address_image['backgrounds']['path']
     address_image_background_colors = address_image['backgrounds']['colors']
-    address_image_file = address_image['path'] + f'{address}.jpg'
+    address_image_file = address_image['path'] + f'address_{address}.jpg'
 
     # Set text, position, size and color address parameters:
     address_title_list = [
         [{'text': 'blockchain.com', 'position': address_image_background_colors['api'][1], 'font_size': 36, 'text_color': address_image_background_colors['api'][0]},
-        {'text': f'address performance', 'position': address_image_background_colors['api'][2], 'font_size': 26, 'text_color': address_image_background_colors['api'][0]},
-        {'text': f'At {config.currency_crypto_ticker} Price: {ADDRESS_FIAT_CURRENT_PRICE}', 'position': address_image_background_colors['metric'][1], 'font_size': 31, 'text_color': address_image_background_colors['metric'][0]},
-        {'text': f'At UTC {ADDRESS_DATE_CURRENT}', 'position': address_image_background_colors['metric'][2], 'font_size': 31, 'text_color': address_image_background_colors['metric'][0]}],
+        {'text': f'address information', 'position': address_image_background_colors['api'][2], 'font_size': 27, 'text_color': address_image_background_colors['api'][0]},
+        {'text': f'{config.currency_crypto_ticker} Price: {ADDRESS_FIAT_CURRENT_PRICE}', 'position': address_image_background_colors['metric'][1], 'font_size': 31, 'text_color': address_image_background_colors['metric'][0]},
+        {'text': f'UTC {ADDRESS_DATE_CURRENT}', 'position': address_image_background_colors['metric'][2], 'font_size': 31, 'text_color': address_image_background_colors['metric'][0]}],
             
         [{'text': f'{ADDRESS_CRYPTO_BALANCE}', 'position': (950, 245), 'font_size': 130, 'text_color': address_image_colors['titles_crypto']},
         {'text': f'Current {config.currency_crypto_ticker} Balance', 'position': (950, 370), 'font_size': 30, 'text_color': address_image_colors['titles']}],
@@ -136,8 +136,8 @@ def explore_address(address):
             address_transactions += f'...and {ADDRESS_TRANSACTIONS_MORE} more transactions\n'
         address_explorers = f'[blockstream.info](https://blockstream.info/address/{address})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/addresses/btc/{address})\n' \
-            f'[mempool.space](https://mempool.space/address/{address})\n'
-        address_markdown.write(f'```\n{address_text}\n{address_transactions}\n```\n{address_explorers}')
+            f'[mempool.space](https://mempool.space/address/{address})'
+        address_markdown.write(f'```Address\n{address_text}\n{address_transactions}```\n{address_explorers}')
         main_logger.info(f'[markdown] address {address} text written')
 
     return address_image_file, address_markdown_file
@@ -188,7 +188,7 @@ def explore_block(block):
     block_image_colors = block_image['colors']
     block_image_background_path = block_image['backgrounds']['path']
     block_image_background_colors = block_image['backgrounds']['colors']
-    block_image_file = block_image['path'] + f'{block}.jpg'
+    block_image_file = block_image['path'] + f'block_{block}.jpg'
 
     # Set text, position, size and color block parameters:
     block_title_list = [
@@ -227,19 +227,19 @@ def explore_block(block):
             block_text_color = block_params.get('text_color')
             block_draw.text(block_position, block_text, font=block_font, fill=block_text_color)
     block_image.save(block_image_file)
-    main_logger.info(f'[image] address {block} image drawn')
+    main_logger.info(f'[image] block {block} image drawn')
 
     # Creation of block markdown file:
     with open (block_markdown_file, 'w') as block_markdown:
-        block_text = f'Block: {BLOCK}\n' \
+        block_text = f'Height: {BLOCK}\n' \
             f'Bits: {BLOCK_BITS}\n' \
             f'Nounce: {BLOCK_NOUNCE}\n' \
             f'\nHash: {BLOCK_HASH}\n' \
             f'\nMerkle: {BLOCK_MERKLE}\n'
         block_explorers = f'[blockstream.info](https://blockstream.info/block/{BLOCK_HASH})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/blocks/btc/{block})\n' \
-            f'[mempool.space](https://mempool.space/block/{BLOCK_HASH})\n'
-        block_markdown.write(f'```\n{block_text}```\n{block_explorers}')
+            f'[mempool.space](https://mempool.space/block/{BLOCK_HASH})'
+        block_markdown.write(f'```Block\n{block_text}```\n{block_explorers}')
         main_logger.info(f'[markdown] block {block} text written')
     
     return block_image_file, block_markdown_file
@@ -329,14 +329,14 @@ def explore_transaction(transaction_hash):
     transaction_image_background = transaction_image['backgrounds']['key_metric_down'] if TRANSACTION_HEIGHT == None or TRANSACTION_DOUBLE_SPEND == 'Detected' else transaction_image['backgrounds']['key_metric_up']
     transaction_image_background_path = transaction_image_background['path']
     transaction_image_background_colors = transaction_image_background['colors']
-    transaction_image_file = transaction_image['path'] + f'{transaction_hash}.jpg'
+    transaction_image_file = transaction_image['path'] + f'transaction_{transaction_hash}.jpg'
 
     # Set text, position, size and color transaction parameters:
     transaction_title_list = [
         [{'text': 'blockchain.com', 'position': transaction_image_background_colors['api'][1], 'font_size': 36, 'text_color': transaction_image_background_colors['api'][0]},
         {'text': f'transaction overview', 'position': transaction_image_background_colors['api'][2], 'font_size': 26, 'text_color': transaction_image_background_colors['api'][0]},
         {'text': f'{TRANSACTION_CONFIRMATIONS}', 'position': transaction_image_background_colors['metric'][1], 'font_size': 31, 'text_color': transaction_image_background_colors['metric'][0]},
-        {'text': f'At UTC {TRANSACTION_DATE_CURRENT}', 'position': transaction_image_background_colors['metric'][2], 'font_size': 31, 'text_color': transaction_image_background_colors['metric'][0]}],
+        {'text': f'UTC {TRANSACTION_DATE_CURRENT}', 'position': transaction_image_background_colors['metric'][2], 'font_size': 31, 'text_color': transaction_image_background_colors['metric'][0]}],
             
         [{'text': f'{TRANSACTION_CRYPTO_AMOUNT}', 'position': (100, 245), 'font_size': 130, 'text_color': transaction_image_colors['titles_crypto']},
         {'text': f'{config.currency_crypto_ticker} transfered', 'position': (100, 360), 'font_size': 30, 'text_color': transaction_image_colors['titles']}],
@@ -376,7 +376,7 @@ def explore_transaction(transaction_hash):
             transaction_text_color = transaction_params.get('text_color')
             transaction_draw.text(transaction_position, transaction_text, font=transaction_font, fill=transaction_text_color)
     transaction_image.save(transaction_image_file)
-    main_logger.info(f'[image] address {transaction_hash} image drawn')
+    main_logger.info(f'[image] transaction {transaction_hash} image drawn')
 
     # Creation of transaction markdown file:
     with open (transaction_markdown_file, 'w') as transaction_markdown:
@@ -394,8 +394,8 @@ def explore_transaction(transaction_hash):
             transaction_outputs += f'...and {TRANSACTION_OUTPUTS_MORE} more inputs\n'
         transaction_explorers = f'[blockstream.info](https://blockstream.info/tx/{transaction_hash})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/transactions/btc/{transaction_hash})\n' \
-            f'[mempool.space](https://mempool.space/tx/{transaction_hash})\n'
-        transaction_markdown.write(f'```\n{transaction_text}\n{transaction_inputs}\n{transaction_outputs}\n```\n{transaction_explorers}')
+            f'[mempool.space](https://mempool.space/tx/{transaction_hash})'
+        transaction_markdown.write(f'```Transaction\n{transaction_text}\n{transaction_inputs}\n{transaction_outputs}```\n{transaction_explorers}')
         main_logger.info(f'[markdown] transaction {transaction_hash} text written')
     
     return transaction_image_file, transaction_markdown_file
@@ -426,8 +426,8 @@ if __name__ == '__main__':
 #        explore_transaction(trx)
 #        time.sleep(10)
 
-#    explore_address('bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97')
-#    time.sleep(10)
+    explore_address('bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97')
+    time.sleep(10)
     explore_block(828384)
     time.sleep(10)
     explore_transaction('edbf6be7177cd2db48aa0fc99840f53c757b8589099ea6c4361b1c6977db9a4b')

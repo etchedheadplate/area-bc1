@@ -1,7 +1,7 @@
 import io
 import sys
-import math
 import json
+import math
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -21,7 +21,7 @@ from tools import (format_amount,
                    format_percentage)
 
 
-def draw_seized(days=1):
+def draw_seized():
     # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -35,13 +35,14 @@ def draw_seized(days=1):
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
+    plot_file = chart_file_path + 'seized.jpg'
         
     # Creation of plot DataFrame:
     plot_df = pd.read_csv(chart_file).sort_index(ascending=False)
 
-    # Set days value limits and image file name:
-    days = len(plot_df)
-    plot_file = chart_file_path + 'seized.jpg'
+    # Set time period:
+    chart_time_till = plot_df['day'].iloc[-1][:10]
+    chart_time_from = plot_df['day'].iloc[0][:10]
 
     # Background-related variables:
     background_path = plot_background['path']
@@ -49,6 +50,7 @@ def draw_seized(days=1):
     background_colors = plot_background['colors']
 
     # Set rolling avearge to 2% of days:
+    days = len(plot_df) - 1
     rolling_average = math.ceil(days * 0.02)
 
     # Creation of plot axies
@@ -140,7 +142,9 @@ def draw_seized(days=1):
     title_font = plot['font']
     title_list = [
             [{'text': '21.co @ dune.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-            {'text': f'bitcoins seized by USA', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}]
+            {'text': f'bitcoins seized by USA', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]},
+             {'text': f'{chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
+             {'text': f'{chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}]
     ]
     
     for title in title_list:
@@ -172,7 +176,7 @@ def draw_seized(days=1):
     return plot_file
 
 
-def write_seized(days=1):
+def write_seized():
 
     seized_chart = config.charts['seized']
     seized_chart_file_path = seized_chart['file']['path']
@@ -199,32 +203,30 @@ def write_seized(days=1):
     with open (network_snapshot_file, 'r') as network_file:
         network_data = json.load(network_file)
         network_btc_supply = network_data['totalbc'] / 100_000_000
-        CURRENT_SUPPLY_BTC = format_currency(network_btc_supply, config.currency_crypto_ticker, decimal=2)
+        CURRENT_SUPPLY_BTC = format_amount(network_btc_supply, config.currency_crypto_ticker)
         CURRENT_SUPPLY_PERCENTAGE = format_percentage(seized_balance_btc[0] / network_btc_supply * 100)[1:]
 
-    MAX_BALANCE_BTC = format_currency(seized_balance_btc.max(), config.currency_crypto_ticker, decimal=2)
+    MAX_BALANCE_BTC = format_amount(seized_balance_btc.max(), config.currency_crypto_ticker)
     MAX_BALANCE_BTC_DATE = seized_date.loc[seized_balance_btc.idxmax()][:10]
 
-    MAX_BALANCE_USD = format_currency(seized_balance_usd.max(), config.currency_vs_ticker, decimal=2)
+    MAX_BALANCE_USD = format_amount(seized_balance_usd.max(), config.currency_vs_ticker)
     MAX_BALANCE_USD_DATE = seized_date.loc[seized_balance_usd.idxmax()][:10]
 
     # Format text for user presentation:
-    info_balance = f'[Balance]\n' \
+    info_balance = \
         f'BTC: {CURRENT_BALANCE_BTC}\n' \
         f'USD: {CURRENT_BALANCE_USD}\n' \
         f'{CURRENT_SUPPLY_PERCENTAGE} of {CURRENT_SUPPLY_BTC} mined\n'
-    info_ATH = f'[All-Time-High]\n' \
-        f'BTC: {MAX_BALANCE_BTC}\n' \
-        f'at {MAX_BALANCE_BTC_DATE}\n' \
-        f'USD: {MAX_BALANCE_USD}\n' \
-        f'at {MAX_BALANCE_USD_DATE}\n'
+    info_ATH = \
+        f'ATH BTC: {MAX_BALANCE_BTC_DATE} ({MAX_BALANCE_BTC})\n' \
+        f'ATH USD: {MAX_BALANCE_USD_DATE} ({MAX_BALANCE_USD})\n'
     info_update = f'Last update at {LAST_UPDATE}\n'
-    Info_links = f'[Source, stats & methology](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
-        f'[More countries & companies](https://bitcointreasuries.net/)\n'
+    Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
+        f'[More Countries & Companies](https://bitcointreasuries.net/)'
     
     # Write text to Markdown file:
     with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```\n{info_balance}\n{info_ATH}\n{info_update}\n```\n{Info_links}')
+        markdown.write(f'```Seized\n{info_balance}\n{info_ATH}\n{info_update}```\n{Info_links}')
     
     main_logger.info(f'[markdown] seized text written')
 

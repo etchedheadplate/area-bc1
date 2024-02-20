@@ -306,7 +306,7 @@ updates = {
     },
     # API CoinGecko:
     'exchanges': { # snapshot + image
-        'minutes': 719,
+        'minutes': 11,
         'seconds': 13
     },
     'market': { # chart + snapshot + image + markdown
@@ -357,8 +357,8 @@ images = {
         'backgrounds': {
             'path': 'src/image/backgrounds/address.png',
             'colors': {
-                'api': ('#F9F9F9', (950, 65), (950, 105)),
-                'metric': ('#CACACA', (1315, 65), (1315, 105))
+                'api': ('#F9F9F9', (950, 65), (950, 106)),
+                'metric': ('#CACACA', (1315, 65), (1315, 103))
             }
         }
     },
@@ -373,8 +373,8 @@ images = {
         'backgrounds': {
             'path': 'src/image/backgrounds/block.png',
             'colors': {
-                'api': ('#F9F9F9', (950, 65), (950, 105)),
-                'metric': ('#CACACA', (1315, 65), (1315, 105))
+                'api': ('#F9F9F9', (950, 65), (950, 106)),
+                'metric': ('#CACACA', (1315, 65), (1315, 103))
             }
         }
     },
@@ -382,7 +382,7 @@ images = {
         'path': 'db/etfs/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': '#F9F9F9',
+            'date': '#CACACA',
             'frame': '#191716',
             'usd': '#2b9348',
             'btc': '#F7931A',
@@ -394,7 +394,8 @@ images = {
             'path': 'src/image/backgrounds/etfs.png',
             'coordinates': (750, 5),
             'colors': {
-                'api': ('#F1603F', (180, 65), (180, 105))
+                'api': ('#F1603F', (65, 65), (65, 105)),
+                'period': ('#CACACA', (520, 65), (520, 100))
             }
         }
     },
@@ -411,7 +412,7 @@ images = {
             'coordinates': (680, -15),
             'colors': {
                 'api': ('#ffd60a', (100, 65), (100, 105)),
-                'period': ('#fdfffc', (455, 65), (455, 100))
+                'period': ('#2ec4b6', (455, 65), (455, 100))
             }
         }
     },
@@ -444,13 +445,13 @@ images = {
         'path': 'db/lightning/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': '#F9F9F9',
-            'channels': '#e8086d',
+            'date': '#CACACA',
+            'channels': '#FF0073',
             'capacity': '#F7931A',
-            'nodes_clearnet': '#8b065a',
-            'nodes_greynet': '#6f055a',
-            'nodes_darknet': '#54055a',
-            'nodes_unknown': '#38055a',
+            'nodes_clearnet': '#FF00A1',
+            'nodes_greynet': '#B40090',
+            'nodes_darknet': '#790082',
+            'nodes_unknown': '#5D009A',
             'frame': '#191716',
             'frame_nodes': '#FFFFFF',
             'outline': '#FFFFFF'
@@ -480,7 +481,7 @@ images = {
         'path': f'db/market/{currency_pair}/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': '#F9F9F9',
+            'date': '#CACACA',
             'price': '#F7931A',
             'total_volume': '#00a5cf',
             'frame': '#191716',
@@ -511,7 +512,7 @@ images = {
         'path': 'db/network/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': '#F9F9F9',
+            'date': '#CACACA',
             'price': '#F7931A',
             'hashrate': '#2a9d8f',
             'trx_per_block': '#e71d36',
@@ -559,7 +560,7 @@ images = {
         'path': 'db/seized/',
         'font': 'src/font/font.ttf',
         'colors': {
-            'date': '#F9F9F9',
+            'date': '#CACACA',
             'usd': '#2b9348',
             'btc': '#F7931A',
             'price': '#F9F9F9',
@@ -569,7 +570,8 @@ images = {
             'path': 'src/image/backgrounds/seized.png',
             'coordinates': (725, 25),
             'colors': {
-                'api': ('#F1603F', (180, 65), (180, 105))
+                'api': ('#F1603F', (100, 65), (100, 105)),
+                'period': ('#CACACA', (480, 65), (480, 100))
             }
         }
     },
@@ -586,15 +588,15 @@ images = {
             'key_metric_down': {
                 'path': 'src/image/backgrounds/transaction_down.png',
                 'colors': {
-                    'api': ('#F9F9F9', (100, 65), (100, 105)),
-                    'metric': ('#e5383b', (465, 65), (465, 105))
+                    'api': ('#F9F9F9', (100, 65), (100, 107)),
+                    'metric': ('#e5383b', (465, 65), (465, 103))
                 }
             },
             'key_metric_up': {
                 'path': 'src/image/backgrounds/transaction_up.png',
                 'colors': {
-                    'api': ('#F9F9F9', (100, 65), (100, 105)),
-                    'metric': ('#2BD713', (465, 65), (465, 105))
+                    'api': ('#F9F9F9', (100, 65), (100, 107)),
+                    'metric': ('#2BD713', (465, 65), (465, 103))
                 }
             }
         }

@@ -72,7 +72,7 @@ def draw_fees():
         # Set text, position, size and color parameters:
         fees_list = [
             [{'text': 'mempool.space', 'position': fees_background_colors['api'][1], 'font_size': 36, 'text_color': fees_background_colors['api'][0]},
-            {'text': f'recommended {config.currency_crypto_ticker} fees', 'position': fees_background_colors['api'][2], 'font_size': 24, 'text_color': fees_background_colors['api'][0]},
+            {'text': f'recommended TRX fees', 'position': fees_background_colors['api'][2], 'font_size': 24, 'text_color': fees_background_colors['api'][0]},
             {'text': f'{config.currency_crypto_ticker} Price: {market_price}', 'position': fees_background_colors['metric'][1], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]},
             {'text': f'{fees_datetime}', 'position': fees_background_colors['metric'][2], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]}],
               

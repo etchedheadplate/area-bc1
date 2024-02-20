@@ -271,6 +271,8 @@ def write_market(days=1):
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
+    days = 1 if days < 1 else days
+
     markdown_file = snapshot_file_path + f'market_days_{days}.md'
 
     if days == 1:
@@ -280,20 +282,20 @@ def write_market(days=1):
             # Parse snapshot to separate values:
             LAST_UPDATED = format_utc(snapshot_data['last_updated'])
 
-            PRICE_CURRENT = format_currency(snapshot_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            PRICE_CURRENT = format_currency(snapshot_data['current_price'][f'{config.currency_vs}'], config.currency_vs_ticker, decimal=0)
             PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H = format_percentage(snapshot_data['price_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
-            PRICE_CHANGE_24H_IN_CURRENCY = format_currency(snapshot_data['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
-            PRICE_HIGH_24H = format_currency(snapshot_data['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
-            PRICE_LOW_24H = format_currency(snapshot_data['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            PRICE_CHANGE_24H_IN_CURRENCY = format_currency(snapshot_data['price_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker, decimal=0)
+            PRICE_HIGH_24H = format_currency(snapshot_data['high_24h'][f'{config.currency_vs}'], config.currency_vs_ticker, decimal=0)
+            PRICE_LOW_24H = format_currency(snapshot_data['low_24h'][f'{config.currency_vs}'], config.currency_vs_ticker, decimal=0)
             
             MARKET_CAP = format_amount(snapshot_data['market_cap'][f'{config.currency_vs}'], config.currency_vs_ticker)
             MARKET_CAP_CHANGE_24H_PERCENTAGE = format_percentage(snapshot_data['market_cap_change_percentage_24h_in_currency'][f'{config.currency_vs}'])
             MARKET_CAP_CHANGE_24H = format_amount(snapshot_data['market_cap_change_24h_in_currency'][f'{config.currency_vs}'], config.currency_vs_ticker)
             FULLY_DILUTED_VALUATION = format_amount(snapshot_data['fully_diluted_valuation'][f'{config.currency_vs}'], config.currency_vs_ticker)
             
-            ALL_TIME_HIGH = format_currency(snapshot_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker)
+            ALL_TIME_HIGH = format_currency(snapshot_data['ath'][f'{config.currency_vs}'], config.currency_vs_ticker, decimal=0)
             ALL_TIME_HIGH_CHANGE_PERCENTAGE = format_percentage(snapshot_data['ath_change_percentage'][f'{config.currency_vs}'])
-#            ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['ath'][f'{config.currency_vs}'] - snapshot_data['SNAPSHOT_PRICE'][f'{config.currency_vs}']), config.currency_vs_ticker)
+            ALL_TIME_HIGH_CHANGE = format_currency((snapshot_data['current_price'][f'{config.currency_vs}'] - snapshot_data['ath'][f'{config.currency_vs}']), config.currency_vs_ticker, decimal=0)
             ALL_TIME_HIGH_DATE = snapshot_data['ath_date'][f'{config.currency_vs}'][:10]    
             ALL_TIME_HIGH_DAYS = (datetime.now(timezone.utc) - datetime.fromisoformat(snapshot_data['ath_date'][f'{config.currency_vs}'].replace('Z', '+00:00'))).days
 
@@ -302,26 +304,26 @@ def write_market(days=1):
             SUPPLY_CIRCULATING = format_currency(snapshot_data['circulating_supply'], config.currency_crypto_ticker, decimal=0)
         
             # Format text for user presentation:
-            info_price = f'[Trade]\n' \
+            info_price = \
                 f'Price: {PRICE_CURRENT}\n' \
                 f'24h: {PRICE_CHANGE_PERCENTAGE_IN_CURRENCY_24H} ({PRICE_CHANGE_24H_IN_CURRENCY})\n' \
                 f'24h High: {PRICE_HIGH_24H}\n' \
-                f'24h Low: {PRICE_LOW_24H}\n' \
-                f'Trade Volume: {TOTAL_VOLUME}\n'
-            info_market_cap = f'[Capitalization]\n' \
+                f'24h Low: {PRICE_LOW_24H}\n'
+            info_market_cap = \
                 f'Market Cap: {MARKET_CAP}\n' \
-                f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n' \
+                f'24h: {MARKET_CAP_CHANGE_24H_PERCENTAGE} ({MARKET_CAP_CHANGE_24H})\n'
+            info_other = \
+                f'Volume: {TOTAL_VOLUME}\n' \
                 f'Supply: {SUPPLY_CIRCULATING}\n' \
-                f'Diluted: {FULLY_DILUTED_VALUATION}\n'
-            info_ath = f'[All-Time-High]\n' \
-                f'Price: {ALL_TIME_HIGH}\n' \
-                f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE}\n' \
-                f'Date: {ALL_TIME_HIGH_DATE}\n'
+                f'Diluted Cap: {FULLY_DILUTED_VALUATION}\n'
+            info_ath = \
+                f'ATH: {ALL_TIME_HIGH} ({ALL_TIME_HIGH_DATE})\n' \
+                f'{ALL_TIME_HIGH_DAYS}d: {ALL_TIME_HIGH_CHANGE_PERCENTAGE} ({ALL_TIME_HIGH_CHANGE})\n'
             info_update = f'UTC {LAST_UPDATED}\n'
 
             # Write text to Markdown file:
             with open (markdown_file, 'w') as markdown:
-                markdown.write(f"```Market\n{info_price}\n{info_market_cap}\n{info_ath}\n{info_update}```")
+                markdown.write(f'```Market\n{info_price}\n{info_market_cap}\n{info_other}\n{info_ath}\n{info_update}```')
 
     else:
         chart_name = select_chart(days)[1]
@@ -333,7 +335,7 @@ def write_market(days=1):
         chart_file = chart_file_path + chart_file_name
         chart_data = pd.read_csv(chart_file)
 
-        days = len(chart_data) if days > len(chart_data) else days
+        days = len(chart_data) - 1 if days > len(chart_data) else days
 
         chart_data_index_last = len(chart_data) - 1
         chart_data_index_first = chart_data_index_last - days
@@ -359,7 +361,7 @@ def write_market(days=1):
                 CHART_MARKET_CAP = chart_market_cap.iloc[0]
                 CHART_TOTAL_VOLUME = chart_total_volume.iloc[0]
 
-                CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=0)
+                CHANGE_PRICE = format_currency(SNAPSHOT_PRICE - CHART_PRICE, f'{config.currency_vs}', decimal=2)
                 CHANGE_MARKET_CAP = format_amount(SNAPSHOT_MARKET_CAP - CHART_MARKET_CAP, f'{config.currency_vs}')
                 CHANGE_TOTAL_VOLUME = format_amount(SNAPSHOT_TOTAL_VOLUME - CHART_TOTAL_VOLUME, f'{config.currency_vs}')
 
@@ -393,18 +395,18 @@ def write_market(days=1):
                 
                 # Format text for user presentation:
                 info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
-                info_price = f'[Price]\n' \
-                    f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
+                info_price = \
+                    f'Price: {CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                     f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                     f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-                info_total_volume = f'[Volume]\n' \
-                    f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                info_total_volume = \
+                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
                     f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
                     f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
-                info_market_cap = f'[Market-Cap]\n' \
-                    f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
+                info_market_cap = \
+                    f'Market Cap: {CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                     f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                     f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
@@ -456,18 +458,18 @@ def write_market(days=1):
                 
                 # Format text for user presentation:
                 info_period = f'{CHART_DATE} --> {SNAPSHOT_DATE}\n'
-                info_price = f'[Price]\n' \
-                    f'{CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
+                info_price = \
+                    f'Price: {CHART_PRICE} --> {SNAPSHOT_PRICE}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                     f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                     f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-                info_total_volume = f'[Volume]\n' \
-                    f'{CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                info_total_volume = \
+                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
                     f'{days}d: Unknown\n' \
                     f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
                     f'Low: Unknown\n'
-                info_market_cap = f'[Market-Cap]\n' \
-                    f'{CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
+                info_market_cap = \
+                    f'Market Cap: {CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                     f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                     f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
@@ -486,13 +488,13 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-#    days = [0, 1, 2, 90, 400, 1000, 70000]
-#    for day in days:
-#        draw_market(day)
-#        write_market(day)
+    days = [0, 1, 2, 90, 70000]
+    for day in days:
+        draw_market(day)
+        write_market(day)
   
     from tools import convert_date_to_days
-    dates = ['2024-02-12', '2024-01-01', '2020-02-02', '2017-04-01', '2013-12-26']
+    dates = ['2020-02-02', '2017-04-01', '2013-12-26']
     for date in dates:
         day = convert_date_to_days(date)
         draw_market(day)

@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 import json
 import pandas as pd
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 from matplotlib import font_manager
+from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
@@ -22,7 +24,8 @@ def draw_exchanges():
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
-
+    snapshot_time_till = datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime('%Y-%m-%d')
+    snapshot_time_from = (datetime.utcfromtimestamp(os.path.getctime(snapshot_file)) - timedelta(days=1)).strftime('%Y-%m-%d')
 
     # Diagram-related variables:
     diagram = config.images['exchanges']
@@ -83,12 +86,12 @@ def draw_exchanges():
         miners_font = diagram['font']
         miners_list = [
                 [{'text': 'coingecko.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-                {'text': '24h CEX trade volume', 'position': background_colors['api'][2], 'font_size': 24, 'text_color': background_colors['api'][0]},
-                {'text': 'not your keys,', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
-                {'text': 'not your coins', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
+                {'text': 'CEX trading volume', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
                 
                 [{'text': f'BTC Traded:', 'position': (1700, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
-                {'text': 'Exchange:', 'position': (2000, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']}],
+                {'text': 'Exchange:', 'position': (2000, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
+                {'text': f'from: {snapshot_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
+                {'text': f'till: {snapshot_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
 
                 [{'text': format_amount(diagram_df["trade"].iloc[0]), 'position': (1700, 185), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
                 {'text': format_amount(diagram_df["trade"].iloc[1]), 'position': (1700, 295), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},

@@ -267,29 +267,29 @@ def write_network():
         RETARGET_IN = format_quantity(snapshot_data['nextretarget'] - snapshot_data['n_blocks_total'])
     
         # Format values text for user presentation:
-        info_blocks = f'[Blocks]\n' \
-            f'Height: {BLOCKS_HEIGHT}\n' \
+        info_blocks = \
+            f'Block Height: {BLOCKS_HEIGHT}\n' \
             f'24h Mined: {BLOCKS_MINED} blocks\n' \
             f'24h Size: {BLOCKS_SIZE} MB/block\n' \
             f'24h Time: {BLOCKS_MINUTES} min/block\n'
-        info_coin = f'[Bitcoin]\n' \
+        info_coin = \
             f'Supply: {BTC_SUPPLY}\n' \
             f'24h Mined: {BTC_MINED}\n' \
             f'24h Sent: {BTC_SENT}\n' \
             f'24h Price: {BTC_PRICE}\n'
-        info_transactions = f'[Transactions]\n' \
-            f'Avg: {TRANSACTIONS_BLOCK}/block\n' \
-            f'24h Total: {TRANSACTIONS_MADE}\n' \
+        info_transactions = \
+            f'Transactions: {TRANSACTIONS_MADE}\n' \
+            f'24h Avg: {TRANSACTIONS_BLOCK}/block\n' \
             f'24h Cost: {TRANSACTIONS_COST}/trx\n'
-        info_network = f'[Difficulty]\n' \
+        info_network = \
             f'Current Target: {DIFFICULTY}\n' \
-            f'Retarget: in {RETARGET_IN} blocks\n' \
+            f'Retarget: {RETARGET_IN} blocks\n' \
             f'Hashrate: {HASHRATE} TH/s\n'
         info_update = f'UTC {LAST_UPDATED}\n'
 
         # Write latest values to Markdown file:
         with open (markdown_file, 'w') as markdown:
-            markdown.write(f"```Network\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```")
+            markdown.write(f'```Network\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```')
 
     main_logger.info(f'[markdown] network text written')
 
