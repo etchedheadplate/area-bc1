@@ -19,7 +19,7 @@ CHOOSE_DAYS = range(1)
 
 
 def start(update, context):
-    welcome_message = "Use menu button"
+    welcome_message = "Please use menu button at lower left"
     update.message.reply_text(welcome_message)
     main_logger.info('[bot] /start command processed')
     return ConversationHandler.END
@@ -272,12 +272,6 @@ def transaction(update, context):
     main_logger.info('[bot] /transaction command processed')
     return ConversationHandler.END
 
-def settings(update, context):
-    settings_message = "settings state"
-    update.message.reply_text(settings_message)
-    main_logger.info('[bot] /settings command processed')
-    return ConversationHandler.END
-
 def history(update, context):
     markdown = 'src/text/hint_dates.md'
     with open(markdown, 'r') as history_text:
@@ -287,10 +281,16 @@ def history(update, context):
     return ConversationHandler.END
 
 def about(update, context):
-    markdown = 'src/text/about.md'
-    with open(markdown, 'r') as about_text:
-        about_message = about_text.read()
-        update.message.reply_text(about_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    about_image = 'src/src/image/backgrounds/about.png'
+    about_text = 'src/text/about.md'
+    with open(about_image, 'rb') as img_file:
+        with open(about_text, 'r') as text_file:
+            img_data = img_file.read()
+            text_caption = text_file.read()
+            context.bot.send_photo(chat_id=update.effective_chat.id,
+                                   photo=img_data,
+                                   caption=text_caption,
+                                   parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /about command processed')
     return ConversationHandler.END
 
@@ -319,7 +319,6 @@ def start_bot():
             CommandHandler("pools", pools),
             CommandHandler("seized", seized),
             CommandHandler("transaction", transaction),
-            CommandHandler("settings", settings),
             CommandHandler("history", history),
             CommandHandler("about", about)
             ],

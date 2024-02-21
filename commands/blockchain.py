@@ -269,7 +269,7 @@ def explore_transaction(transaction_hash):
     TRANSACTION_BLOCK_LATEST = get_api_data(transaction_base, 'latestblock').json()['height']
 
     TRANSACTION_DATE_CURRENT = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
-    TRANSACTION_DATE_TIME = convert_timestamp_to_utc(transaction_response['time'])
+    TRANSACTION_DATE_TIME = convert_timestamp_to_utc(transaction_response['time'])[:16]
     TRANSACTION_DAY = transaction_response['time'] * 1_000
 
     TRANSACTION_VERSION = transaction_response['ver']
@@ -283,9 +283,9 @@ def explore_transaction(transaction_hash):
     TRANSACTION_INDEX = transaction_response['tx_index']
     TRANSACTION_SIZE = format_quantity(transaction_response['size'])
     TRANSACTION_WEIGHT = format_quantity(transaction_response['weight'])
-    TRANSACTION_DOUBLE_SPEND = 'Not Dedected' if transaction_response['double_spend'] == False else 'Detected'
+    TRANSACTION_DOUBLE_SPEND = 'Not Detected' if transaction_response['double_spend'] == False else 'Detected'
     TRANSACTION_HEIGHT = 'Unconfirmed' if transaction_response['block_height'] == None else format_quantity(transaction_response['block_height'])
-    TRANSACTION_CONFIRMATIONS = 'Unconfirmed' if transaction_response['block_height'] == None else f'{format_quantity(TRANSACTION_BLOCK_LATEST - transaction_response["block_height"])} Confirmations'
+    TRANSACTION_CONFIRMATIONS = 'Unconfirmed' if transaction_response['block_height'] == None else f'{format_quantity(TRANSACTION_BLOCK_LATEST - transaction_response["block_height"] + 1)} Confirmations'
     
     TRANSACTION_CRYPTO_FEE = format_currency(transaction_response['fee'])
     TRANSACTION_CRYPTO_AMOUNT = 0
@@ -296,10 +296,13 @@ def explore_transaction(transaction_hash):
         transaction_inputs_list.append([TRANSACTION_INPUT_ADDRESS, TRANSACTION_INPUT_CRYPTO_AMOUNT])
     transaction_outputs_list = []
     for transaction_output in transaction_response['out']:
-        TRANSACTION_OUTPUT_ADDRESS = transaction_output['addr']
-        TRANSACTION_OUTPUT_CRYPTO_AMOUNT = format_currency(transaction_output['value'] / 100_000_000, config.currency_crypto_ticker, decimal=8)
-        TRANSACTION_CRYPTO_AMOUNT = TRANSACTION_CRYPTO_AMOUNT + transaction_output['value']
-        transaction_outputs_list.append([TRANSACTION_OUTPUT_ADDRESS, TRANSACTION_OUTPUT_CRYPTO_AMOUNT])  
+        if 'addr' in transaction_output.keys():
+            TRANSACTION_OUTPUT_ADDRESS = transaction_output['addr']
+            TRANSACTION_OUTPUT_CRYPTO_AMOUNT = format_currency(transaction_output['value'] / 100_000_000, config.currency_crypto_ticker, decimal=8)
+            TRANSACTION_CRYPTO_AMOUNT = TRANSACTION_CRYPTO_AMOUNT + transaction_output['value']
+            transaction_outputs_list.append([TRANSACTION_OUTPUT_ADDRESS, TRANSACTION_OUTPUT_CRYPTO_AMOUNT])
+        else:
+            pass
     if os.path.exists(market_days_max_file):
         market_days_max_df = pd.read_csv(market_days_max_file)
         if TRANSACTION_DAY < market_days_max_df['date'][0]:
@@ -326,7 +329,8 @@ def explore_transaction(transaction_hash):
     transaction_image = config.images['transaction']
     transaction_image_font = transaction_image['font']
     transaction_image_colors = transaction_image['colors']
-    transaction_image_background = transaction_image['backgrounds']['key_metric_down'] if TRANSACTION_HEIGHT == None or TRANSACTION_DOUBLE_SPEND == 'Detected' else transaction_image['backgrounds']['key_metric_up']
+    transaction_image_background = transaction_image['backgrounds']['key_metric_down'] if transaction_response['block_height'] == None else transaction_image['backgrounds']['key_metric_up']
+    transaction_image_double_spend = transaction_image['backgrounds']['key_metric_down']['colors'] if TRANSACTION_DOUBLE_SPEND == 'Detected' else transaction_image['backgrounds']['key_metric_up']['colors']
     transaction_image_background_path = transaction_image_background['path']
     transaction_image_background_colors = transaction_image_background['colors']
     transaction_image_file = transaction_image['path'] + f'transaction_{transaction_hash}.jpg'
@@ -357,7 +361,7 @@ def explore_transaction(transaction_hash):
 
         [{'text': f'{TRANSACTION_VERSION}', 'position': (1050, 500), 'font_size': 50, 'text_color': transaction_image_colors['titles_other']},
         {'text': 'Version', 'position': (1050, 555), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
-        {'text': f'{TRANSACTION_DOUBLE_SPEND}', 'position': (1050, 650), 'font_size': 50, 'text_color': transaction_image_background_colors['metric'][0]},
+        {'text': f'{TRANSACTION_DOUBLE_SPEND}', 'position': (1050, 650), 'font_size': 50, 'text_color': transaction_image_double_spend['metric'][0]},
         {'text': 'Double Spend', 'position': (1050, 705), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
         {'text': f'{TRANSACTION_DATE_TIME}', 'position': (1050, 800), 'font_size': 50, 'text_color': transaction_image_colors['titles_other']},
         {'text': 'Broadcasted at, UTC', 'position': (1050, 855), 'font_size': 30, 'text_color': transaction_image_colors['titles']}]

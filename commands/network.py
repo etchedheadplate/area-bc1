@@ -305,7 +305,7 @@ if __name__ == '__main__':
 #        draw_network(day)
   
     from tools import convert_date_to_days
-    dates = ['2022-03-01']
+    dates = ['2022-03-01', '2024-02-12']
     for date in dates:
         day = convert_date_to_days(date)
         draw_network(day)
