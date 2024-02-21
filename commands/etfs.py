@@ -261,7 +261,7 @@ def write_etfs():
     
     # Write text to Markdown file:
     with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```ETFs\n{info_holdings}\n{info_holdings_btc}\n{info_holdings_usd}\n{info_update}```\n{Info_links}')
+        markdown.write(f'```ETFs\n{info_holdings}\n{info_holdings_btc}\n{info_holdings_usd}\n{info_update}```{Info_links}')
     
     main_logger.info(f'[markdown] etfs text written')
 

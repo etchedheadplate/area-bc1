@@ -49,7 +49,7 @@ def write_news():
             if news:
                 name, link = news
                 source = urlparse(link).netloc.replace('www.', '').replace('.com', '').replace('.net', '').replace('.co', '').replace('.', ' ')
-                markdown.write(f'[{name}]({link}) | {source}\n\n')
+                markdown.write(f'- [{name}]({link}) | {source}\n\n')
         markdown.write(f'\nPowered by [Coinqueror.io](https://coinqueror.io/)')
 
     main_logger.info(f'[markdown] news text written')

@@ -137,7 +137,7 @@ def explore_address(address):
         address_explorers = f'[blockstream.info](https://blockstream.info/address/{address})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/addresses/btc/{address})\n' \
             f'[mempool.space](https://mempool.space/address/{address})'
-        address_markdown.write(f'```Address\n{address_text}\n{address_transactions}```\n{address_explorers}')
+        address_markdown.write(f'```Address\n{address_text}\n{address_transactions}```{address_explorers}')
         main_logger.info(f'[markdown] address {address} text written')
 
     return address_image_file, address_markdown_file
@@ -239,7 +239,7 @@ def explore_block(block):
         block_explorers = f'[blockstream.info](https://blockstream.info/block/{BLOCK_HASH})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/blocks/btc/{block})\n' \
             f'[mempool.space](https://mempool.space/block/{BLOCK_HASH})'
-        block_markdown.write(f'```Block\n{block_text}```\n{block_explorers}')
+        block_markdown.write(f'```Block\n{block_text}```{block_explorers}')
         main_logger.info(f'[markdown] block {block} text written')
     
     return block_image_file, block_markdown_file
@@ -399,7 +399,7 @@ def explore_transaction(transaction_hash):
         transaction_explorers = f'[blockstream.info](https://blockstream.info/tx/{transaction_hash})\n' \
             f'[blockchain.com](https://www.blockchain.com/explorer/transactions/btc/{transaction_hash})\n' \
             f'[mempool.space](https://mempool.space/tx/{transaction_hash})'
-        transaction_markdown.write(f'```Transaction\n{transaction_text}\n{transaction_inputs}\n{transaction_outputs}```\n{transaction_explorers}')
+        transaction_markdown.write(f'```Transaction\n{transaction_text}\n{transaction_inputs}\n{transaction_outputs}```{transaction_explorers}')
         main_logger.info(f'[markdown] transaction {transaction_hash} text written')
     
     return transaction_image_file, transaction_markdown_file

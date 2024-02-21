@@ -184,7 +184,7 @@ def draw_lightning(days=30):
                                  plot_legend_nodes_greynet,
                                  plot_legend_nodes_darknet,
                                  plot_legend_nodes_unknown],
-                                 loc="upper left", prop=plot_font, handlelength=0)
+                                 loc="best", prop=plot_font, handlelength=0)
 
     # Set plot and stacked area legend colors:
     plot_legend.get_texts()[0].set_color(plot_colors['capacity'])

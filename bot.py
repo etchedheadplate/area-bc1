@@ -281,7 +281,7 @@ def history(update, context):
     return ConversationHandler.END
 
 def about(update, context):
-    about_image = 'src/src/image/backgrounds/about.png'
+    about_image = 'src/image/backgrounds/about.png'
     about_text = 'src/text/about.md'
     with open(about_image, 'rb') as img_file:
         with open(about_text, 'r') as text_file:

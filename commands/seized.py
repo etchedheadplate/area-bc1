@@ -226,7 +226,7 @@ def write_seized():
     
     # Write text to Markdown file:
     with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```Seized\n{info_balance}\n{info_ATH}\n{info_update}```\n{Info_links}')
+        markdown.write(f'```Seized\n{info_balance}\n{info_ATH}\n{info_update}```{Info_links}')
     
     main_logger.info(f'[markdown] seized text written')
 
