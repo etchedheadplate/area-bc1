@@ -488,7 +488,7 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [0, 1, 2, 90, 70000]
+    days = [0, 1, 2, 30, 90, 70000]
     for day in days:
         draw_market(day)
         write_market(day)

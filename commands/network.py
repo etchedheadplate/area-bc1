@@ -300,9 +300,9 @@ def write_network():
 
 if __name__ == '__main__':
 
-#    days = [0, 1, 2, 90, 400, 1000, 70000]
-#    for day in days:
-#        draw_network(day)
+    days = [0, 1, 2, 90, 400, 1000, 70000]
+    for day in days:
+        draw_network(day)
   
     from tools import convert_date_to_days
     dates = ['2022-03-01', '2024-02-12']

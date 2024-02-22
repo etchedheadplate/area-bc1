@@ -21,7 +21,7 @@ from tools import (calculate_percentage_change,
                    format_percentage)
 
 
-def draw_etfs():
+def draw_etfs(days=365):
     # Draws ETFs plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -35,7 +35,6 @@ def draw_etfs():
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
-    plot_file = plot['path'] + 'etfs.jpg'
         
     # Create plot DataFrame:
     plot_df = pd.read_csv(chart_file)
@@ -53,8 +52,15 @@ def draw_etfs():
     
     # Set time period:
     days_df = plot_df[['time']].drop_duplicates()
-    chart_time_till = days_df['time'].iloc[-1][:10]
-    chart_time_from = days_df['time'].iloc[0][:10]
+    
+    days = 2 if days < 2 else days
+    days = len(days_df) - 1 if days > len(days_df) else days
+    plot_file = plot['path'] + f'etfs_days_{days}.jpg'
+
+    index_period_end = len(days_df) - 1
+    index_period_start = index_period_end - days
+    chart_time_till = days_df['time'].iloc[index_period_end][:10]
+    chart_time_from = days_df['time'].iloc[index_period_start][:10]
 
     # Background-related variables:
     background_path = plot_background['path']
@@ -63,11 +69,12 @@ def draw_etfs():
 
     # Creation of plot axies:
     axis_date = areas_df['time'].str.slice(stop=-17)
-    axis_holdings_btc = holdings_btc_df['tvl']
-    axis_holdings_usd = holdings_usd_df['usd_tvl']
+    axis_date = axis_date[index_period_start:index_period_end].reset_index(drop=True)
+    axis_holdings_btc = holdings_btc_df['tvl'][index_period_start:index_period_end]
+    axis_holdings_usd = holdings_usd_df['usd_tvl'][index_period_start:index_period_end]
 
     # Creation of plot stacked area:
-    issuers_df = areas_df.drop(columns=['time'])
+    issuers_df = areas_df[index_period_start:index_period_end].drop(columns=['time'])
     issuers_df_last_row_sorted = issuers_df.iloc[-1].sort_values(ascending=False)
     issuers_df = issuers_df[issuers_df_last_row_sorted.index]
     
@@ -193,20 +200,18 @@ def draw_etfs():
     title_buffer.close()
     areas_buffer.close()
     
-    main_logger.info(f'[image] etfs plot drawn')
+    main_logger.info(f'[image] etfs (days {days}) plot drawn')
 
     return plot_file
 
 
-def write_etfs():
+def write_etfs(days=1):
     
     # User configuration related variables:
     etfs_chart = config.charts['etfs']
     etfs_chart_file_path = etfs_chart['file']['path']
     etfs_chart_file_name = etfs_chart['file']['name']
     etfs_chart_file = etfs_chart_file_path + etfs_chart_file_name
-
-    markdown_file = etfs_chart_file_path + 'etfs.md'
 
     network_snapshot = config.snapshots['network']
     network_snapshot_file_path = network_snapshot['file']['path']
@@ -223,15 +228,25 @@ def write_etfs():
     btc_df = holdings_btc_df['tvl']
     usd_df = holdings_usd_df['usd_tvl']
 
+    # Set time period:
     now = len(holdings_btc_df) - 1
+    days = 1 if days < 1 else days
+    days = len(holdings_btc_df) - 1 if days > len(holdings_btc_df) else days
+    past = len(holdings_btc_df) - days
+    markdown_file = etfs_chart_file_path + f'etfs_days_{days}.md'
 
-    LAST_UPDATE = holdings_btc_df['time'][now][:10]
+    # Parse chart to separate values:
+    TIME_NOW = holdings_btc_df['time'][now][:10]
+    TIME_PAST = holdings_btc_df['time'][past][:10]
 
     HOLDINGS_BTC_CURRENT = format_currency(btc_df[now], config.currency_crypto_ticker, decimal=2)
-    HOLDINGS_BTC_1W = format_amount(btc_df[now] - btc_df[now - 7], config.currency_crypto_ticker)
-    HOLDINGS_BTC_1W_PERCENTAGE = format_percentage(calculate_percentage_change(btc_df[now - 7], btc_df[now]))
-    HOLDINGS_BTC_1M = format_amount(btc_df[now] - btc_df[now - 30], config.currency_crypto_ticker)
-    HOLDINGS_BTC_1M_PERCENTAGE = format_percentage(calculate_percentage_change(btc_df[now - 30], btc_df[now]))
+    HOLDINGS_USD_CURRENT = format_currency(usd_df[now], config.currency_vs_ticker, decimal=2)
+
+    HOLDINGS_BTC_ATH = format_amount(btc_df.max(), config.currency_crypto_ticker)
+    HOLDINGS_BTC_ATH_DATE = holdings_btc_df['time'].loc[btc_df.idxmax()][:10]
+
+    HOLDINGS_USD_ATH = format_amount(usd_df.max(), config.currency_vs_ticker)
+    HOLDINGS_USD_ATH_DATE = holdings_btc_df['time'].loc[usd_df.idxmax()][:10]
 
     with open (network_snapshot_file, 'r') as network_file:
         network_data = json.load(network_file)
@@ -239,31 +254,46 @@ def write_etfs():
         SUPPLY_BTC_CURRENT = format_amount(network_btc_supply, config.currency_crypto_ticker)
         SUPPLY_BTC_CURRENT_PERCENTAGE = format_percentage(btc_df[now] / network_btc_supply * 100)[1:]
 
-    HOLDINGS_USD_CURRENT = format_currency(usd_df[now], config.currency_vs_ticker, decimal=2)
-    HOLDINGS_USD_1W = format_amount(usd_df[now] - usd_df[now - 7], config.currency_vs_ticker)
-    HOLDINGS_USD_1W_PERCENTAGE = format_percentage(calculate_percentage_change(usd_df[now - 7], usd_df[now]))
-    HOLDINGS_USD_1M = format_amount(usd_df[now] - usd_df[now - 30], config.currency_vs_ticker)
-    HOLDINGS_USD_1M_PERCENTAGE = format_percentage(calculate_percentage_change(usd_df[now - 30], usd_df[now]))
+    HOLDINGS_BTC_NOW_AMOUNT = format_amount(btc_df[now], config.currency_crypto_ticker) 
+    HOLDINGS_BTC_PAST_AMOUNT = format_amount(btc_df[past], config.currency_crypto_ticker) 
+    HOLDINGS_BTC_PAST_CHANGE = format_amount(btc_df[now] - btc_df[past], config.currency_crypto_ticker)
+    HOLDINGS_BTC_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(btc_df[past], btc_df[now]))
+
+    HOLDINGS_USD_NOW_AMOUNT = format_amount(usd_df[now], config.currency_vs_ticker)
+    HOLDINGS_USD_PAST_AMOUNT = format_amount(usd_df[past], config.currency_vs_ticker)
+    HOLDINGS_USD_PAST_CHANGE = format_amount(usd_df[now] - usd_df[past], config.currency_vs_ticker)
+    HOLDINGS_USD_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(usd_df[past], usd_df[now]))
 
     # Format text for user presentation:
-    info_holdings = \
-        f'BTC: {HOLDINGS_BTC_CURRENT}\n' \
-        f'USD: {HOLDINGS_USD_CURRENT}\n' \
-        f'{SUPPLY_BTC_CURRENT_PERCENTAGE} of {SUPPLY_BTC_CURRENT} mined\n'
-    info_holdings_btc = \
-        f'BTC 1w: {HOLDINGS_BTC_1W_PERCENTAGE} ({HOLDINGS_BTC_1W})\n' \
-        f'BTC 1m: {HOLDINGS_BTC_1M_PERCENTAGE} ({HOLDINGS_BTC_1M})\n'
-    info_holdings_usd = \
-        f'USD 1w: {HOLDINGS_USD_1W_PERCENTAGE} ({HOLDINGS_USD_1W})\n' \
-        f'USD 1m: {HOLDINGS_USD_1M_PERCENTAGE} ({HOLDINGS_USD_1M})\n' 
-    info_update = f'Last update at {LAST_UPDATE}\n'
-    Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
+    if days == 1:
+        info_holdings = \
+            f'BTC: {HOLDINGS_BTC_CURRENT}\n' \
+            f'USD: {HOLDINGS_USD_CURRENT}\n'
+        info_supply = f'{SUPPLY_BTC_CURRENT_PERCENTAGE} of {SUPPLY_BTC_CURRENT} mined\n'
+        info_ath = \
+            f'ATH BTC: {HOLDINGS_BTC_ATH_DATE} ({HOLDINGS_BTC_ATH})\n' \
+            f'ATH USD: {HOLDINGS_USD_ATH_DATE} ({HOLDINGS_USD_ATH})\n'
+        info_update = f'Last update at {TIME_NOW}\n'
+        Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
+        
+        # Write text to Markdown file:
+        with open (markdown_file, 'w') as markdown:
+            markdown.write(f'```ETFs\n{info_holdings}\n{info_supply}\n{info_ath}\n{info_update}```{Info_links}')
+    else:
+        info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
+        info_holdings_btc = \
+            f'BTC: {HOLDINGS_BTC_PAST_AMOUNT} --> {HOLDINGS_BTC_NOW_AMOUNT}\n' \
+            f'{days}d: {HOLDINGS_BTC_PAST_CHANGE_PERCENTAGE} ({HOLDINGS_BTC_PAST_CHANGE})\n'
+        info_holdings_usd = \
+            f'USD: {HOLDINGS_USD_PAST_AMOUNT} --> {HOLDINGS_USD_NOW_AMOUNT}\n' \
+            f'{days}d: {HOLDINGS_USD_PAST_CHANGE_PERCENTAGE} ({HOLDINGS_USD_PAST_CHANGE})\n'
+        Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
+        
+        # Write text to Markdown file:
+        with open (markdown_file, 'w') as markdown:
+            markdown.write(f'```ETFs\n{info_period}\n{info_holdings_btc}\n{info_holdings_usd}```{Info_links}')
     
-    # Write text to Markdown file:
-    with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```ETFs\n{info_holdings}\n{info_holdings_btc}\n{info_holdings_usd}\n{info_update}```{Info_links}')
-    
-    main_logger.info(f'[markdown] etfs text written')
+    main_logger.info(f'[markdown] etfs (days {days}) text written')
 
     return markdown_file
 
@@ -271,5 +301,8 @@ def write_etfs():
 
 
 if __name__ == '__main__':
-    draw_etfs()
-    write_etfs()
+
+    test_days = [-1, 0, 1, 2, 10, 30, 1000]
+    for day in test_days:
+        draw_etfs(day)
+        write_etfs(day)

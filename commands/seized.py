@@ -18,10 +18,11 @@ import config
 from logger import main_logger
 from tools import (format_amount,
                    format_currency,
-                   format_percentage)
+                   format_percentage,
+                   calculate_percentage_change)
 
 
-def draw_seized():
+def draw_seized(days=365):
     # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -35,14 +36,20 @@ def draw_seized():
     plot_font = font_manager.FontProperties(fname=plot['font'])
     plot_colors = plot['colors']
     plot_background = plot['backgrounds']
-    plot_file = chart_file_path + 'seized.jpg'
         
     # Creation of plot DataFrame:
     plot_df = pd.read_csv(chart_file).sort_index(ascending=False)
 
     # Set time period:
-    chart_time_till = plot_df['day'].iloc[-1][:10]
-    chart_time_from = plot_df['day'].iloc[0][:10]
+    days = 2 if days < 2 else days
+    days = len(plot_df) - 1 if days > len(plot_df) else days
+    plot_file = plot['path'] + f'seized_days_{days}.jpg'
+
+    index_period_end = len(plot_df) - 1
+    index_period_start = index_period_end - days
+
+    chart_time_till = plot_df['day'].iloc[index_period_end][:10]
+    chart_time_from = plot_df['day'].iloc[index_period_start][:10]
 
     # Background-related variables:
     background_path = plot_background['path']
@@ -50,14 +57,14 @@ def draw_seized():
     background_colors = plot_background['colors']
 
     # Set rolling avearge to 2% of days:
-    days = len(plot_df) - 1
     rolling_average = math.ceil(days * 0.02)
 
     # Creation of plot axies
     axis_date = plot_df['day'].str.slice(stop=-17)
-    axis_usd = plot_df['USD_Balance']
-    axis_btc = plot_df['BTC_Balance']
-    axis_price = plot_df['BTC_price'].rolling(window=rolling_average).mean()
+    axis_date = axis_date[index_period_start:index_period_end].reset_index(drop=True)
+    axis_usd = plot_df['USD_Balance'][index_period_start:index_period_end]
+    axis_btc = plot_df['BTC_Balance'][index_period_start:index_period_end]
+    axis_price = plot_df['BTC_price'][index_period_start:index_period_end].rolling(window=rolling_average).mean()
 
     # Creation of plot figure:
     fig, ax1 = plt.subplots(figsize=(12, 7.4))
@@ -74,9 +81,9 @@ def draw_seized():
 
     # Set axies left and right borders to first and last date of period. Bottom and top
     # border are set to persentages of axies for better scaling.
-    ax1.set_xlim(axis_date.iloc[0], axis_date[plot_df.index[-1]])  
+    ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
     ax1.set_ylim(min(axis_usd) * 0.99, max(axis_usd) * 1.01)
-    ax2.set_ylim(min(axis_btc), max(axis_btc) * 1.05)
+    ax2.set_ylim(min(axis_btc) * 0.98, max(axis_btc) * 0.99)
 #    ax3.set_ylim(min(axis_price) * 0.75, max(axis_price) * 1.25)
 
     # Set axies text format:
@@ -85,7 +92,7 @@ def draw_seized():
     
     # Set date axis ticks and text properties:
     date_range_indexes = np.linspace(0, len(axis_date) - 1, num=7, dtype=int)
-    ax1.set_xticks(date_range_indexes[::-1])
+    ax1.set_xticks(date_range_indexes)
     ax1.set_xticklabels([axis_date[i] for i in date_range_indexes], rotation=10, ha='center')
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
@@ -171,12 +178,12 @@ def draw_seized():
     title_buffer.close()
     plot_buffer.close()
 
-    main_logger.info(f'[image] seized plot drawn')
+    main_logger.info(f'[image] seized (days {days}) plot drawn')
 
     return plot_file
 
 
-def write_seized():
+def write_seized(days=1):
 
     seized_chart = config.charts['seized']
     seized_chart_file_path = seized_chart['file']['path']
@@ -188,47 +195,81 @@ def write_seized():
     network_snapshot_file_name = network_snapshot['file']['name']
     network_snapshot_file = network_snapshot_file_path + network_snapshot_file_name
     
-    seized_chart_data = pd.read_csv(seized_chart_file)
+    seized_chart_data = pd.read_csv(seized_chart_file).sort_index(ascending=False).reset_index(drop=True)
     seized_date = seized_chart_data['day']
     seized_balance_btc = seized_chart_data['BTC_Balance']
     seized_balance_usd = seized_chart_data['USD_Balance']
 
-    markdown_file = seized_chart_file_path + 'seized.md'
+    # Set time period:
+    now = len(seized_chart_data) - 1
+    days = 1 if days < 1 else days
+    days = len(seized_chart_data) - 1 if days > len(seized_chart_data) else days
+    past = len(seized_chart_data) - days
+    markdown_file = seized_chart_file_path + f'seized_days_{days}.md'
 
-    LAST_UPDATE = seized_date[0][:10]
+    # Parse chart to separate values:
 
-    CURRENT_BALANCE_BTC = format_currency(seized_balance_btc[0], config.currency_crypto_ticker, decimal=2)
-    CURRENT_BALANCE_USD = format_currency(seized_balance_usd[0], config.currency_vs_ticker, decimal=2)
+    TIME_NOW = seized_date[now][:10]
+    TIME_PAST = seized_date[past][:10]
+
+    BALANCE_BTC_CURRENT = format_currency(seized_balance_btc[now], config.currency_crypto_ticker, decimal=2)
+    BALANCE_USD_CURRENT = format_currency(seized_balance_usd[now], config.currency_vs_ticker, decimal=2)
+
+    ATH_BALANCE_BTC = format_amount(seized_balance_btc.max(), config.currency_crypto_ticker)
+    ATH_BALANCE_BTC_DATE = seized_date.loc[seized_balance_btc.idxmax()][:10]
+
+    ATH_BALANCE_USD = format_amount(seized_balance_usd.max(), config.currency_vs_ticker)
+    ATH_BALANCE_USD_DATE = seized_date.loc[seized_balance_usd.idxmax()][:10]
 
     with open (network_snapshot_file, 'r') as network_file:
         network_data = json.load(network_file)
         network_btc_supply = network_data['totalbc'] / 100_000_000
-        CURRENT_SUPPLY_BTC = format_amount(network_btc_supply, config.currency_crypto_ticker)
-        CURRENT_SUPPLY_PERCENTAGE = format_percentage(seized_balance_btc[0] / network_btc_supply * 100)[1:]
+        SUPPLY_BTC_CURRENT = format_amount(network_btc_supply, config.currency_crypto_ticker)
+        SUPPLY_BTC_CURRENT_PERCENTAGE = format_percentage(seized_balance_btc[now] / network_btc_supply * 100)[1:]
 
-    MAX_BALANCE_BTC = format_amount(seized_balance_btc.max(), config.currency_crypto_ticker)
-    MAX_BALANCE_BTC_DATE = seized_date.loc[seized_balance_btc.idxmax()][:10]
 
-    MAX_BALANCE_USD = format_amount(seized_balance_usd.max(), config.currency_vs_ticker)
-    MAX_BALANCE_USD_DATE = seized_date.loc[seized_balance_usd.idxmax()][:10]
+    BALANCE_BTC_NOW_AMOUNT = format_amount(seized_balance_btc[now], config.currency_crypto_ticker) 
+    BALANCE_BTC_PAST_AMOUNT = format_amount(seized_balance_btc[past], config.currency_crypto_ticker) 
+    BALANCE_BTC_PAST_CHANGE = format_amount(seized_balance_btc[now] - seized_balance_btc[past], config.currency_crypto_ticker)
+    BALANCE_BTC_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(seized_balance_btc[past], seized_balance_btc[now]))
+
+    BALANCE_USD_NOW_AMOUNT = format_amount(seized_balance_usd[now], config.currency_vs_ticker)
+    BALANCE_USD_PAST_AMOUNT = format_amount(seized_balance_usd[past], config.currency_vs_ticker)
+    BALANCE_USD_PAST_CHANGE = format_amount(seized_balance_usd[now] - seized_balance_usd[past], config.currency_vs_ticker)
+    BALANCE_USD_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(seized_balance_usd[past], seized_balance_usd[now]))
 
     # Format text for user presentation:
-    info_balance = \
-        f'BTC: {CURRENT_BALANCE_BTC}\n' \
-        f'USD: {CURRENT_BALANCE_USD}\n' \
-        f'{CURRENT_SUPPLY_PERCENTAGE} of {CURRENT_SUPPLY_BTC} mined\n'
-    info_ATH = \
-        f'ATH BTC: {MAX_BALANCE_BTC_DATE} ({MAX_BALANCE_BTC})\n' \
-        f'ATH USD: {MAX_BALANCE_USD_DATE} ({MAX_BALANCE_USD})\n'
-    info_update = f'Last update at {LAST_UPDATE}\n'
-    Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
-        f'[More Countries & Companies](https://bitcointreasuries.net/)'
+    if days == 1:
+        info_balance = \
+            f'BTC: {BALANCE_BTC_CURRENT}\n' \
+            f'USD: {BALANCE_USD_CURRENT}\n'
+        info_supply = f'{SUPPLY_BTC_CURRENT_PERCENTAGE} of {SUPPLY_BTC_CURRENT} mined\n'
+        info_ATH = \
+            f'ATH BTC: {ATH_BALANCE_BTC_DATE} ({ATH_BALANCE_BTC})\n' \
+            f'ATH USD: {ATH_BALANCE_USD_DATE} ({ATH_BALANCE_USD})\n'
+        info_update = f'Last update at {TIME_NOW}\n'
+        Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-BALANCE)\n' \
+            f'[More Countries & Companies](https://bitcointreasuries.net/)'
+        
+        # Write text to Markdown file:
+        with open (markdown_file, 'w') as markdown:
+            markdown.write(f'```Seized\n{info_balance}\n{info_supply}\n{info_ATH}\n{info_update}```{Info_links}')
+    else:
+        info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
+        info_balance_btc = \
+            f'BTC: {BALANCE_BTC_PAST_AMOUNT} --> {BALANCE_BTC_NOW_AMOUNT}\n' \
+            f'{days}d: {BALANCE_BTC_PAST_CHANGE_PERCENTAGE} ({BALANCE_BTC_PAST_CHANGE})\n'
+        info_balance_usd = \
+            f'USD: {BALANCE_USD_PAST_AMOUNT} --> {BALANCE_USD_NOW_AMOUNT}\n' \
+            f'{days}d: {BALANCE_USD_PAST_CHANGE_PERCENTAGE} ({BALANCE_USD_PAST_CHANGE})\n'
+        Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-BALANCE)\n' \
+            f'[More Countries & Companies](https://bitcointreasuries.net/)'
+        
+        # Write text to Markdown file:
+        with open (markdown_file, 'w') as markdown:
+            markdown.write(f'```ETFs\n{info_period}\n{info_balance_btc}\n{info_balance_usd}```{Info_links}')
     
-    # Write text to Markdown file:
-    with open (markdown_file, 'w') as markdown:
-        markdown.write(f'```Seized\n{info_balance}\n{info_ATH}\n{info_update}```{Info_links}')
-    
-    main_logger.info(f'[markdown] seized text written')
+    main_logger.info(f'[markdown] seized (days {days}) text written')
 
     return markdown_file
 
@@ -236,5 +277,8 @@ def write_seized():
 
 
 if __name__ == '__main__':
-    draw_seized()
-    write_seized()
+
+    test_days = [-1, 0, 1, 2, 10, 100, 365, 720, 1095, 3000]
+    for day in test_days:
+        draw_seized(day)
+        write_seized(day)
