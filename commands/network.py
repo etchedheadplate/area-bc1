@@ -338,7 +338,7 @@ def write_network(days=1):
         else:
             info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
             info_trx_per_block = \
-                f'Trx Avg / Block: {TRX_PER_BLOCK_PAST} --> {TRX_PER_BLOCK_NOW}\n' \
+                f'Avg trx/block: {TRX_PER_BLOCK_PAST} --> {TRX_PER_BLOCK_NOW}\n' \
                 f'{days}d: {TRX_PER_BLOCK_PAST_CHANGE_PERCENTAGE} ({TRX_PER_BLOCK_PAST_CHANGE}/block)\n'
             info_hashrate = \
                 f'Hashrate: {HASHRATE_PAST} TH/s --> {HASHRATE_NOW} TH/s\n' \

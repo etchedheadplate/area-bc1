@@ -93,15 +93,15 @@ def draw_seized(days=1095):
     ax3 = ax1.twinx()
 
     # Set axies lines:
-    ax1.plot(axis_date, axis_usd, color=plot_colors['usd'], label="usd", alpha=0.0, linewidth=0.0)
-    ax2.plot(axis_date, axis_btc, color=plot_colors['btc'], label="btc", alpha=0.0, linewidth=0.0)
+    ax1.plot(axis_date, axis_btc, color=plot_colors['btc'], label="btc", alpha=0.0, linewidth=0.0)
+    ax2.plot(axis_date, axis_usd, color=plot_colors['usd'], label="usd", alpha=0.0, linewidth=0.0)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="btc", linewidth=10)
 
     # Set axies left and right borders to first and last date of period. Bottom and top
     # border are set to persentages of axies for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-    ax1.set_ylim(min(axis_usd) * 0.99, max(axis_usd) * 1.01)
-    ax2.set_ylim(min(axis_btc) * 0.98, max(axis_btc) * 0.99)
+    ax1.set_ylim(min(axis_btc) * 0.95, max(axis_btc) * 1.05)
+    ax2.set_ylim(min(axis_usd) * 0.95, max(axis_usd) * 1.05)
 #    ax3.set_ylim(min(axis_price) * 0.75, max(axis_price) * 1.25)
 
     # Set axies text format:
@@ -116,8 +116,8 @@ def draw_seized(days=1095):
 
     # Set axies ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
-    ax1.tick_params(axis="y", labelcolor=plot_colors['usd'])
-    ax2.tick_params(axis="y", labelcolor=plot_colors['btc'])
+    ax1.tick_params(axis="y", labelcolor=plot_colors['btc'])
+    ax2.tick_params(axis="y", labelcolor=plot_colors['usd'])
     ax3.set_yticks([])
 
     for label in ax1.get_xticklabels():
@@ -129,23 +129,23 @@ def draw_seized(days=1095):
         label.set_fontsize(18)
 
     # Set axies order (higher value puts layer to the front):
-    ax1.set_zorder(2)
-    ax2.set_zorder(1)
+    ax1.set_zorder(1)
+    ax2.set_zorder(2)
     ax3.set_zorder(3)
     
     # Set axies color filling:
-    ax1.fill_between(axis_date, axis_usd, color=plot_colors['usd'], alpha=0.7)
-    ax2.fill_between(axis_date, axis_btc, color=plot_colors['btc'], alpha=0.8)
+    ax1.fill_between(axis_date, axis_btc, color=plot_colors['btc'], alpha=0.8)
+    ax2.fill_between(axis_date, axis_usd, color=plot_colors['usd'], alpha=0.7)
 
     # Set plot legend proxies and actual legend:
-    legend_proxy_usd = Line2D([0], [0], label=f'Balance, USD')
-    legend_proxy_btc = Line2D([0], [0], label=f'Balance, BTC')
+    legend_proxy_usd = Line2D([0], [0], label=f'Balance, BTC')
+    legend_proxy_btc = Line2D([0], [0], label=f'Balance, USD')
     legend_proxy_price = Line2D([0], [0], label=f'BTC Price, USD')
     legend = ax3.legend(handles=[legend_proxy_usd, legend_proxy_btc, legend_proxy_price], loc="upper left", prop=plot_font, handlelength=0)
     
     # Set legend colors:
-    legend.get_texts()[0].set_color(plot_colors['usd'])
-    legend.get_texts()[1].set_color(plot_colors['btc'])
+    legend.get_texts()[0].set_color(plot_colors['btc'])
+    legend.get_texts()[1].set_color(plot_colors['usd'])
     legend.get_texts()[2].set_color(plot_colors['price'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
@@ -270,7 +270,7 @@ def write_seized(days=1):
             f'ATH BTC: {ATH_BALANCE_BTC_DATE} ({ATH_BALANCE_BTC})\n' \
             f'ATH USD: {ATH_BALANCE_USD_DATE} ({ATH_BALANCE_USD})\n'
         info_update = f'Last update at {TIME_NOW}\n'
-        Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-BALANCE)\n' \
+        Info_links = f'[Methology & additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
             f'[More Countries & Companies](https://bitcointreasuries.net/)'
         
         # Write text to Markdown file:
@@ -284,7 +284,7 @@ def write_seized(days=1):
         info_balance_usd = \
             f'USD: {BALANCE_USD_PAST_AMOUNT} --> {BALANCE_USD_NOW_AMOUNT}\n' \
             f'{days}d: {BALANCE_USD_PAST_CHANGE_PERCENTAGE} ({BALANCE_USD_PAST_CHANGE})\n'
-        Info_links = f'[Source, Stats & Methology](https://dune.com/21co/us-gov-bitcoin-BALANCE)\n' \
+        Info_links = f'[Methology & additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
             f'[More Countries & Companies](https://bitcointreasuries.net/)'
         
         # Write text to Markdown file:

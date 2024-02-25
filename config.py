@@ -627,3 +627,17 @@ images = {
     },
 }
 
+
+
+# Dictionary for bot notifications:
+notifications = {
+    'Market': 'market',
+    'Network': 'network',
+    'Lightning': 'lightning',
+    'ETFs': 'etfs',
+    'Seized': 'seized',
+    'CEX': 'exchanges',
+    'Pools': 'pools',
+    'Fees': 'fees',
+    'News': 'news'
+}

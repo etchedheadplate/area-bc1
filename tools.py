@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import asyncio
 import requests
 import schedule
 import importlib
@@ -194,6 +195,7 @@ def update_databases():
 
     while True:
         schedule.run_pending()
+        time.sleep(60)
 
 
 def define_key_metric_movement(plot, key_metric_change_percentage):
@@ -374,6 +376,9 @@ def convert_utc_date_to_timestamp(utc):
 def convert_date_to_days(date):
     if date.isdigit():
         days = int(date)
+        return days
+    elif date == 'max':
+        days = 'max'
         return days
     else:
         try:

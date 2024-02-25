@@ -1,6 +1,8 @@
+import asyncio
+import schedule
+import functools
 import concurrent.futures
-from memory_profiler import profile
-from telegram import ParseMode
+from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHandler, Filters
 
 import config
@@ -17,14 +19,19 @@ from api.telegram import TOKEN
 
 
 # States:
-CHOOSE_DAYS = range(1)
+SELECTING_NOTIFICATION_COMMAND, SELECTING_NOTIFICATION_PERIOD = range(2)
 
+
+'''
+Functions for commands accessible to user within bot interface
+'''
 
 def start(update, context):
-    welcome_message = "Please use menu button at lower left"
+    welcome_message = 'Please use menu button at lower left'
     update.message.reply_text(welcome_message)
     main_logger.info('[bot] /start command processed')
     return ConversationHandler.END
+
 
 def address(update, context):
     if context.args:
@@ -53,6 +60,7 @@ def address(update, context):
     main_logger.info('[bot] /address command processed')
     return ConversationHandler.END
 
+
 def block(update, context):
     if context.args:
         block_data = explore_block(context.args[0])
@@ -79,6 +87,7 @@ def block(update, context):
                                    parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /block command processed')
     return ConversationHandler.END
+
 
 def etfs(update, context):
     etfs_image = 'db/etfs/etfs_days_30.jpg'
@@ -115,6 +124,7 @@ def etfs(update, context):
                                    parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /etfs command processed')
 
+
 def exchanges(update, context):
     exchanges_image = 'db/exchanges/exchanges.jpg'
     with open(exchanges_image, 'rb') as img_file:
@@ -125,6 +135,7 @@ def exchanges(update, context):
     main_logger.info('[bot] /exchanges command processed')
     return ConversationHandler.END
 
+
 def fees(update, context):
     fees_image = 'db/fees/fees.jpg'
     with open(fees_image, 'rb') as img_file:
@@ -134,6 +145,7 @@ def fees(update, context):
                                 parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /fees command processed')
     return ConversationHandler.END
+
 
 def market(update, context):
     market_image = f'db/market/{config.currency_pair}/market_days_1.jpg'
@@ -164,6 +176,7 @@ def market(update, context):
                                    parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /market command processed')
     return ConversationHandler.END
+
 
 def network(update, context):
     network_image = 'db/network/network_days_30.jpg'
@@ -201,6 +214,7 @@ def network(update, context):
     main_logger.info('[bot] network command processed')
     return ConversationHandler.END
 
+
 def lightning(update, context):
     lightning_image = 'db/lightning/lightning_days_30.jpg'
     lightning_text = 'db/lightning/lightning_days_1.md'
@@ -237,6 +251,7 @@ def lightning(update, context):
     main_logger.info('[bot] /lightning command processed')
     return ConversationHandler.END
 
+
 def news(update, context):
     news_text = write_news()
     with open(news_text, 'r') as text_file:
@@ -244,6 +259,7 @@ def news(update, context):
         update.message.reply_text(news_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     main_logger.info('[bot] /news command processed')
     return ConversationHandler.END
+
 
 def pools(update, context):
     pools_image = 'db/pools/pools.jpg'
@@ -254,6 +270,7 @@ def pools(update, context):
                                 parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /pools command processed')
     return ConversationHandler.END
+
 
 def seized(update, context):
     seized_image = 'db/seized/seized_days_1095.jpg'
@@ -290,6 +307,7 @@ def seized(update, context):
                                    parse_mode=ParseMode.MARKDOWN)
     main_logger.info('[bot] /seized command processed')
 
+
 def transaction(update, context):
     if context.args:
         transaction_data = explore_transaction(context.args[0])
@@ -317,6 +335,7 @@ def transaction(update, context):
     main_logger.info('[bot] /transaction command processed')
     return ConversationHandler.END
 
+
 def history(update, context):
     markdown = 'src/text/hint_dates.md'
     with open(markdown, 'r') as history_text:
@@ -324,6 +343,16 @@ def history(update, context):
         update.message.reply_text(history_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     main_logger.info('[bot] /history command processed')
     return ConversationHandler.END
+
+
+def notification(update, context):
+    notification_command_message = 'You can setup bot to send you regular notifications. Please choose data to be sent:'
+    reply_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'CEX'], ['Pools', 'Fees', 'News'], ['Stop Notifications', 'Cancel']]
+    update.message.reply_text(notification_command_message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+
+    main_logger.info('[bot] /notification command processed')
+    return SELECTING_NOTIFICATION_COMMAND
+
 
 def about(update, context):
     about_image = 'src/image/backgrounds/about.png'
@@ -339,11 +368,82 @@ def about(update, context):
     main_logger.info('[bot] /about command processed')
     return ConversationHandler.END
 
+
 def cancel(update, context):
-    go_back_message = "returned to /start state"
-    update.message.reply_text(go_back_message)
     main_logger.info('[bot] /cancel command processed')
-    return ConversationHandler.END
+    return start(update, context)
+
+
+'''
+Service functions for user functions, not accessible within bot interface
+'''
+
+def select_notification_command(update, context):
+    selected_command = update.message.text
+    
+    if selected_command in set(config.notifications):
+        context.user_data['selected_command'] = selected_command
+        notification_period_message = 'Nice. Bot will send you notification every __ MINUTES (send number):'
+        update.message.reply_text(notification_period_message, reply_markup=ReplyKeyboardRemove())
+        main_logger.info('[bot] SELECTING_NOTIFICATION_COMMAND state processed')
+        return SELECTING_NOTIFICATION_PERIOD
+    
+    elif selected_command == 'Stop Notifications':
+        for notification_params in context.user_data['notifications']:
+            notification_job = notification_params.pop()
+            schedule.cancel_job(notification_job)
+        context.user_data['notifications'] = ''
+        notification_stop_message = 'You will no longer recieve any notifications.'
+        update.message.reply_text(notification_stop_message)
+        main_logger.info('[bot] notification schedule cleared')
+        return ConversationHandler.END
+    
+    elif selected_command == 'Cancel':
+        cancel(update, context)
+   
+    else:
+        notification_wrong_command = 'Wrong input, please select one from list below:'
+        update.message.reply_text(notification_wrong_command)
+        main_logger.info('[bot] notification schedule cleared')
+        return SELECTING_NOTIFICATION_COMMAND
+
+
+def select_notification_period(update, context):
+    selected_period = update.message.text
+    
+    if selected_period.isdigit() and int(selected_period) > 0:
+        context.user_data['selected_period'] = selected_period
+        user_command = context.user_data['selected_command']
+        user_period = int(context.user_data['selected_period'])
+        command_name = config.notifications[f'{user_command}']
+        command = globals().get(command_name)
+        user_notification = schedule.every(user_period).minutes.at(':00').do(functools.partial(command, update=update, context=context))
+        
+        if not 'notifications' in context.user_data.keys():
+            context.user_data['notifications'] = [[user_command, user_period, user_notification]]
+        else:
+            context.user_data['notifications'].append([user_command, user_period, user_notification])
+
+        notification_set_message = f'Excellent. You will recieve {user_command} data every {user_period} MINUTES. You can stop notifications by running /notification command again.'
+        update.message.reply_text(notification_set_message)
+        main_logger.info('[bot] SELECTING_NOTIFICATION_PERIOD state processed')
+        return ConversationHandler.END
+    
+    else:
+        notification_wrong_period = 'Wrong input, please send whole postive number:'
+        update.message.reply_text(notification_wrong_period)
+        return SELECTING_NOTIFICATION_PERIOD
+    
+
+async def run_schedule():
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(60)
+
+
+'''
+Functions for bot backend
+'''
 
 def start_bot():
     # Bot and dispatcher initialization
@@ -351,24 +451,26 @@ def start_bot():
     dispatcher = updater.dispatcher
     handler = ConversationHandler(
         entry_points=[
-            CommandHandler("start", start),
-            CommandHandler("address", address),
-            CommandHandler("block", block),
-            CommandHandler("etfs", etfs),
-            CommandHandler("exchanges", exchanges),
-            CommandHandler("fees", fees),
-            CommandHandler("lightning", lightning),
-            CommandHandler("market", market),
-            CommandHandler("network", network),
-            CommandHandler("news", news),
-            CommandHandler("pools", pools),
-            CommandHandler("seized", seized),
-            CommandHandler("transaction", transaction),
-            CommandHandler("history", history),
-            CommandHandler("about", about)
+            CommandHandler('start', start),
+            CommandHandler('address', address),
+            CommandHandler('block', block),
+            CommandHandler('etfs', etfs),
+            CommandHandler('exchanges', exchanges),
+            CommandHandler('fees', fees),
+            CommandHandler('lightning', lightning),
+            CommandHandler('market', market),
+            CommandHandler('network', network),
+            CommandHandler('news', news),
+            CommandHandler('pools', pools),
+            CommandHandler('seized', seized),
+            CommandHandler('transaction', transaction),
+            CommandHandler('history', history),
+            CommandHandler('notification', notification),
+            CommandHandler('about', about)
             ],
         states={
-#            CHOOSE_DAYS: [MessageHandler(Filters.text & ~Filters.command, handle_days)]
+            SELECTING_NOTIFICATION_COMMAND: [MessageHandler(Filters.text & ~Filters.command, select_notification_command)],
+            SELECTING_NOTIFICATION_PERIOD: [MessageHandler(Filters.text & ~Filters.command, select_notification_period)]
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
@@ -377,12 +479,17 @@ def start_bot():
     updater.start_polling()
     updater.idle()
 
-@profile
+
 def run_bot():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         run_bot = executor.submit(start_bot)
         run_database_update = executor.submit(update_databases)
         concurrent.futures.wait([run_bot] + [run_database_update])
 
+    asyncio.create_task(run_schedule())
+
+
+
+
 if __name__ == '__main__':
-    run_bot()
+    asyncio.run(run_bot())
