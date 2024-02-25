@@ -20,6 +20,7 @@ import config
 from logger import main_logger
 from tools import (define_key_metric_movement,
                    calculate_percentage_change,
+                   convert_timestamp_to_utc,
                    format_time_axis,
                    format_amount,
                    format_utc,
@@ -58,8 +59,11 @@ def draw_lightning(days=30):
     plot_df = pd.read_csv(chart_file)
     
     # Set days value limits and image file name:
-    days = 2 if days < 2 else days
-    days = len(plot_df) if days > len(plot_df) else days
+    if isinstance(days, int):
+        days = 2 if days < 2 else days
+        days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+    else:
+        days = len(plot_df) - 1
     plot_file = plot['path'] + f'lightning_days_{days}.jpg'
 
     plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
@@ -184,7 +188,7 @@ def draw_lightning(days=30):
                                  plot_legend_nodes_greynet,
                                  plot_legend_nodes_darknet,
                                  plot_legend_nodes_unknown],
-                                 loc="best", prop=plot_font, handlelength=0)
+                                 loc="upper left", prop=plot_font, handlelength=0)
 
     # Set plot and stacked area legend colors:
     plot_legend.get_texts()[0].set_color(plot_colors['capacity'])
@@ -248,7 +252,7 @@ def draw_lightning(days=30):
     return plot_file
 
 
-def write_lightning():
+def write_lightning(days=1):
     # Writes Lightning markdown with properties specified in user configuration.
 
     # User configuration related variables:
@@ -257,7 +261,27 @@ def write_lightning():
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
     
-    markdown_file = snapshot_file_path + 'lightning.md'
+    chart = config.charts['lightning']
+    chart_file_path = chart['file']['path']
+    chart_file_name = chart['file']['name']
+    chart_file = chart_file_path + chart_file_name
+
+    chart_data = pd.read_csv(chart_file)
+    chart_data['nodes'] = chart_data['nodes_darknet'] + chart_data['nodes_clearnet'] + chart_data['nodes_unknown'] + chart_data['nodes_greynet']
+    chart_date = chart_data['date']
+    chart_channels = chart_data['channels']
+    chart_capacity = chart_data['capacity']
+    chart_nodes = chart_data['nodes']
+
+    # Set time period:
+    now = len(chart_data) - 1
+    if isinstance(days, int):
+        days = 1 if days < 1 else days
+        days = len(chart_data) - 1 if days > len(chart_data) - 1 else days
+    else:
+        days = len(chart_data) - 1
+    past = len(chart_data) - days
+    markdown_file = chart_file_path + f'lightning_days_{days}.md'
 
     with open (snapshot_file, 'r') as json_file:
         
@@ -269,19 +293,22 @@ def write_lightning():
         # Parse snapshot to separate values:
         LAST_UPDATED = format_utc(latest_data['added'])
 
-        CHANNELS = format_quantity(latest_data['channel_count'])
+        TIME_NOW = convert_timestamp_to_utc(chart_date[now])[:10]
+        TIME_PAST = convert_timestamp_to_utc(chart_date[past])[:10]
+
+        CHANNELS_CURRENT = format_quantity(latest_data['channel_count'])
 #        CHANNEL_CHANGE_1W = format_quantity(latest_data['channels'] - previous_data['channels'])
 #        CHANNEL_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['channels'], latest_data['channels']))
         
-        CAPACITY_COUNT = format_currency(latest_data['total_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=2)
+        CAPACITY_CURRENT = format_currency(latest_data['total_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=2)
 #        CAPACITY_CHANGE_1W = format_currency((latest_data['capacity'] - previous_data['capacity']) / 100_000_000, config.currency_crypto_ticker)
 #        CAPACITY_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['capacity'], latest_data['capacity']))
         
-        CAPACITY_AVG_COUNT = format_currency(latest_data['avg_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=4)
+        CAPACITY_AVG_CURRENT = format_currency(latest_data['avg_capacity'] / 100_000_000, config.currency_crypto_ticker, decimal=4)
 #        CAPACITY_AVG_CHANGE_1W = format_currency((latest_data['avg_capacity'] - previous_data['avg_capacity']) / 100_000_000, config.currency_crypto_ticker, decimal=4)
 #        CAPACITY_AVG_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_capacity'], latest_data['avg_capacity']))
         
-        NODE_COUNT = format_quantity(latest_data['node_count'])
+        NODE_CURRENT = format_quantity(latest_data['node_count'])
 #        NODE_CHANGE_1W = format_quantity(latest_data['node_count'] - previous_data['node_count'])
 #        NODE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['node_count'], latest_data['node_count']))
 
@@ -313,22 +340,53 @@ def write_lightning():
 #        FEE_BASE_AVG_RATE_CHANGE_1W = format_currency(latest_data['avg_base_fee_mtokens'] - previous_data['avg_base_fee_mtokens'], '', decimal=0)
 #        FEE_BASE_AVG_RATE_CHANGE_PERCENTAGE_1W = format_percentage(calculate_percentage_change(previous_data['avg_base_fee_mtokens'], latest_data['avg_base_fee_mtokens']))
 
+        CHANNELS_NOW = format_amount(chart_channels[now])
+        CHANNELS_PAST = format_amount(chart_channels[past])
+        CHANNELS_PAST_CHANGE = format_amount(chart_channels[now] - chart_channels[past])
+        CHANNELS_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_channels[past], chart_channels[now]))
+
+        CAPACITY_NOW = format_amount(chart_capacity[now])
+        CAPACITY_PAST = format_amount(chart_capacity[past])
+        CAPACITY_PAST_CHANGE = format_amount(chart_capacity[now] - chart_capacity[past])
+        CAPACITY_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_capacity[past], chart_capacity[now]))
+
+        NODES_NOW = format_amount(chart_nodes[now])
+        NODES_PAST = format_amount(chart_nodes[past])
+        NODES_PAST_CHANGE = format_amount(chart_nodes[now] - chart_nodes[past])
+        NODES_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_nodes[past], chart_nodes[now]))
+
         # Format text for user presentation:
-        info_network = \
-            f'Channels: {CHANNELS}\n' \
-            f'Capacity: {CAPACITY_COUNT}\n' \
-            f'Nodes: {NODE_COUNT}\n'
-        info_avgs = \
-            f'Avg Fee Rate: {FEE_AVG_RATE_COUNT} sats\n' \
-            f'Avg Fee Base: {FEE_BASE_AVG_RATE_COUNT} sats\n' \
-            f'Avg {CAPACITY_AVG_COUNT} per channel\n'
-        info_update = f'UTC {LAST_UPDATED}\n'
+        if days == 1:
+            info_network = \
+                f'Channels: {CHANNELS_CURRENT}\n' \
+                f'Capacity: {CAPACITY_CURRENT}\n' \
+                f'Nodes: {NODE_CURRENT}\n'
+            info_avgs = \
+                f'Avg Fee Rate: {FEE_AVG_RATE_COUNT} sats\n' \
+                f'Avg Fee Base: {FEE_BASE_AVG_RATE_COUNT} sats\n' \
+                f'Avg {CAPACITY_AVG_CURRENT} per channel\n'
+            info_update = f'UTC {LAST_UPDATED}\n'
 
-        # Write text to Markdown file:
-        with open (markdown_file, 'w') as markdown:
-            markdown.write(f'```Lightning\n{info_network}\n{info_avgs}\n{info_update}```')
+            # Write text to Markdown file:
+            with open (markdown_file, 'w') as markdown:
+                markdown.write(f'```Lightning\n{info_network}\n{info_avgs}\n{info_update}```')
+        else:
+            info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
+            info_channels = \
+                f'Channels: {CHANNELS_PAST} --> {CHANNELS_NOW}\n' \
+                f'{days}d: {CHANNELS_PAST_CHANGE_PERCENTAGE} ({CHANNELS_PAST_CHANGE})\n'
+            info_capacity = \
+                f'Capacity: {CAPACITY_PAST} --> {CAPACITY_NOW}\n' \
+                f'{days}d: {CAPACITY_PAST_CHANGE_PERCENTAGE} ({CAPACITY_PAST_CHANGE})\n'
+            info_nodes = \
+                f'Nodes: {NODES_PAST} --> {NODES_NOW}\n' \
+                f'{days}d: {NODES_PAST_CHANGE_PERCENTAGE} ({NODES_PAST_CHANGE})\n'
+            
+            # Write text to Markdown file:
+            with open (markdown_file, 'w') as markdown:
+                markdown.write(f'```Lightning\n{info_period}\n{info_channels}\n{info_capacity}\n{info_nodes}```')
 
-        main_logger.info(f'[markdown] lightning text written')
+        main_logger.info(f'[markdown] lightning (days {days}) text written')
 
         return markdown_file
 
@@ -337,14 +395,14 @@ def write_lightning():
 
 if __name__ == '__main__':
 
-    days = [0, 1, 2, 70000]
+    days = [-1, 0, 1, 2, 'max']
     for day in days:
         draw_lightning(day)
+        write_lightning(day)
   
     from tools import convert_date_to_days
     dates = ['2022-03-01', '2012-03-01']
     for date in dates:
         day = convert_date_to_days(date)
         draw_lightning(day)
-
-    write_lightning()
+        write_lightning(day)

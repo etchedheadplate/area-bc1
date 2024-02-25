@@ -23,6 +23,7 @@ from tools import (define_key_metric_movement,
                    convert_timestamp_to_utc,
                    format_time_axis,
                    format_amount,
+                   format_bytes,
                    format_currency,
                    format_percentage,
                    format_quantity)
@@ -58,8 +59,11 @@ def draw_network(days=30):
     plot_df = pd.read_csv(chart_file)
 
     # Set days value limits and image file name:
-    days = 2 if days < 2 else days
-    days = len(plot_df) if days > len(plot_df) else days
+    if isinstance(days, int):
+        days = 2 if days < 2 else days
+        days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+    else:
+        days = len(plot_df) - 1
     plot_file = plot['path'] + f'network_days_{days}.jpg'
 
     plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
@@ -223,7 +227,7 @@ def draw_network(days=30):
     return plot_file
 
 
-def write_network():
+def write_network(days=1):
     # Writes Network markdown with properties specified in user configuration.
 
     # User configuration related variables:
@@ -238,7 +242,23 @@ def write_network():
     chart_file_path = chart['file']['path']
     chart_file_name = chart['file']['name']
     chart_file = chart_file_path + chart_file_name
+    
     chart_data = pd.read_csv(chart_file)
+    chart_date = chart_data['date']
+    chart_price = chart_data['price']
+    chart_hashrate = chart_data['hashrate']
+    chart_trx_per_block = chart_data['trx_per_block']
+    chart_blockchain_size = chart_data['blocks-size']
+
+    # Set time period:
+    now = len(chart_data) - 1
+    if isinstance(days, int):
+        days = 1 if days < 1 else days
+        days = len(chart_data) - 1 if days > len(chart_data) - 1 else days
+    else:
+        days = len(chart_data) - 1
+    past = len(chart_data) - days
+    markdown_file = chart_file_path + f'network_days_{days}.md'
 
     with open (snapshot_file, 'r') as json_file:
         
@@ -246,6 +266,9 @@ def write_network():
 
         # Parse raw API data to separate values:
         LAST_UPDATED = convert_timestamp_to_utc(snapshot_data['timestamp'])
+
+        TIME_NOW = convert_timestamp_to_utc(chart_date[now])[:10]
+        TIME_PAST = convert_timestamp_to_utc(chart_date[past])[:10]
 
         BLOCKS_HEIGHT = format_quantity(snapshot_data['n_blocks_total'])
         BLOCKS_MINED = format_quantity(snapshot_data['n_blocks_mined'])
@@ -257,41 +280,81 @@ def write_network():
         BTC_SENT = format_currency(snapshot_data['total_btc_sent'] / 100_000_000, config.currency_crypto_ticker, decimal=0)
         BTC_PRICE = format_currency(snapshot_data['market_price_usd'], config.currency_vs_ticker, decimal=2)
 
-        TRANSACTIONS_BLOCK = round(chart_data['trx_per_block'].iloc[-1], 2)
+        TRANSACTIONS_BLOCK = round(chart_trx_per_block.iloc[-1], 2)
         TRANSACTIONS_MADE = format_quantity(snapshot_data['n_tx'])
-        TRANSACTIONS_COST = format_currency(chart_data['trx_cost'].iloc[-1], config.currency_vs_ticker, decimal=2)
+        TRANSACTIONS_COST = format_currency(chart_trx_per_block.iloc[-1], config.currency_vs_ticker, decimal=2)
 
         HASHRATE = format_amount(snapshot_data['hash_rate'] / 1_000)
         DIFFICULTY = format_amount(snapshot_data['difficulty'])
         RETARGET_HEIGHT = format_quantity(snapshot_data['nextretarget'])
         RETARGET_IN = format_quantity(snapshot_data['nextretarget'] - snapshot_data['n_blocks_total'])
+
+        PRICE_NOW = format_currency(chart_price[now], config.currency_vs_ticker, decimal=2)
+        PRICE_PAST = format_currency(chart_price[past], config.currency_vs_ticker, decimal=2)
+        PRICE_PAST_CHANGE = format_currency(chart_price[now] - chart_price[past], config.currency_vs_ticker, decimal=2)
+        PRICE_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_price[past], chart_price[now]))
+
+        HASHRATE_NOW = format_amount(chart_hashrate[now])
+        HASHRATE_PAST = format_amount(chart_hashrate[past])
+        HASHRATE_PAST_CHANGE = format_amount((chart_hashrate[now] - chart_hashrate[past]))
+        HASHRATE_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_hashrate[past], chart_hashrate[now]))
+
+        TRX_PER_BLOCK_NOW = format_amount(chart_trx_per_block[now])
+        TRX_PER_BLOCK_PAST = format_amount(chart_trx_per_block[past])
+        TRX_PER_BLOCK_PAST_CHANGE = format_amount(chart_trx_per_block[now] - chart_trx_per_block[past])
+        TRX_PER_BLOCK_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_trx_per_block[past], chart_trx_per_block[now]))
+
+        BLOCKCHAIN_SIZE_NOW = format_bytes(chart_blockchain_size[now], 'MB')
+        BLOCKCHAIN_SIZE_PAST = format_bytes(chart_blockchain_size[past], 'MB')
+        BLOCKCHAIN_SIZE_PAST_CHANGE = format_bytes(chart_blockchain_size[now] - chart_blockchain_size[past], 'MB')
+        BLOCKCHAIN_SIZE_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_blockchain_size[past], chart_blockchain_size[now]))
     
         # Format values text for user presentation:
-        info_blocks = \
-            f'Block Height: {BLOCKS_HEIGHT}\n' \
-            f'24h Mined: {BLOCKS_MINED} blocks\n' \
-            f'24h Size: {BLOCKS_SIZE} MB/block\n' \
-            f'24h Time: {BLOCKS_MINUTES} min/block\n'
-        info_coin = \
-            f'Supply: {BTC_SUPPLY}\n' \
-            f'24h Mined: {BTC_MINED}\n' \
-            f'24h Sent: {BTC_SENT}\n' \
-            f'24h Price: {BTC_PRICE}\n'
-        info_transactions = \
-            f'Transactions: {TRANSACTIONS_MADE}\n' \
-            f'24h Avg: {TRANSACTIONS_BLOCK}/block\n' \
-            f'24h Cost: {TRANSACTIONS_COST}/trx\n'
-        info_network = \
-            f'Current Target: {DIFFICULTY}\n' \
-            f'Retarget: {RETARGET_IN} blocks\n' \
-            f'Hashrate: {HASHRATE} TH/s\n'
-        info_update = f'UTC {LAST_UPDATED}\n'
+        if days == 1:
+            info_blocks = \
+                f'Block Height: {BLOCKS_HEIGHT}\n' \
+                f'24h Mined: {BLOCKS_MINED} blocks\n' \
+                f'24h Size: {BLOCKS_SIZE} MB/block\n' \
+                f'24h Time: {BLOCKS_MINUTES} min/block\n'
+            info_coin = \
+                f'Supply: {BTC_SUPPLY}\n' \
+                f'24h Mined: {BTC_MINED}\n' \
+                f'24h Sent: {BTC_SENT}\n' \
+                f'24h Price: {BTC_PRICE}\n'
+            info_transactions = \
+                f'Transactions: {TRANSACTIONS_MADE}\n' \
+                f'24h Avg: {TRANSACTIONS_BLOCK}/block\n' \
+                f'24h Cost: {TRANSACTIONS_COST}/trx\n'
+            info_network = \
+                f'Blockchain Size: {BLOCKCHAIN_SIZE_NOW}\n' \
+                f'Current Target: {DIFFICULTY}\n' \
+                f'Retarget: {RETARGET_IN} blocks\n' \
+                f'Hashrate: {HASHRATE} TH/s\n'
+            info_update = f'UTC {LAST_UPDATED}\n'
 
-        # Write latest values to Markdown file:
-        with open (markdown_file, 'w') as markdown:
-            markdown.write(f'```Network\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```')
+            # Write latest values to Markdown file:
+            with open (markdown_file, 'w') as markdown:
+                markdown.write(f'```Network\n{info_blocks}\n{info_coin}\n{info_transactions}\n{info_network}\n{info_update}```')
+        else:
+            info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
+            info_trx_per_block = \
+                f'Trx Avg / Block: {TRX_PER_BLOCK_PAST} --> {TRX_PER_BLOCK_NOW}\n' \
+                f'{days}d: {TRX_PER_BLOCK_PAST_CHANGE_PERCENTAGE} ({TRX_PER_BLOCK_PAST_CHANGE}/block)\n'
+            info_hashrate = \
+                f'Hashrate: {HASHRATE_PAST} TH/s --> {HASHRATE_NOW} TH/s\n' \
+                f'{days}d: {HASHRATE_PAST_CHANGE_PERCENTAGE} ({HASHRATE_PAST_CHANGE} TH/s)\n'
+            info_blockchain_size = \
+                f'Blockchain: {BLOCKCHAIN_SIZE_PAST} --> {BLOCKCHAIN_SIZE_NOW}\n' \
+                f'{days}d: {BLOCKCHAIN_SIZE_PAST_CHANGE_PERCENTAGE} ({BLOCKCHAIN_SIZE_PAST_CHANGE})\n'
+            info_price = \
+                f'Price: {PRICE_PAST} --> {PRICE_NOW}\n' \
+                f'{days}d: {PRICE_PAST_CHANGE_PERCENTAGE} ({PRICE_PAST_CHANGE})\n'
+            
+            # Write latest values to Markdown file:
+            with open (markdown_file, 'w') as markdown:
+                markdown.write(f'```Network\n{info_period}\n{info_trx_per_block}\n{info_hashrate}\n{info_blockchain_size}\n{info_price}```')
 
-    main_logger.info(f'[markdown] network text written')
+    main_logger.info(f'[markdown] network (days {days}) text written')
 
     return markdown_file
 
@@ -300,14 +363,14 @@ def write_network():
 
 if __name__ == '__main__':
 
-    days = [0, 1, 2, 90, 400, 1000, 70000]
+    days = [-1, 0, 1, 2, 90, 400, 1000, 'max']
     for day in days:
         draw_network(day)
+        write_network(day)
   
     from tools import convert_date_to_days
     dates = ['2022-03-01', '2024-02-12']
     for date in dates:
         day = convert_date_to_days(date)
         draw_network(day)
-    
-    write_network()
+        write_network(day)

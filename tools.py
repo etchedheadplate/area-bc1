@@ -235,8 +235,11 @@ def format_time_axis(timestamp, days):
 Functions related to formatting values data.
 '''
 
-def format_amount(amount, ticker=False):
+def format_amount(amount, ticker=False, decimal=0):
     # Formats amount to common abbreviation.
+
+    string_amount = str(amount) + '.'
+    decimal_places = len(string_amount.split('.')[1]) if decimal is False else decimal
 
     if amount >= 1_000_000_000_000_000:
         formatted_amount = "{:.1f}Qn".format(amount / 1_000_000_000_000_000)
@@ -259,7 +262,7 @@ def format_amount(amount, ticker=False):
     elif amount <= -1_000:
         formatted_amount = "{:.1f}K".format(amount / 1_000)
     else:
-        formatted_amount = "{:.2f}".format(amount)
+        formatted_amount = '{:,.{}f}'.format(amount, decimal_places)
     
     if ticker:
         currency_symbol = CurrencySymbols().get_symbol(ticker)
@@ -269,6 +272,41 @@ def format_amount(amount, ticker=False):
             return ticker + formatted_amount
     else:
         return formatted_amount
+    
+
+def format_bytes(size, abbreviation=False):
+    # Formats bytes to common abbreviation.
+
+    bytes = size
+
+    if abbreviation:
+        if abbreviation == 'KB':
+            bytes = size * 1024
+        elif abbreviation == 'MB':
+            bytes = size * (1024**2)
+        elif abbreviation == 'GB':
+            bytes = size * (1024**3)
+        elif abbreviation == 'TB':
+            bytes = size * (1024**4)
+        elif abbreviation == 'PB':
+            bytes = size * (1024**5)
+        else:
+            bytes = size
+
+    if bytes >= 1024**5:
+        formatted_bytes = "{:.1f} PB".format(bytes / (1024**5))
+    elif bytes >= 1024**4:
+        formatted_bytes = "{:.1f} TB".format(bytes / (1024**4))
+    elif bytes >= 1024**3:
+        formatted_bytes = "{:.1f} GB".format(bytes / (1024**3))
+    elif bytes >= 1024**2:
+        formatted_bytes = "{:.1f} MB".format(bytes / (1024**2))
+    elif bytes >= 1024:
+        formatted_bytes = "{:.1f} KB".format(bytes / 1024)
+    else:
+        formatted_bytes = '{:,.0f}'.format(bytes)
+    
+    return formatted_bytes
 
 
 def format_currency(amount, ticker=False, decimal=False):

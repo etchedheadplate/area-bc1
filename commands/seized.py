@@ -16,13 +16,14 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (format_amount,
+from tools import (define_key_metric_movement,
+                   format_amount,
                    format_currency,
                    format_percentage,
                    calculate_percentage_change)
 
 
-def draw_seized(days=365):
+def draw_seized(days=1095):
     # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -38,23 +39,40 @@ def draw_seized(days=365):
     plot_background = plot['backgrounds']
         
     # Creation of plot DataFrame:
-    plot_df = pd.read_csv(chart_file).sort_index(ascending=False)
+    plot_df = pd.read_csv(chart_file)[:-2].sort_index(ascending=False).reset_index()
 
     # Set time period:
-    days = 2 if days < 2 else days
-    days = len(plot_df) - 1 if days > len(plot_df) else days
+    if isinstance(days, int):
+        days = 2 if days < 2 else days
+        days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+    else:
+        days = len(plot_df) - 1
     plot_file = plot['path'] + f'seized_days_{days}.jpg'
 
     index_period_end = len(plot_df) - 1
     index_period_start = index_period_end - days
 
-    chart_time_till = plot_df['day'].iloc[index_period_end][:10]
-    chart_time_from = plot_df['day'].iloc[index_period_start][:10]
+    plot_time_till = plot_df['day'].iloc[index_period_end][:10]
+    plot_time_from = plot_df['day'].iloc[index_period_start][:10]
+
+    # Specification of chart data indexes for plot axes:
+    plot_index_last = len(plot_df) - 1
+    plot_index_first = len(plot_df) - days
+    if plot_index_first < 1:
+        plot_index_first = 1
+
+    # Key metric related variables for percentage change calculation:
+    plot_key_metric = 'BTC_Balance'
+    plot_key_metric_new = plot_df[plot_key_metric][plot_index_last]
+    plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
+    plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
+    plot_key_metric_movement_format = format_percentage(plot_key_metric_movement)
 
     # Background-related variables:
-    background_path = plot_background['path']
-    background_coordinates = plot_background['coordinates']
-    background_colors = plot_background['colors']
+    background = define_key_metric_movement(plot, plot_key_metric_movement)
+    background_path = plot_background[f'{background}']['path']
+    background_coordinates = plot_background[f'{background}']['coordinates']
+    background_colors = plot_background[f'{background}']['colors']
 
     # Set rolling avearge to 2% of days:
     rolling_average = math.ceil(days * 0.02)
@@ -149,9 +167,10 @@ def draw_seized(days=365):
     title_font = plot['font']
     title_list = [
             [{'text': '21.co @ dune.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-            {'text': f'bitcoins seized by USA', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]},
-             {'text': f'{chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
-             {'text': f'{chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}]
+            {'text': f'bitcoins seized by USA', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
+
+            [{'text': f'BTC {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
     for title in title_list:
@@ -202,8 +221,11 @@ def write_seized(days=1):
 
     # Set time period:
     now = len(seized_chart_data) - 1
-    days = 1 if days < 1 else days
-    days = len(seized_chart_data) - 1 if days > len(seized_chart_data) else days
+    if isinstance(days, int):
+        days = 1 if days < 1 else days
+        days = len(seized_chart_data) - 1 if days > len(seized_chart_data) - 1 else days
+    else:
+        days = len(seized_chart_data) - 1
     past = len(seized_chart_data) - days
     markdown_file = seized_chart_file_path + f'seized_days_{days}.md'
 
@@ -278,7 +300,14 @@ def write_seized(days=1):
 
 if __name__ == '__main__':
 
-    test_days = [-1, 0, 1, 2, 10, 100, 365, 720, 1095, 3000]
+    test_days = [-1, 0, 1, 2, 10, 100, 365, 720, 1095, 'max']
     for day in test_days:
+        draw_seized(day)
+        write_seized(day)
+
+    from tools import convert_date_to_days
+    test_dates = ['2022-06-22']
+    for date in test_dates:
+        day = convert_date_to_days(date)
         draw_seized(day)
         write_seized(day)

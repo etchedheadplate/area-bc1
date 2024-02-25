@@ -5,9 +5,11 @@ from telegram.ext import Updater, ConversationHandler, CommandHandler, MessageHa
 
 import config
 from commands.blockchain import explore_address, explore_block, explore_transaction
+from commands.etfs import draw_etfs, write_etfs
 from commands.market import draw_market, write_market
-from commands.network import draw_network
-from commands.lightning import draw_lightning
+from commands.network import draw_network, write_network
+from commands.lightning import draw_lightning, write_lightning
+from commands.seized import draw_seized, write_seized
 from commands.news import write_news
 from tools import update_databases, convert_date_to_days
 from logger import main_logger
@@ -79,8 +81,30 @@ def block(update, context):
     return ConversationHandler.END
 
 def etfs(update, context):
-    etfs_image = 'db/etfs/etfs.jpg'
-    etfs_text = 'db/etfs/etfs.md'
+    etfs_image = 'db/etfs/etfs_days_30.jpg'
+    etfs_text = 'db/etfs/etfs_days_1.md'
+    if context.args:
+        days = convert_date_to_days(context.args[0])
+        if type(days) == int:
+            if days < 1:
+                error_message = 'Future is unknown'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                return ConversationHandler.END
+            elif days < 2:
+                error_message = 'Available data starts from 2 days to the past:'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                days = 2
+                etfs_image =  draw_etfs(days)
+                etfs_text = write_etfs(days)
+            else:
+                etfs_image =  draw_etfs(days)
+                etfs_text = write_etfs(days)
+        else:
+            hint = 'src/text/hint_dates.md'
+            with open(hint, 'r') as hint_text:
+                hint_text = hint_text.read()          
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            return ConversationHandler.END
     with open(etfs_image, 'rb') as img_file:
         with open(etfs_text, 'r') as text_file:
             img_data = img_file.read()
@@ -121,10 +145,7 @@ def market(update, context):
                 error_message = 'Future is unknown'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
                 return ConversationHandler.END
-            elif days == 1:
-                market_image = market_image
-                market_text = market_text
-            elif days >= 1:
+            else:
                 market_image =  draw_market(days)
                 market_text = write_market(days)
         else:
@@ -146,7 +167,7 @@ def market(update, context):
 
 def network(update, context):
     network_image = 'db/network/network_days_30.jpg'
-    network_text = 'db/network/network.md'
+    network_text = 'db/network/network_days_1.md'
     if context.args:
         days = convert_date_to_days(context.args[0])
         if type(days) == int:
@@ -157,11 +178,12 @@ def network(update, context):
             elif days < 2:
                 error_message = 'Available data starts from 2 days to the past:'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                days = 2
                 network_image =  draw_network(days)
-                network_text = network_text
+                network_text = write_network(days)
             else:
                 network_image =  draw_network(days)
-                network_text = network_text
+                network_text = write_network(days)
         else:
             hint = 'src/text/hint_dates.md'
             with open(hint, 'r') as hint_text:
@@ -181,7 +203,7 @@ def network(update, context):
 
 def lightning(update, context):
     lightning_image = 'db/lightning/lightning_days_30.jpg'
-    lightning_text = 'db/lightning/lightning.md'
+    lightning_text = 'db/lightning/lightning_days_1.md'
     if context.args:
         days = convert_date_to_days(context.args[0])
         if type(days) == int:
@@ -192,11 +214,12 @@ def lightning(update, context):
             elif days < 2:
                 error_message = 'Available data starts from 2 days to the past:'
                 update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                days = 2
                 lightning_image =  draw_lightning(days)
-                lightning_text = lightning_text
+                lightning_text = write_lightning(days)
             else:
                 lightning_image =  draw_lightning(days)
-                lightning_text = lightning_text
+                lightning_text = write_lightning(days)
         else:
             hint = 'src/text/hint_dates.md'
             with open(hint, 'r') as hint_text:
@@ -233,8 +256,30 @@ def pools(update, context):
     return ConversationHandler.END
 
 def seized(update, context):
-    seized_image = 'db/seized/seized.jpg'
-    seized_text = 'db/seized/seized.md'
+    seized_image = 'db/seized/seized_days_1095.jpg'
+    seized_text = 'db/seized/seized_days_1.md'
+    if context.args:
+        days = convert_date_to_days(context.args[0])
+        if type(days) == int:
+            if days < 1:
+                error_message = 'Future is unknown'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                return ConversationHandler.END
+            elif days < 2:
+                error_message = 'Available data starts from 2 days to the past:'
+                update.message.reply_text(error_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+                days = 2
+                seized_image =  draw_seized(days)
+                seized_text = write_seized(days)
+            else:
+                seized_image =  draw_seized(days)
+                seized_text = write_seized(days)
+        else:
+            hint = 'src/text/hint_dates.md'
+            with open(hint, 'r') as hint_text:
+                hint_text = hint_text.read()          
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            return ConversationHandler.END
     with open(seized_image, 'rb') as img_file:
         with open(seized_text, 'r') as text_file:
             img_data = img_file.read()

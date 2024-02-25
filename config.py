@@ -137,7 +137,7 @@ charts = {
                 'charts/market-price',
                 'charts/hash-rate',
                 'charts/n-transactions-per-block',
-                'charts/cost-per-transaction'
+                'charts/blocks-size'
                 ],
             'extention': 'json',
             'params': {
@@ -166,9 +166,9 @@ charts = {
                     'x': 'date',
                     'y': 'trx_per_block'
                 },
-                    'charts/cost-per-transaction': {
+                    'charts/blocks-size': {
                     'x': 'date',
-                    'y': 'trx_cost'
+                    'y': 'blocks-size'
                 }
             }
         }
@@ -391,11 +391,23 @@ images = {
             'areas': ['#22577A', '#2D7D90', '#38A3A5', '#57CC99', '#80ED99', '#C7F9CC']
         },
         'backgrounds': {
-            'path': 'src/image/backgrounds/etfs.png',
-            'coordinates': (750, 5),
-            'colors': {
-                'api': ('#F1603F', (65, 65), (65, 105)),
-                'period': ('#CACACA', (520, 65), (520, 100))
+            'key_metric_down': {
+                'path': 'src/image/backgrounds/etfs_down.png',
+                'range': (-float('inf'), 0),
+                'coordinates': (750, 5),
+                'colors': {
+                    'api': ('#F1603F', (200, 65), (200, 105)),
+                    'metric': ('#e5383b', (240, 165), (240, 205))
+                }
+            },
+            'key_metric_up': {
+                'path': 'src/image/backgrounds/etfs_up.png',
+                'range': (0, float('inf')),
+                'coordinates': (750, 5),
+                'colors': {
+                    'api': ('#F1603F', (200, 65), (200, 105)),
+                    'metric': ('#2BD713', (240, 165), (240, 205))
+                }
             }
         }
     },
@@ -446,7 +458,7 @@ images = {
         'font': 'src/font/font.ttf',
         'colors': {
             'date': '#CACACA',
-            'channels': '#FF0073',
+            'channels': '#00a5cf',
             'capacity': '#F7931A',
             'nodes_clearnet': '#FF00A1',
             'nodes_greynet': '#B40090',
@@ -567,11 +579,23 @@ images = {
             'frame': '#191716'
         },
         'backgrounds': {
-            'path': 'src/image/backgrounds/seized.png',
-            'coordinates': (725, 25),
-            'colors': {
-                'api': ('#F1603F', (100, 65), (100, 105)),
-                'period': ('#CACACA', (480, 65), (480, 100))
+            'key_metric_down': {
+                'path': 'src/image/backgrounds/seized_down.png',
+                'range': (-float('inf'), 0),
+                'coordinates': (785, 25),
+                'colors': {
+                    'api': ('#F1603F', (65, 65), (65, 105)),
+                    'metric': ('#2BD713', (440, 65), (440, 105))
+                }
+            },
+            'key_metric_up': {
+                'path': 'src/image/backgrounds/seized_up.png',
+                'range': (0, float('inf')),
+                'coordinates': (785, 25),
+                'colors': {
+                    'api': ('#F1603F', (65, 65), (65, 105)),
+                    'metric': ('#e5383b', (440, 65), (440, 105))
+                }
             }
         }
     },

@@ -109,8 +109,11 @@ def draw_market(days=1):
     plot_df = pd.read_csv(chart_file)
 
     # Set days value limits and image file name:
-    days = 1 if days < 1 else days
-    days = len(plot_df) if days > len(plot_df) else days
+    if isinstance(days, int):
+        days = 1 if days < 1 else days
+        days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+    else:
+        days = len(plot_df) - 1
     plot_file = plot['path'] + f'market_days_{days}.jpg'
 
     chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
@@ -271,11 +274,9 @@ def write_market(days=1):
     snapshot_file_name = snapshot['file']['name']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
-    days = 1 if days < 1 else days
-
-    markdown_file = snapshot_file_path + f'market_days_{days}.md'
-
     if days == 1:
+        markdown_file = snapshot_file_path + f'market_days_{days}.md'
+
         with open (snapshot_file, 'r') as json_file:
             snapshot_data = json.load(json_file)
 
@@ -335,7 +336,13 @@ def write_market(days=1):
         chart_file = chart_file_path + chart_file_name
         chart_data = pd.read_csv(chart_file)
 
-        days = len(chart_data) - 1 if days > len(chart_data) else days
+        if isinstance(days, int):
+            days = 1 if days < 1 else days
+            days = len(chart_data) - 1 if days > len(chart_data) - 1 else days
+        else:
+            days = len(chart_data) - 1
+
+        markdown_file = snapshot_file_path + f'market_days_{days}.md'
 
         chart_data_index_last = len(chart_data) - 1
         chart_data_index_first = chart_data_index_last - days
@@ -488,7 +495,7 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [0, 1, 2, 30, 90, 70000]
+    days = [0, 1, 2, 30, 90, 'max']
     for day in days:
         draw_market(day)
         write_market(day)

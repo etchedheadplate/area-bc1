@@ -1,4 +1,3 @@
-import re
 import os
 import sys
 import requests
@@ -18,22 +17,22 @@ def write_news():
     
     news_list = []
     check_list = [config.currency_crypto.upper(), config.currency_crypto_ticker.upper(), 'Lightning']
-    headline_replace_list = [' - Decrypt',  '| Bitcoinist.com']
+    remove_list = [' - Decrypt',  '| Bitcoinist.com', '- The Daily Hodl']
+
     for headline in headlines:
         headlines_list = []
         links = headline.find_all('a')
         for link in links:
-            link_label = link.get('aria-label').replace(' - Decrypt', '').replace(' | Bitcoinist.com', '').replace(' - The Daily Hodl', '')
+            link_label = link.get('aria-label')
+            for remove_word in remove_list:
+                if remove_word in link_label:
+                    link_label = link_label.replace(remove_word, '')
             link_url = link['href']
-            for word in check_list:
-                pattern = re.compile(fr'{re.escape(word)}(?![a-zA-Z])')
-                if pattern.match(link_label.upper()):
+            for check_word in check_list:
+                if check_word in link_label.upper():
                     headlines_list.append(link_label)
                     headlines_list.append(link_url)
                     break
-            else:
-                headlines_list.append(link_label)
-                headlines_list.append(link_url)
 
         news_list.append(headlines_list)   
 
@@ -45,11 +44,13 @@ def write_news():
 
     # Write News to Markdown file:
     with open (news_file, 'w') as markdown:
+        news_count = 0
         for news in news_list:
             if news:
+                news_count += 1
                 name, link = news
                 source = urlparse(link).netloc.replace('www.', '').replace('.com', '').replace('.net', '').replace('.co', '').replace('.', ' ')
-                markdown.write(f'{source} | [{name}]({link})\n')
+                markdown.write(f'{news_count}. [{name}]({link}) | {source}\n\n')
         markdown.write(f'\nPowered by [Coinqueror.io](https://coinqueror.io/)')
 
     main_logger.info(f'[markdown] news text written')
