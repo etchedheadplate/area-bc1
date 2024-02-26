@@ -19,11 +19,11 @@ from api.telegram import TOKEN
 
 
 # States:
-SELECTING_NOTIFICATION_COMMAND, SELECTING_NOTIFICATION_PERIOD = range(2)
+SELECTING_NOTIFICATION_COMMAND, SELECTING_NOTIFICATION_PERIOD, REMOVING_NOTIFICATION = range(3)
 
 
 '''
-Functions for commands accessible to user within bot interface
+Functions for user commands. Accessible to user within bot interface.
 '''
 
 def start(update, context):
@@ -345,10 +345,10 @@ def history(update, context):
     return ConversationHandler.END
 
 
-def notification(update, context):
-    notification_command_message = 'You can setup bot to send you regular notifications. Please choose data to be sent:'
-    reply_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'CEX'], ['Pools', 'Fees', 'News'], ['Stop Notifications', 'Cancel']]
-    update.message.reply_text(notification_command_message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+def notifications(update, context):
+    notifications_command_message = 'You can setup bot to send you regular notifications. Please choose data to be sent:'
+    reply_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'CEX'], ['Pools', 'Fees', 'News'], ['📄 View', '⚙️ Manage', '↩️ Cancel']]
+    update.message.reply_text(notifications_command_message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
     main_logger.info('[bot] /notification command processed')
     return SELECTING_NOTIFICATION_COMMAND
@@ -375,7 +375,7 @@ def cancel(update, context):
 
 
 '''
-Service functions for user functions, not accessible within bot interface
+Service functions for user commands. Not accessible within bot interface.
 '''
 
 def select_notification_command(update, context):
@@ -383,28 +383,66 @@ def select_notification_command(update, context):
     
     if selected_command in set(config.notifications):
         context.user_data['selected_command'] = selected_command
-        notification_period_message = 'Nice. Bot will send you notification every __ MINUTES (send number):'
-        update.message.reply_text(notification_period_message, reply_markup=ReplyKeyboardRemove())
-        main_logger.info('[bot] SELECTING_NOTIFICATION_COMMAND state processed')
-        return SELECTING_NOTIFICATION_PERIOD
+        if 'notifications' in context.user_data.keys():
+            for notification_params in context.user_data['notifications']:
+                if notification_params[0] == context.user_data['selected_command']:
+                        notifications_command_error = f'Notification for {selected_command} already exists. Remove it first in main /notifications menu'
+                        update.message.reply_text(notifications_command_error, reply_markup=ReplyKeyboardRemove())
+                        return ConversationHandler.END
+            else:
+                notification_period_message = 'Nice. Bot will send you notification every __ MINUTES (send number):'
+                update.message.reply_text(notification_period_message, reply_markup=ReplyKeyboardRemove())
+                main_logger.info('[bot] entering SELECTING_NOTIFICATION_COMMAND state')
+                return SELECTING_NOTIFICATION_PERIOD
+        else:
+            notification_period_message = 'Nice. Bot will send you notification every __ MINUTES (send number):'
+            update.message.reply_text(notification_period_message, reply_markup=ReplyKeyboardRemove())
+            main_logger.info('[bot] entering SELECTING_NOTIFICATION_COMMAND state')
+            return SELECTING_NOTIFICATION_PERIOD
     
-    elif selected_command == 'Stop Notifications':
-        for notification_params in context.user_data['notifications']:
-            notification_job = notification_params.pop()
-            schedule.cancel_job(notification_job)
-        context.user_data['notifications'] = ''
-        notification_stop_message = 'You will no longer recieve any notifications.'
-        update.message.reply_text(notification_stop_message)
-        main_logger.info('[bot] notification schedule cleared')
+    elif selected_command == '📄 View':
+        notifications_view = ''
+        if 'notifications' in context.user_data.keys():
+            notifications_list = []
+            for notification_params in context.user_data['notifications']:
+                notification_index = context.user_data['notifications'].index(notification_params) + 1
+                notification_command = notification_params[0]
+                notification_period = notification_params[1]
+                notification_next_run = notification_params[2].next_run
+                notification_text = f'{notification_index}. {notification_command} (every {notification_period} MINUTES, next run: {notification_next_run})\n'
+                notifications_list.append(notification_text)
+            for notification_text in notifications_list:
+                notifications_view += notification_text
+        else:
+            notifications_view = 'You have no notifications'
+        update.message.reply_text(notifications_view, reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
+
+    elif selected_command == '⚙️ Manage':
+        if 'notifications' in context.user_data.keys():
+            notifications_remove_message = 'Please send number of notification to remove:\n\n'
+            for notification_params in context.user_data['notifications']:
+                notification_index = context.user_data['notifications'].index(notification_params) + 1
+                notification_command = notification_params[0]
+                notifications_remove_message += f'{notification_index}. {notification_command}\n'
+            notifications_remove_reply_keyboard = [['🗑 Remove All', '↩️ Cancel']]
+            update.message.reply_text(notifications_remove_message, reply_markup=ReplyKeyboardMarkup(notifications_remove_reply_keyboard, one_time_keyboard=True))
+            main_logger.info('[bot] entering REMOVING_NOTIFICATION state')
+            return REMOVING_NOTIFICATION
+        else:
+            notifications_remove_message = 'You have no notifications'
+            update.message.reply_text(notifications_remove_message, reply_markup=ReplyKeyboardRemove())
+            main_logger.info('[bot] notifications schedule cleared')
+            return ConversationHandler.END
     
-    elif selected_command == 'Cancel':
-        cancel(update, context)
+    elif selected_command == '↩️ Cancel':
+        notification_cancel_message = 'Notification setup canceled.'
+        update.message.reply_text(notification_cancel_message, reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
    
     else:
         notification_wrong_command = 'Wrong input, please select one from list below:'
         update.message.reply_text(notification_wrong_command)
-        main_logger.info('[bot] notification schedule cleared')
         return SELECTING_NOTIFICATION_COMMAND
 
 
@@ -413,26 +451,69 @@ def select_notification_period(update, context):
     
     if selected_period.isdigit() and int(selected_period) > 0:
         context.user_data['selected_period'] = selected_period
-        user_command = context.user_data['selected_command']
-        user_period = int(context.user_data['selected_period'])
-        command_name = config.notifications[f'{user_command}']
-        command = globals().get(command_name)
-        user_notification = schedule.every(user_period).minutes.at(':00').do(functools.partial(command, update=update, context=context))
+        user_selected_command_title = context.user_data['selected_command']
+        user_selected_command_name = config.notifications[f'{user_selected_command_title}']
+        user_selected_period = int(context.user_data['selected_period'])
+        user_command_name = globals().get(user_selected_command_name)
+        user_notification = schedule.every(user_selected_period).minutes.at(':00').do(functools.partial(user_command_name, update=update, context=context))
         
         if not 'notifications' in context.user_data.keys():
-            context.user_data['notifications'] = [[user_command, user_period, user_notification]]
+            context.user_data['notifications'] = [[user_selected_command_title, user_selected_period, user_notification]]
         else:
-            context.user_data['notifications'].append([user_command, user_period, user_notification])
+            context.user_data['notifications'].append([user_selected_command_title, user_selected_period, user_notification])
 
-        notification_set_message = f'Excellent. You will recieve {user_command} data every {user_period} MINUTES. You can stop notifications by running /notification command again.'
+        notification_set_message = f'Excellent. You will recieve {user_selected_command_title} data every {user_selected_period} MINUTES. You can ⚙️ Manage it by running /notifications again.'
         update.message.reply_text(notification_set_message)
-        main_logger.info('[bot] SELECTING_NOTIFICATION_PERIOD state processed')
+        main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
+        return ConversationHandler.END
+    
+    elif selected_period == '↩️ Cancel':
+        notification_cancel_message = 'Notification setup canceled.'
+        update.message.reply_text(notification_cancel_message, reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
     
     else:
         notification_wrong_period = 'Wrong input, please send whole postive number:'
         update.message.reply_text(notification_wrong_period)
         return SELECTING_NOTIFICATION_PERIOD
+    
+
+def remove_notification(update, context):
+    selected_notification = update.message.text
+
+    if selected_notification.isdigit() and int(selected_notification) - 1 in range(len(context.user_data['notifications'])):
+        remove_notification_index = int(selected_notification) - 1
+        remove_notification_params = context.user_data['notifications'][remove_notification_index]
+        remove_notification_command = remove_notification_params[0]
+        remove_notification_job = remove_notification_params[2]
+        schedule.cancel_job(remove_notification_job)
+        context.user_data['notifications'].pop(remove_notification_index)
+        remove_notification_message = f'You will no longer recieve {remove_notification_command} notifications'
+        update.message.reply_text(remove_notification_message, reply_markup=ReplyKeyboardRemove())
+        if len(context.user_data['notifications']) == 0:
+            context.user_data.pop('notifications')
+            main_logger.info('[bot] all notifications removed')
+            return ConversationHandler.END
+        else:
+            main_logger.info(f'[bot] notifications for {remove_notification_command} removed')
+            return ConversationHandler.END
+    elif selected_notification == '🗑 Remove All':
+        remove_notification_message = 'You will no longer recieve any notifications.'
+        for notification_params in context.user_data['notifications']:
+            notification_job = notification_params.pop()
+            schedule.cancel_job(notification_job)
+        context.user_data.pop('notifications')
+        update.message.reply_text(remove_notification_message, reply_markup=ReplyKeyboardRemove())
+        main_logger.info('[bot] all notifications removed')
+        return ConversationHandler.END
+    elif selected_notification == '↩️ Cancel':
+        cancel_notification_message = 'Notification setup canceled.'
+        update.message.reply_text(cancel_notification_message, reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+    else:
+        remove_notification_error = 'Wrong input, please send whole postive number:'
+        update.message.reply_text(remove_notification_error)
+        return REMOVING_NOTIFICATION
     
 
 async def run_schedule():
@@ -465,12 +546,13 @@ def start_bot():
             CommandHandler('seized', seized),
             CommandHandler('transaction', transaction),
             CommandHandler('history', history),
-            CommandHandler('notification', notification),
+            CommandHandler('notifications', notifications),
             CommandHandler('about', about)
             ],
         states={
             SELECTING_NOTIFICATION_COMMAND: [MessageHandler(Filters.text & ~Filters.command, select_notification_command)],
-            SELECTING_NOTIFICATION_PERIOD: [MessageHandler(Filters.text & ~Filters.command, select_notification_period)]
+            SELECTING_NOTIFICATION_PERIOD: [MessageHandler(Filters.text & ~Filters.command, select_notification_period)],
+            REMOVING_NOTIFICATION: [MessageHandler(Filters.text & ~Filters.command, remove_notification)]
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
