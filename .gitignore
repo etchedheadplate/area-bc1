@@ -4,10 +4,12 @@
 *.jpg
 *.png
 *.log
+*.json
 *.DS_Store
 __pycache__/
 api/
 db/
+log/
 src/
 tests/
 tests.py

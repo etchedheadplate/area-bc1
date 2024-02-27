@@ -1,10 +1,11 @@
 import logging
+import config
 
 
 main_logger = logging.getLogger(__name__)
 main_logger.setLevel(logging.DEBUG)
 
-file_handler = logging.FileHandler('area-bc1.log')
+file_handler = logging.FileHandler(config.bot_info)
 file_handler.setLevel(logging.INFO)
 
 console_handler = logging.StreamHandler()
