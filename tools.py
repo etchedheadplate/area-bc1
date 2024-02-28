@@ -1,7 +1,6 @@
 import os
 import json
 import time
-import asyncio
 import requests
 import schedule
 import importlib
@@ -175,9 +174,9 @@ def update_databases():
     databases = list(charts.keys() | snapshots.keys())
     current_directory = os.path.dirname(os.path.abspath(__file__))
     for database in databases:
-        module_file = os.path.join(current_directory, 'commands', f'{database}.py')
+        module_file = os.path.join(current_directory, 'cmds', f'{database}.py')
         if os.path.exists(module_file):
-            module_name = f'commands.{database}'
+            module_name = f'cmds.{database}'
             module = importlib.import_module(module_name)
             module_draw_image = getattr(module, f'draw_{database}', None)
             module_write_markdown = getattr(module, f'write_{database}', None)
