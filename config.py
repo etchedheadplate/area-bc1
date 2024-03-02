@@ -4,7 +4,6 @@ from api.dune import TOKEN as dune_api_token
 # Main bot settings:
 bot_name = '@area_bc1_bot'
 bot_info = 'log/bot_info.log'
-bot_settings = 'log/bot_settings'
 
 
 # Currency related variables:
@@ -17,23 +16,23 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Dictionaries for managing databases:
 charts = {
-#    'etfs': {
-#        'api': {
-#            'base': 'https://api.dune.com/api/v1/',
-#            'endpoints': ['query/3400598/results/csv'],
-#            'extention': 'csv',
-#            'params': {
-#                'api_key': f'{dune_api_token}'
-#                },
-#            'parsed': False,
-#            'subdict': False
-#        },
-#        'file': {
-#            'path': 'db/etfs/',
-#            'name': 'etfs.csv',
-#            'columns': False
-#        }
-#    },
+    'etfs': {
+        'api': {
+            'base': 'https://api.dune.com/api/v1/',
+            'endpoints': ['query/3400598/results/csv'],
+            'extention': 'csv',
+            'params': {
+                'api_key': f'{dune_api_token}'
+                },
+            'parsed': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/etfs/',
+            'name': 'etfs.csv',
+            'columns': False
+        }
+    },
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
@@ -197,23 +196,23 @@ charts = {
             'columns': ['pool', 'mined']
         }
     },
-#    'seized': {
-#        'api': {
-#            'base': 'https://api.dune.com/api/v1/',
-#            'endpoints': ['query/2220209/results/csv'],
-#            'extention': 'csv',
-#            'params': {
-#                'api_key': f'{dune_api_token}'
-#                },
-#            'parsed': False,
-#            'subdict': False
-#        },
-#        'file': {
-#            'path': 'db/seized/',
-#            'name': 'seized.csv',
-#            'columns': False
-#        }
-#    }
+    'seized': {
+        'api': {
+            'base': 'https://api.dune.com/api/v1/',
+            'endpoints': ['query/2220209/results/csv'],
+            'extention': 'csv',
+            'params': {
+                'api_key': f'{dune_api_token}'
+                },
+            'parsed': False,
+            'subdict': False
+        },
+        'file': {
+            'path': 'db/seized/',
+            'name': 'seized.csv',
+            'columns': False
+        }
+    }
 }
 
 snapshots = {
@@ -349,7 +348,7 @@ updates = {
 }
 
 
-# Dictionary for creation of images:
+# Dictionaries for creation of images:
 images = {
     'address': {
         'path': 'db/blockchain/address/',
@@ -533,7 +532,7 @@ images = {
             'date': '#CACACA',
             'price': '#F7931A',
             'hashrate': '#2a9d8f',
-            'trx_per_block': '#e71d36',
+            'trx_per_block': '#97DB4F',
             'frame': '#191716',
         },
         'backgrounds': {
@@ -580,8 +579,8 @@ images = {
         'colors': {
             'date': '#CACACA',
             'usd': '#2b9348',
-            'btc': '#F7931A',
-            'price': '#F9F9F9',
+            'btc': '#0C67BB',
+            'price': '#F7931A',
             'frame': '#191716'
         },
         'backgrounds': {
@@ -633,8 +632,15 @@ images = {
     },
 }
 
+days = {
+    'etfs': 'max',
+    'lightning': 90,
+    'market': 1,
+    'network': 180,
+    'seized': 'max'
+}
 
-# Dictionary for bot keyboards:
+# Dictionary for bot connecting user messgaes with bot commands:
 keyboard = {
     'blockchain': {
         'Address': 'address',

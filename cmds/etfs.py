@@ -22,7 +22,7 @@ from tools import (define_key_metric_movement,
                    format_percentage)
 
 
-def draw_etfs(days=30):
+def draw_etfs(days=config.days['etfs']):
     # Draws ETFs plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -295,7 +295,7 @@ def write_etfs(days=1):
         info_ath = \
             f'ATH BTC: {HOLDINGS_BTC_ATH_DATE} ({HOLDINGS_BTC_ATH})\n' \
             f'ATH USD: {HOLDINGS_USD_ATH_DATE} ({HOLDINGS_USD_ATH})\n'
-        info_update = f'Last update at {TIME_NOW}\n'
+        info_update = f'Last updated {TIME_NOW}\n'
         Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
         
         # Write text to Markdown file:

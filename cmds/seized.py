@@ -23,7 +23,7 @@ from tools import (define_key_metric_movement,
                    calculate_percentage_change)
 
 
-def draw_seized(days=1095):
+def draw_seized(days=config.days['seized']):
     # Draws Seized plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -269,7 +269,7 @@ def write_seized(days=1):
         info_ATH = \
             f'ATH BTC: {ATH_BALANCE_BTC_DATE} ({ATH_BALANCE_BTC})\n' \
             f'ATH USD: {ATH_BALANCE_USD_DATE} ({ATH_BALANCE_USD})\n'
-        info_update = f'Last update at {TIME_NOW}\n'
+        info_update = f'Last updated {TIME_NOW}\n'
         Info_links = f'[Methology & additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
             f'[More Countries & Companies](https://bitcointreasuries.net/)'
         
@@ -300,7 +300,7 @@ def write_seized(days=1):
 
 if __name__ == '__main__':
 
-    test_days = [-1, 0, 1, 2, 10, 100, 365, 720, 1095, 'max']
+    test_days = [-1, 0, 1, 2, 10, 100, 365, 690, 1095, 'max']
     for day in test_days:
         draw_seized(day)
         write_seized(day)

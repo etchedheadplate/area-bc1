@@ -40,7 +40,7 @@ to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_network(days=90):
+def draw_network(days=config.days['network']):
     # Draws Network plot with properties specified in user configuration.
     
     # User configuration related variables:
@@ -76,7 +76,7 @@ def draw_network(days=90):
         plot_index_first = 1
 
     # Key metric related variables for percentage change calculation:
-    plot_key_metric = 'hashrate'
+    plot_key_metric = 'trx_per_block'
     plot_key_metric_new = plot_df[plot_key_metric][plot_index_last - 1]
     plot_key_metric_old = plot_df[plot_key_metric][plot_index_first]
     plot_key_metric_movement = calculate_percentage_change(plot_key_metric_old, plot_key_metric_new)
@@ -106,15 +106,15 @@ def draw_network(days=90):
     ax3 = ax1.twinx()
 
     # Set axies lines to change width depending on days period:
-    linewidth_hashrate = 14 - days * 0.01
-    if linewidth_hashrate < 10:
-        linewidth_hashrate = 10
-    linewidth_trx_per_block = 8 - days * 0.01
-    if linewidth_trx_per_block < 6:
-        linewidth_trx_per_block = 6
+    linewidth_trx_per_block = 12 - days * 0.01
+    if linewidth_trx_per_block < 8:
+        linewidth_trx_per_block = 8
+    linewidth_hashrate = 8 - days * 0.01
+    if linewidth_hashrate < 6:
+        linewidth_hashrate = 6
 
-    ax1.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=linewidth_hashrate)
-    ax2.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=linewidth_trx_per_block)
+    ax1.plot(axis_date, axis_trx_per_block, color=plot_colors['trx_per_block'], label="trx_per_block", linewidth=linewidth_trx_per_block)
+    ax2.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=linewidth_hashrate)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="price", alpha=0.0, linewidth=0.0)
 
     # Set axies left and right borders to first and last date of period. Bottom
@@ -136,8 +136,8 @@ def draw_network(days=90):
 
     # Set axies ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
-    ax1.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
-    ax2.tick_params(axis="y", labelcolor=plot_colors['trx_per_block'])
+    ax1.tick_params(axis="y", labelcolor=plot_colors['trx_per_block'])
+    ax2.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
     ax3.set_yticks([])
 
     for label in ax1.get_xticklabels():
@@ -157,20 +157,20 @@ def draw_network(days=90):
     ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.8)
 
     # Set plot legend proxies and actual legend:
-    legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
     legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
+    legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
 
-    legend = ax1.legend(handles=[legend_proxy_hashrate,
-                                 legend_proxy_trx_per_block,
+    legend = ax1.legend(handles=[legend_proxy_trx_per_block,
+                                 legend_proxy_hashrate,
                                  legend_proxy_price],
                                  loc="upper left",
                                  prop=plot_font,
                                  handlelength=0)
     
     # Set legend colors:
-    legend.get_texts()[0].set_color(plot_colors['hashrate'])
-    legend.get_texts()[1].set_color(plot_colors['trx_per_block'])
+    legend.get_texts()[0].set_color(plot_colors['trx_per_block'])
+    legend.get_texts()[1].set_color(plot_colors['hashrate'])
     legend.get_texts()[2].set_color(plot_colors['price'])
     legend.get_frame().set_facecolor(plot_colors['frame'])
     legend.get_frame().set_alpha(0.7)
@@ -194,7 +194,7 @@ def draw_network(days=90):
             [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
             {'text': f'network performance', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
 
-            [{'text': f'{plot_key_metric} {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            [{'text': f'TRX per Block {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
             {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     

@@ -88,7 +88,7 @@ def calculate_rows_interval(days=1):
     return interval
 
 
-def draw_market(days=1):
+def draw_market(days=config.days['market']):
     # Draws Market plot with properties specified in user configuration.
     
     chart_name = select_chart(days)[0]
@@ -407,20 +407,20 @@ def write_market(days=1):
                     f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                     f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                     f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-                info_total_volume = \
-                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
-                    f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
-                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
-                    f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
                 info_market_cap = \
                     f'Market Cap: {CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                     f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                     f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
+                info_total_volume = \
+                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                    f'{days}d: {PERCENTAGE_CHANGE_TOTAL_VOLUME} ({CHANGE_TOTAL_VOLUME})\n' \
+                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
+                    f'Low: {LOW_TOTAL_VOLUME} ({DATE_LOW_TOTAL_VOLUME})\n'
                 
                 # Write text to Markdown file:
                 with open (markdown_file, 'w') as markdown:
-                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}```')
+                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_market_cap}\n{info_total_volume}```')
 
             else:
                 # Parse snapshot and chart to separate values:
@@ -470,21 +470,21 @@ def write_market(days=1):
                     f'{days}d: {PERCENTAGE_CHANGE_PRICE} ({CHANGE_PRICE})\n' \
                     f'High: {HIGH_PRICE} ({DATE_HIGH_PRICE})\n' \
                     f'Low: {LOW_PRICE} ({DATE_LOW_PRICE})\n'
-                info_total_volume = \
-                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
-                    f'{days}d: Unknown\n' \
-                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
-                    f'Low: Unknown\n'
                 info_market_cap = \
                     f'Market Cap: {CHART_MARKET_CAP} --> {SNAPSHOT_MARKET_CAP}\n' \
                     f'{days}d: {PERCENTAGE_CHANGE_MARKET_CAP} ({CHANGE_MARKET_CAP})\n' \
                     f'High: {HIGH_MARKET_CAP} ({DATE_HIGH_MARKET_CAP})\n' \
                     f'Low: {LOW_MARKET_CAP} ({DATE_LOW_MARKET_CAP})\n'
+                info_total_volume = \
+                    f'Volume: {CHART_TOTAL_VOLUME} --> {SNAPSHOT_TOTAL_VOLUME}\n' \
+                    f'{days}d: Unknown\n' \
+                    f'High: {HIGH_TOTAL_VOLUME} ({DATE_HIGH_TOTAL_VOLUME})\n' \
+                    f'Low: Unknown\n'
                 info_limitations = 'CoinGecko API does not provide Volume information before 2013-12-27\n'
 
                 # Write text to Markdown file:
                 with open (markdown_file, 'w') as markdown:
-                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_market_cap}\n{info_limitations}```')
+                    markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_limitations}\n{info_market_cap}```')
 
     main_logger.info(f'[markdown] market (days {days}) text written')
 
