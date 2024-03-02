@@ -17,23 +17,23 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Dictionaries for managing databases:
 charts = {
-    'etfs': {
-        'api': {
-            'base': 'https://api.dune.com/api/v1/',
-            'endpoints': ['query/3400598/results/csv'],
-            'extention': 'csv',
-            'params': {
-                'api_key': f'{dune_api_token}'
-                },
-            'parsed': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/etfs/',
-            'name': 'etfs.csv',
-            'columns': False
-        }
-    },
+#    'etfs': {
+#        'api': {
+#            'base': 'https://api.dune.com/api/v1/',
+#            'endpoints': ['query/3400598/results/csv'],
+#            'extention': 'csv',
+#            'params': {
+#                'api_key': f'{dune_api_token}'
+#                },
+#            'parsed': False,
+#            'subdict': False
+#        },
+#        'file': {
+#            'path': 'db/etfs/',
+#            'name': 'etfs.csv',
+#            'columns': False
+#        }
+#    },
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
@@ -197,23 +197,23 @@ charts = {
             'columns': ['pool', 'mined']
         }
     },
-    'seized': {
-        'api': {
-            'base': 'https://api.dune.com/api/v1/',
-            'endpoints': ['query/2220209/results/csv'],
-            'extention': 'csv',
-            'params': {
-                'api_key': f'{dune_api_token}'
-                },
-            'parsed': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/seized/',
-            'name': 'seized.csv',
-            'columns': False
-        }
-    }
+#    'seized': {
+#        'api': {
+#            'base': 'https://api.dune.com/api/v1/',
+#            'endpoints': ['query/2220209/results/csv'],
+#            'extention': 'csv',
+#            'params': {
+#                'api_key': f'{dune_api_token}'
+#                },
+#            'parsed': False,
+#            'subdict': False
+#        },
+#        'file': {
+#            'path': 'db/seized/',
+#            'name': 'seized.csv',
+#            'columns': False
+#        }
+#    }
 }
 
 snapshots = {
@@ -634,15 +634,29 @@ images = {
 }
 
 
-# Dictionary for bot notifications:
-notifications = {
-    'Market': 'market',
-    'Network': 'network',
-    'Lightning': 'lightning',
-    'ETFs': 'etfs',
-    'Seized': 'seized',
-    'CEX': 'exchanges',
-    'Pools': 'pools',
-    'Fees': 'fees',
-    'News': 'news'
+# Dictionary for bot keyboards:
+keyboard = {
+    'blockchain': {
+        'Address': 'address',
+        'Block': 'block',
+        'Transaction': 'transaction'
+    },
+    'history': {
+        'Market': 'market',
+        'Network': 'network',
+        'Lightning': 'lightning',
+        'ETFs': 'etfs',
+        'Seized': 'seized'
+    },
+    'notifications': {
+        'Market': 'market',
+        'Network': 'network',
+        'Lightning': 'lightning',
+        'ETFs': 'etfs',
+        'Seized': 'seized',
+        'CEX': 'exchanges',
+        'Pools': 'pools',
+        'Fees': 'fees',
+        'News': 'news'
+    }
 }

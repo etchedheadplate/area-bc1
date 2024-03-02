@@ -40,7 +40,7 @@ to different dates periods.
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
-def draw_network(days=30):
+def draw_network(days=90):
     # Draws Network plot with properties specified in user configuration.
     
     # User configuration related variables:
