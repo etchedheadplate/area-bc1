@@ -12,10 +12,19 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
 import config
-from tools import format_amount
+from tools import error_handler_common, format_amount
 from logger import main_logger
 
 
+
+'''
+Functions related to creation of diagram for Exchanges database.
+
+Diagram based on snapshot values.
+'''
+
+
+@error_handler_common
 def draw_exchanges():
     # Draws exchanges diagram with properties specified in user configuration.
     

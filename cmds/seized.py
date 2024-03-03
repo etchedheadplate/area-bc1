@@ -16,13 +16,28 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
+from tools import (error_handler_common,
+                   define_key_metric_movement,
                    format_amount,
                    format_currency,
                    format_percentage,
                    calculate_percentage_change)
 
 
+
+'''
+Functions related to creation of plot and markdown files for USA seized database.
+
+Plot based on chart values and made for whole number of days. Dates period based
+on API endpoint specified in user configuration. Background image depends on % of
+BTC holdings change (positive or negative). Axes have automatic appropriate
+scaling to different dates periods.
+
+Markdown based on snapshot and chart values and formatted for user presentation.
+'''
+
+
+@error_handler_common
 def draw_seized(days=config.days['seized']):
     # Draws Seized plot with properties specified in user configuration.
     
@@ -45,9 +60,10 @@ def draw_seized(days=config.days['seized']):
     if isinstance(days, int):
         days = 2 if days < 2 else days
         days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+        plot_file = plot['path'] + f'seized_days_{days}.jpg'
     else:
         days = len(plot_df) - 1
-    plot_file = plot['path'] + f'seized_days_{days}.jpg'
+        plot_file = plot['path'] + f'seized_days_max.jpg'
 
     index_period_end = len(plot_df) - 1
     index_period_start = index_period_end - days
@@ -77,7 +93,7 @@ def draw_seized(days=config.days['seized']):
     # Set rolling avearge to 2% of days:
     rolling_average = math.ceil(days * 0.02)
 
-    # Creation of plot axies
+    # Creation of plot axes
     axis_date = plot_df['day'].str.slice(stop=-17)
     axis_date = axis_date[index_period_start:index_period_end].reset_index(drop=True)
     axis_usd = plot_df['USD_Balance'][index_period_start:index_period_end]
@@ -92,19 +108,19 @@ def draw_seized(days=config.days['seized']):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines:
+    # Set axes lines:
     ax1.plot(axis_date, axis_btc, color=plot_colors['btc'], label="btc", alpha=0.0, linewidth=0.0)
     ax2.plot(axis_date, axis_usd, color=plot_colors['usd'], label="usd", alpha=0.0, linewidth=0.0)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="btc", linewidth=10)
 
-    # Set axies left and right borders to first and last date of period. Bottom and top
-    # border are set to persentages of axies for better scaling.
+    # Set axes left and right borders to first and last date of period. Bottom and top
+    # border are set to persentages of axes for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
     ax1.set_ylim(min(axis_btc) * 0.95, max(axis_btc) * 1.05)
     ax2.set_ylim(min(axis_usd) * 0.95, max(axis_usd) * 1.05)
 #    ax3.set_ylim(min(axis_price) * 0.75, max(axis_price) * 1.25)
 
-    # Set axies text format:
+    # Set axes text format:
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     
@@ -114,7 +130,7 @@ def draw_seized(days=config.days['seized']):
     ax1.set_xticklabels([axis_date[i] for i in date_range_indexes], rotation=10, ha='center')
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
-    # Set axies ticks text color, font and size:
+    # Set axes ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['btc'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['usd'])
@@ -128,12 +144,12 @@ def draw_seized(days=config.days['seized']):
         label.set_fontproperties(plot_font)
         label.set_fontsize(18)
 
-    # Set axies order (higher value puts layer to the front):
+    # Set axes order (higher value puts layer to the front):
     ax1.set_zorder(1)
     ax2.set_zorder(2)
     ax3.set_zorder(3)
     
-    # Set axies color filling:
+    # Set axes color filling:
     ax1.fill_between(axis_date, axis_btc, color=plot_colors['btc'], alpha=0.8)
     ax2.fill_between(axis_date, axis_usd, color=plot_colors['usd'], alpha=0.7)
 
@@ -202,6 +218,7 @@ def draw_seized(days=config.days['seized']):
     return plot_file
 
 
+@error_handler_common
 def write_seized(days=1):
 
     seized_chart = config.charts['seized']

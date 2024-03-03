@@ -18,7 +18,8 @@ from datetime import datetime, timedelta, timezone
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
+from tools import (error_handler_common,
+                   define_key_metric_movement,
                    calculate_percentage_change,
                    format_time_axis,
                    format_amount,
@@ -29,7 +30,6 @@ from tools import (define_key_metric_movement,
 
 
 
-
 '''
 Functions related to creation of plot and markdown files for Market database.
 
@@ -37,13 +37,13 @@ Plot based on chart values and made for whole number of days. 24h plot based on 
 minutes data chunks, up to 90 days on 1 hour data chunks, all other on 1 day data
 chunks. Dates period based on API endpoint specified in user configuration and can
 be set manually by user. Background image depends on % of BTC price change (positive
-or negative). Axies have automatic appropriate scaling to different dates periods.
+or negative). Axes have automatic appropriate scaling to different dates periods.
 
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
 
-
+@error_handler_common
 def select_chart(days=1):
     # Selects chart based on days period. Due to history Markdowns being generated
     # on daily basis additional return is introduced. It skips 90 days chart because
@@ -67,8 +67,9 @@ def select_chart(days=1):
     return chart, chart_for_markdown
 
 
+@error_handler_common
 def calculate_rows_interval(days=1):
-    # Calculates interval between chart rows for correct mapping of values to plot axies.
+    # Calculates interval between chart rows for correct mapping of values to plot axes.
     
     # 1 hour and 1 day chunks corrected due to overlap between 90 and max days charts:
     if isinstance(days, int):
@@ -88,6 +89,7 @@ def calculate_rows_interval(days=1):
     return interval
 
 
+@error_handler_common
 def draw_market(days=config.days['market']):
     # Draws Market plot with properties specified in user configuration.
     
@@ -112,14 +114,15 @@ def draw_market(days=config.days['market']):
     if isinstance(days, int):
         days = 1 if days < 1 else days
         days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+        plot_file = plot['path'] + f'market_days_{days}.jpg'
     else:
         days = len(plot_df) - 1
-    plot_file = plot['path'] + f'market_days_{days}.jpg'
+        plot_file = plot['path'] + f'market_days_max.jpg'
 
     chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
 
-    # Specification of chart indexes for plot axies:
+    # Specification of chart indexes for plot axes:
     plot_interval = calculate_rows_interval(days)
     plot_index_last = len(plot_df) - 1
     plot_index_first = plot_index_last - plot_interval
@@ -144,7 +147,7 @@ def draw_market(days=config.days['market']):
     percent_interval_index = calculate_percentage_change(plot_interval, plot_index_last) / 100
     rolling_average = math.ceil(plot_interval * percent_rolling_average)
 
-    # Creation of plot axies
+    # Creation of plot axes
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
     axis_price = plot_df['price'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
     axis_total_volume = plot_df['total_volume'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
@@ -158,7 +161,7 @@ def draw_market(days=config.days['market']):
     ax1.grid(True, linestyle="dashed", linewidth=0.5, alpha=0.7)
     ax2 = ax1.twinx()
 
-    # Set axies lines to change width depending on days period:
+    # Set axes lines to change width depending on days period:
     linewidth_price = 14 - days * 0.01
     if linewidth_price < 10:
         linewidth_price = 10
@@ -166,13 +169,13 @@ def draw_market(days=config.days['market']):
     ax1.plot(axis_date, axis_price, color=plot_colors['price'], label="price", linewidth=linewidth_price)
     ax2.plot(axis_date, axis_total_volume, color=plot_colors['total_volume'], label="total_volume", alpha=0.0, linewidth=0.0)
 
-    # Set axies left and right borders to first and last date of period. Bottom border
+    # Set axes left and right borders to first and last date of period. Bottom border
     # is set to min total_volume value and 99% of min price value for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
 #    ax1.set_ylim(min(axis_price) * 0.99, max(axis_price) * 1.01)
     ax2.set_ylim(min(axis_total_volume), max(axis_total_volume) * 1.05)
 
-    # Set axies text format:
+    # Set axes text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
@@ -182,7 +185,7 @@ def draw_market(days=config.days['market']):
     ax1.set_xticks(axis_date_ticks_positions)
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
-    # Set axies ticks text color, font and size:
+    # Set axes ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['price'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['total_volume'])
@@ -195,11 +198,11 @@ def draw_market(days=config.days['market']):
         label.set_fontproperties(plot_font)
         label.set_fontsize(18)
 
-    # Set axies order (higher value puts layer to the front):
+    # Set axes order (higher value puts layer to the front):
     ax1.set_zorder(2)
     ax2.set_zorder(1)
     
-    # Set axies color filling:
+    # Set axes color filling:
     ax2.fill_between(axis_date, axis_total_volume, color=plot_colors['total_volume'], alpha=0.8)
 
     # Set plot legend proxies and actual legend:
@@ -265,6 +268,7 @@ def draw_market(days=config.days['market']):
     return plot_file
 
 
+@error_handler_common
 def write_market(days=1):
     # Writes Market markdown for user set days period with properties specified in user configuration.
 

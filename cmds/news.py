@@ -7,9 +7,19 @@ from urllib.parse import urlparse
 
 sys.path.append('.')
 import config
+from tools import error_handler_common
 from logger import main_logger
 
 
+
+'''
+Functions related to scraping News.
+
+Markdown based on parsed links.
+'''
+
+
+@error_handler_common
 def write_news():
     response = requests.get('https://coinqueror.io/?search=bitcoin')
     soup = BeautifulSoup(response.content, "html.parser")

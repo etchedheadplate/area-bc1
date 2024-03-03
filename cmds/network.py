@@ -18,7 +18,8 @@ from datetime import datetime, timedelta
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
+from tools import (error_handler_common,
+                   define_key_metric_movement,
                    calculate_percentage_change,
                    convert_timestamp_to_utc,
                    format_time_axis,
@@ -29,17 +30,20 @@ from tools import (define_key_metric_movement,
                    format_quantity)
 
 
+
 '''
 Functions related to creation of plot and markdown files for Network database.
 
-Plot based on chart values and made for whole number of days. dates period based
+Plot based on chart values and made for whole number of days. Dates period based
 on API endpoint specified in user configuration. Background image depends on % of
-hashrate change (positive or negative). Axies have automatic appropriate scaling
-to different dates periods.
+transactions per block change (positive or negative). Axes have automatic
+appropriate scaling to different dates periods.
 
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
+
+@error_handler_common
 def draw_network(days=config.days['network']):
     # Draws Network plot with properties specified in user configuration.
     
@@ -62,9 +66,10 @@ def draw_network(days=config.days['network']):
     if isinstance(days, int):
         days = 2 if days < 2 else days
         days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+        plot_file = plot['path'] + f'network_days_{days}.jpg'
     else:
         days = len(plot_df) - 1
-    plot_file = plot['path'] + f'network_days_{days}.jpg'
+        plot_file = plot['path'] + f'network_days_max.jpg'
 
     plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     plot_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
@@ -91,7 +96,7 @@ def draw_network(days=config.days['network']):
     # Set rolling avearge to 2% of plot interval:
     rolling_average = math.ceil(days * 0.02)
 
-    # Creation of plot axies:
+    # Creation of plot axes:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
     axis_trx_per_block = plot_df['trx_per_block'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
     axis_hashrate = plot_df['hashrate'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
@@ -105,7 +110,7 @@ def draw_network(days=config.days['network']):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines to change width depending on days period:
+    # Set axes lines to change width depending on days period:
     linewidth_trx_per_block = 12 - days * 0.01
     if linewidth_trx_per_block < 8:
         linewidth_trx_per_block = 8
@@ -117,14 +122,14 @@ def draw_network(days=config.days['network']):
     ax2.plot(axis_date, axis_hashrate, color=plot_colors['hashrate'], label="hashrate", linewidth=linewidth_hashrate)
     ax3.plot(axis_date, axis_price, color=plot_colors['price'], label="price", alpha=0.0, linewidth=0.0)
 
-    # Set axies left and right borders to first and last date of period. Bottom
+    # Set axes left and right borders to first and last date of period. Bottom
     # and top borders are set to 95% of plot values for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
 #    ax1.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
 #    ax2.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
     ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 1.05)
 
-    # Set axies text format:
+    # Set axes text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
@@ -134,7 +139,7 @@ def draw_network(days=config.days['network']):
     ax1.set_xticks(axis_date_ticks_positions)
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
-    # Set axies ticks text color, font and size:
+    # Set axes ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['trx_per_block'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['hashrate'])
@@ -148,12 +153,12 @@ def draw_network(days=config.days['network']):
         label.set_fontproperties(plot_font)
         label.set_fontsize(18)
 
-    # Set axies order (higher value puts layer to the front):
+    # Set axes order (higher value puts layer to the front):
     ax1.set_zorder(3)
     ax2.set_zorder(2)
     ax3.set_zorder(1)
     
-    # Set axies color filling and ticks visability:
+    # Set axes color filling and ticks visability:
     ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.8)
 
     # Set plot legend proxies and actual legend:
@@ -227,6 +232,7 @@ def draw_network(days=config.days['network']):
     return plot_file
 
 
+@error_handler_common
 def write_network(days=1):
     # Writes Network markdown with properties specified in user configuration.
 

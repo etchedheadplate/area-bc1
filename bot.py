@@ -4,6 +4,7 @@ import schedule
 import functools
 import threading
 import concurrent.futures
+import datetime as dt
 from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, PicklePersistence, ConversationHandler, CommandHandler, MessageHandler, Filters
 
@@ -448,7 +449,7 @@ def blockchain(update, context):
     if chat_type == 'private':
         select_blockchain_command_keyboard = [['Address', 'Block'], ['Transaction', '🗿 Cancel']]
         blockchain_command_message = 'Please select blockchain data to explore:'
-        update.message.reply_text(blockchain_command_message, reply_markup=ReplyKeyboardMarkup(select_blockchain_command_keyboard, one_time_keyboard=True))
+        update.message.reply_text(blockchain_command_message, reply_markup=ReplyKeyboardMarkup(select_blockchain_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
         main_logger.info('[bot] /blockchain command processed')
         return SELECTING_BLOCKCHAIN_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -476,7 +477,7 @@ def history(update, context):
     if chat_type == 'private':
         select_history_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', '🗿 Cancel']]
         history_command_message = 'You can get data for custom history period. Bot will show you plot and key metrics change. Please select data:'
-        update.message.reply_text(history_command_message, reply_markup=ReplyKeyboardMarkup(select_history_command_keyboard, one_time_keyboard=True))
+        update.message.reply_text(history_command_message, reply_markup=ReplyKeyboardMarkup(select_history_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
         main_logger.info('[bot] /history command processed')
         return SELECTING_HISTORY_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -504,7 +505,7 @@ def notifications(update, context):
     if chat_type == 'private':
         select_notification_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'News'], ['Pools', 'CEX', 'Fees'], ['⚙️ Manage', '🗿 Cancel']]
         notifications_command_message = 'You can setup bot to send you regular notifications. Please choose data to be sent:'
-        update.message.reply_text(notifications_command_message, reply_markup=ReplyKeyboardMarkup(select_notification_command_keyboard, one_time_keyboard=True))
+        update.message.reply_text(notifications_command_message, reply_markup=ReplyKeyboardMarkup(select_notification_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
         main_logger.info('[bot] /notification command processed')
         return SELECTING_NOTIFICATION_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -558,7 +559,7 @@ def select_blockchain_command(update, context):
             return cancel(update, context)
         else:
             error_wrong_command_message = f'Wrong input, please select data to explore:'
-            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_blockchain_command_keyboard, one_time_keyboard=True))
+            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_blockchain_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
             return SELECTING_BLOCKCHAIN_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
         selected_command = context.chat_data['chat_blockchain_command'][1]
@@ -612,14 +613,14 @@ def select_history_command(update, context):
             select_history_period_message = 'src/text/hint_nested_history.md'
             with open(select_history_period_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
-                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, one_time_keyboard=True))
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, resize_keyboard=True, one_time_keyboard=True))
             main_logger.info('[bot] entering SELECTING_HISTORY_PERIOD state')
             return SELECTING_HISTORY_PERIOD
         elif selected_history_command_name == '🗿 Cancel':
             return cancel(update, context)
         else:
             error_wrong_command_message = f'Wrong input, please select data to view:'
-            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_history_command_keyboard, one_time_keyboard=True))
+            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_history_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
             return SELECTING_HISTORY_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
         selected_command = context.chat_data['chat_history_command'][1]
@@ -652,7 +653,7 @@ def select_history_period(update, context):
             selected_history_period = convert_date_to_days(selected_period)
             if selected_history_period == 'error':
                 error_wrong_period = f'Wrong input, please follow example:'
-                update.message.reply_text(error_wrong_period, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, one_time_keyboard=True))
+                update.message.reply_text(error_wrong_period, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, resize_keyboard=True, one_time_keyboard=True))
                 main_logger.info('[bot] entering SELECTING_HISTORY_PERIOD state')
                 return SELECTING_HISTORY_PERIOD
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -707,7 +708,7 @@ def select_notification_command(update, context):
                 select_notification_message = 'src/text/hint_nested_notifications.md'
             with open(select_notification_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
-                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
             main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
             return SELECTING_NOTIFICATION_PERIOD
         elif chat_type == 'group' or chat_type == 'supergroup':
@@ -717,7 +718,7 @@ def select_notification_command(update, context):
             select_notification_message = 'src/text/hint_nested_notifications.md'
             with open(select_notification_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
-                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
             main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
             return SELECTING_NOTIFICATION_PERIOD
     elif selected_notification_command_name == '⚙️ Manage' or selected_notification_command_name == 'manage':
@@ -732,7 +733,7 @@ def select_notification_command(update, context):
                 update.message.reply_text(manage_remove_message)
                 return ConversationHandler.END
             else:
-                update.message.reply_text(manage_remove_message, reply_markup=ReplyKeyboardMarkup(manage_notification_keyboard, one_time_keyboard=True))
+                update.message.reply_text(manage_remove_message, reply_markup=ReplyKeyboardMarkup(manage_notification_keyboard, resize_keyboard=True, one_time_keyboard=True))
                 main_logger.info('[bot] entering REMOVING_NOTIFICATION state')
                 return REMOVING_NOTIFICATION
         else:
@@ -748,7 +749,7 @@ def select_notification_command(update, context):
     else:
         if chat_type == 'private':
             error_wrong_command_message = f'Wrong input, please follow example:'
-            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_notification_command_keyboard, one_time_keyboard=True))
+            update.message.reply_text(error_wrong_command_message, reply_markup=ReplyKeyboardMarkup(select_notification_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
         else:
             error_wrong_command_message = f'Wrong input, run /notifications for syntaxis examples'
             update.message.reply_text(error_wrong_command_message)
@@ -787,8 +788,9 @@ def select_notification_period(update, context):
                 if parsed_unit.upper() in available_units and user_unit == 'H':
                     user_unit = 'hours' if user_number > 1 else 'hour'
                     notification_job = schedule.every(user_number).hours.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
-                    notification_next_run = notification_job.next_run
-                    notification_view = f'{selected_notification_command_name} every {user_number} {user_unit}, next run {notification_next_run}'
+                    server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
+                    notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]
+                    notification_view = f'{selected_notification_command_name} every {user_number} {user_unit}, next run UTC {notification_next_run_utc}'
                     if 'scheduled_notifications' in context.chat_data.keys():
                         context.chat_data['scheduled_notifications'].append([selected_notification_command_name, selected_period, notification_view])
                         context.chat_data['notification_jobs'].append(notification_job)
@@ -805,8 +807,9 @@ def select_notification_period(update, context):
                 elif parsed_unit.upper() in available_units and user_unit == 'D':
                     user_unit = 'days' if user_number > 1 else 'day'
                     notification_job = schedule.every(user_number).days.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
-                    notification_next_run = notification_job.next_run
-                    notification_view = f'{selected_notification_command_name}: every {user_number} {user_unit} at {parsed_time}, next run {notification_next_run}'
+                    server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
+                    notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]
+                    notification_view = f'{selected_notification_command_name}: every {user_number} {user_unit} at {parsed_time}, next run UTC {notification_next_run_utc}'
                     if 'scheduled_notifications' in context.chat_data.keys():
                         context.chat_data['scheduled_notifications'].append([selected_notification_command_name, selected_period, notification_view])
                         context.chat_data['notification_jobs'].append(notification_job)
@@ -822,21 +825,21 @@ def select_notification_period(update, context):
                     return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
                 elif chat_type == 'private':
                     notification_wrong_unit = 'Period must be in days or hours'
-                    update.message.reply_text(notification_wrong_unit, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+                    update.message.reply_text(notification_wrong_unit, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
                 else:
                     notification_wrong_unit = 'Period must be in days or hours'
                     update.message.reply_text(notification_wrong_unit)
                 return SELECTING_NOTIFICATION_PERIOD if chat_type == 'private' else ConversationHandler.END
             elif chat_type == 'private':
                 notification_wrong_time = 'Time must be in mm:ss or hh:mm format'
-                update.message.reply_text(notification_wrong_time, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+                update.message.reply_text(notification_wrong_time, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
             else:
                 notification_wrong_time = 'Time must be in mm:ss or hh:mm format'
                 update.message.reply_text(notification_wrong_time)
             return SELECTING_NOTIFICATION_PERIOD if chat_type == 'private' else ConversationHandler.END
         elif chat_type == 'private':
             notification_wrong_number = 'Days or hours must be whole positive number'
-            update.message.reply_text(notification_wrong_number, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+            update.message.reply_text(notification_wrong_number, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
         else:
             notification_wrong_number = 'Days or hours must be whole positive number'
             update.message.reply_text(notification_wrong_number)
@@ -845,7 +848,7 @@ def select_notification_period(update, context):
         return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
     elif chat_type == 'private':
         error_wrong_period = 'Could not parse input syntaxis'
-        update.message.reply_text(error_wrong_period, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, one_time_keyboard=True))
+        update.message.reply_text(error_wrong_period, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
     else:
         error_wrong_period = 'Wrong input, run /notifications for syntaxis examples'
         update.message.reply_text(error_wrong_period)
@@ -886,7 +889,7 @@ def remove_notification(update, context):
             return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
         elif chat_type == 'private':
             error_wrong_notification_number = f'Please send number from 1 to {len(context.chat_data["scheduled_notifications"])}:'
-            update.message.reply_text(error_wrong_notification_number, reply_markup=ReplyKeyboardMarkup(manage_notification_keyboard, one_time_keyboard=True))
+            update.message.reply_text(error_wrong_notification_number, reply_markup=ReplyKeyboardMarkup(manage_notification_keyboard, resize_keyboard=True, one_time_keyboard=True))
         else:
             error_wrong_notification_number = f'Please send number from 1 to {len(context.chat_data["scheduled_notifications"])}:'
             update.message.reply_text(error_wrong_notification_number)

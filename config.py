@@ -640,7 +640,7 @@ days = {
     'seized': 'max'
 }
 
-# Dictionary for bot connecting user messgaes with bot commands:
+# Dictionary for connecting user messgaes with bot commands:
 keyboard = {
     'blockchain': {
         'Address': 'address',

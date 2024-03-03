@@ -8,9 +8,18 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import format_currency
+from tools import error_handler_common, format_currency
 
 
+
+'''
+Functions related to creation of image for Recommended Fees database.
+
+Diagram based on snapshot values.
+'''
+
+
+@error_handler_common
 def draw_fees():
     # Draws Recomended Fees image with properties specified in user configuration.
     

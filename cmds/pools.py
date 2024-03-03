@@ -11,9 +11,19 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
 import config
+from tools import error_handler_common
 from logger import main_logger
 
 
+
+'''
+Functions related to creation of diagram for Mining Pools database.
+
+Diagram based on chart values.
+'''
+
+
+@error_handler_common
 def draw_pools():
     # Draws Pools diagram with properties specified in user configuration.
     

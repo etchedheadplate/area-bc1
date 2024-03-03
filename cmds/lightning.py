@@ -18,7 +18,8 @@ from datetime import datetime, timedelta
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
+from tools import (error_handler_common,
+                   define_key_metric_movement,
                    calculate_percentage_change,
                    convert_timestamp_to_utc,
                    format_time_axis,
@@ -29,17 +30,20 @@ from tools import (define_key_metric_movement,
                    format_quantity)
 
 
+
 '''
 Functions related to creation of plot and markdown files for Lightning database.
 
 Plot based on chart values and made for whole number of days. Dates period based
 on API endpoint specified in user configuration. Background image depends on % of
-channels BTC capacity change (positive or negative). Axies have automatic appropriate
+channels BTC capacity change (positive or negative). Axes have automatic appropriate
 scaling to different dates periods.
 
 Markdown based on snapshot and chart values and formatted for user presentation.
 '''
 
+
+@error_handler_common
 def draw_lightning(days=config.days['lightning']):
     # Draws Lightning plot with properties specified in user configuration.
     
@@ -62,14 +66,15 @@ def draw_lightning(days=config.days['lightning']):
     if isinstance(days, int):
         days = 2 if days < 2 else days
         days = len(plot_df) - 1 if days > len(plot_df) - 1 else days
+        plot_file = plot['path'] + f'lightning_days_{days}.jpg'
     else:
         days = len(plot_df) - 1
-    plot_file = plot['path'] + f'lightning_days_{days}.jpg'
+        plot_file = plot['path'] + f'lightning_days_max.jpg'
 
     plot_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
     plot_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=days)).strftime('%Y-%m-%d')
 
-    # Specification of chart indexes for plot axies:
+    # Specification of chart indexes for plot axes:
     plot_index_last = len(plot_df)
     plot_index_first = len(plot_df) - days
     if plot_index_first < 1:
@@ -91,7 +96,7 @@ def draw_lightning(days=config.days['lightning']):
     # Set rolling avearge to 2% of plot interval:
     rolling_average = math.ceil(days * 0.02)
 
-    # Creation of plot axies:
+    # Creation of plot axes:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
     axis_channels = plot_df['channels'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
     axis_capacity = plot_df['capacity'].rolling(window=rolling_average).mean()[plot_index_first:plot_index_last]
@@ -118,7 +123,7 @@ def draw_lightning(days=config.days['lightning']):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines to change width depending on days period:
+    # Set axes lines to change width depending on days period:
     linewidth_capacity = 14 - days * 0.01
     if linewidth_capacity < 10:
         linewidth_capacity = 10
@@ -136,11 +141,11 @@ def draw_lightning(days=config.days['lightning']):
                             plot_colors['nodes_clearnet']]
     ax3.stackplot(axis_date, stacked_nodes_percentages.T, colors=stacked_nodes_colors)
 
-    # Set axies borders for better scaling:
+    # Set axes borders for better scaling:
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
     ax3.set_ylim(0, 100)
 
-    # Set axies text format:
+    # Set axes text format:
     ax1.xaxis.set_major_formatter(FuncFormatter(lambda x, _: format_time_axis(x, days)))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x / 100_000_000)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
@@ -150,7 +155,7 @@ def draw_lightning(days=config.days['lightning']):
     ax1.set_xticks(axis_date_ticks_positions)
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
-    # Set axies ticks text color, font and size:
+    # Set axes ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['capacity'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['channels'])
@@ -168,7 +173,7 @@ def draw_lightning(days=config.days['lightning']):
         label.set_fontproperties(plot_font)
         label.set_fontsize(1)
 
-    # Set axies order (higher value puts layer to the front):
+    # Set axes order (higher value puts layer to the front):
     ax1.set_zorder(3)
     ax2.set_zorder(2)
     ax3.set_zorder(1)
@@ -252,6 +257,7 @@ def draw_lightning(days=config.days['lightning']):
     return plot_file
 
 
+@error_handler_common
 def write_lightning(days=1):
     # Writes Lightning markdown with properties specified in user configuration.
 

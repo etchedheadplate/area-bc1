@@ -15,13 +15,28 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (define_key_metric_movement,
+from tools import (error_handler_common,
+                   define_key_metric_movement,
                    calculate_percentage_change,
                    format_amount,
                    format_currency,
                    format_percentage)
 
 
+
+'''
+Functions related to creation of plot and markdown files for ETFs database.
+
+Plot based on chart values and made for whole number of days. Dates period based
+on API endpoint specified in user configuration. Background image depends on % of
+BTC marketshare change (positive or negative). Axes have automatic appropriate
+scaling to different dates periods.
+
+Markdown based on snapshot and chart values and formatted for user presentation.
+'''
+
+
+@error_handler_common
 def draw_etfs(days=config.days['etfs']):
     # Draws ETFs plot with properties specified in user configuration.
     
@@ -57,9 +72,10 @@ def draw_etfs(days=config.days['etfs']):
     if isinstance(days, int):
         days = 2 if days < 2 else days
         days = len(days_df) - 1 if days > len(days_df) - 1 else days
+        plot_file = plot['path'] + f'etfs_days_{days}.jpg'
     else:
         days = len(days_df) - 1
-    plot_file = plot['path'] + f'etfs_days_{days}.jpg'
+        plot_file = plot['path'] + f'etfs_days_max.jpg'
 
     index_period_end = len(days_df) - 1
     index_period_start = index_period_end - days
@@ -85,7 +101,7 @@ def draw_etfs(days=config.days['etfs']):
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
-    # Creation of plot axies:
+    # Creation of plot axes:
     axis_date = areas_df['time'].str.slice(stop=-17)
     axis_date = axis_date[index_period_start:index_period_end].reset_index(drop=True)
     axis_holdings_btc = holdings_btc_df['tvl'][index_period_start:index_period_end]
@@ -104,7 +120,7 @@ def draw_etfs(days=config.days['etfs']):
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
 
-    # Set axies lines to change width depending on days period:
+    # Set axes lines to change width depending on days period:
     ax1.plot(axis_date, axis_holdings_btc, color=plot_colors['btc'], label="btc", alpha=0.9, linewidth=14)
     ax2.plot(axis_date, axis_holdings_usd, color=plot_colors['usd'], label="usd", linewidth=10)
 
@@ -112,11 +128,11 @@ def draw_etfs(days=config.days['etfs']):
     issuers_colors = plot_colors['areas']
     ax3.stackplot(axis_date, issuers_df.T, colors=issuers_colors)
 
-    # Set axies borders for better scaling:
+    # Set axes borders for better scaling:
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])
     ax3.set_ylim(0, 100)
 
-    # Set axies text format:
+    # Set axes text format:
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: format_amount(x)))
     
@@ -126,7 +142,7 @@ def draw_etfs(days=config.days['etfs']):
     ax1.set_xticklabels([axis_date[i] for i in date_range_indexes], rotation=10, ha='center')
     plt.setp(ax1.get_xticklabels(), rotation=10, ha='center')
 
-    # Set axies ticks text color, font and size:
+    # Set axes ticks text color, font and size:
     ax1.tick_params(axis="x", labelcolor=plot_colors['date'])
     ax1.tick_params(axis="y", labelcolor=plot_colors['btc'])
     ax2.tick_params(axis="y", labelcolor=plot_colors['usd'])
@@ -143,7 +159,7 @@ def draw_etfs(days=config.days['etfs']):
         label.set_fontproperties(plot_font)
         label.set_fontsize(1)
 
-    # Set axies order (higher value puts layer to the front):
+    # Set axes order (higher value puts layer to the front):
     ax1.set_zorder(3)
     ax2.set_zorder(2)
     ax3.set_zorder(1)
@@ -224,6 +240,7 @@ def draw_etfs(days=config.days['etfs']):
     return plot_file
 
 
+@error_handler_common
 def write_etfs(days=1):
     
     # User configuration related variables:

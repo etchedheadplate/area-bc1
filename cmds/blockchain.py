@@ -10,12 +10,22 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.append('.')
 import config
 from logger import main_logger
-from tools import (get_api_data,
+from tools import (error_handler_common,
+                   get_api_data,
                    format_quantity,
                    convert_timestamp_to_utc,
                    format_currency)
 
 
+
+'''
+Functions related to creation of image and markdown files for Blockhain data.
+
+Image and markdown files based on API response data.
+'''
+
+
+@error_handler_common
 def explore_address(address):
     
     address_base = 'https://blockchain.info/'
@@ -143,6 +153,7 @@ def explore_address(address):
     return address_image_file, address_markdown_file
 
 
+@error_handler_common
 def explore_block(block):
     
     block_base = 'https://blockchain.info/'
@@ -244,7 +255,8 @@ def explore_block(block):
     
     return block_image_file, block_markdown_file
 
-    
+
+@error_handler_common    
 def explore_transaction(transaction_hash):
     
     transaction_base = 'https://blockchain.info/'

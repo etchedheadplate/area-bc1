@@ -2,7 +2,6 @@
 *.pyo
 *.csv
 *.jpg
-*.png
 *.log
 *.json
 *.DS_Store
@@ -12,4 +11,5 @@ db/
 log/
 src/
 tests/
+venv/
 tests.py
