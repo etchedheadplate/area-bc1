@@ -3,7 +3,8 @@ from api.dune import TOKEN as dune_api_token
 
 # Main bot settings:
 bot_name = '@area_bc1_bot'
-bot_info = 'log/bot_info.log'
+bot_log_file = f'log/{bot_name[1:]}.log'
+bot_log_age = 30
 
 
 # Currency related variables:
