@@ -83,6 +83,7 @@ def market(update, context, days=False):
     market_image = f'db/market/{config.currency_pair}/market_days_{config.days["market"]}.jpg'
     market_text = f'db/market/{config.currency_pair}/market_days_1.md'
     if context.args:
+        print(context.args)
         days = convert_date_to_days(context.args[0])
         
     if days:    
@@ -512,7 +513,7 @@ def notifications(update, context):
         user_id = update.effective_user.id
         chat_id = update.effective_chat.id
         chat_member = context.bot.get_chat_member(chat_id, user_id)
-        if chat_member.status == 'creator':
+        if chat_member.status == 'administrator' or chat_member.status == 'creator':
             if context.args:
                 context.chat_data['chat_notification'] = update.message.text.split(' ')
                 main_logger.info('[bot] /notification command processed')
@@ -524,7 +525,7 @@ def notifications(update, context):
                     update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
                 return ConversationHandler.END
         else:
-            notifications_error_message = f'This command can only be used by Chat Owner'
+            notifications_error_message = f'This command can only be used by Chat Admins or Creator'
             update.message.reply_text(notifications_error_message, reply_markup=ReplyKeyboardRemove())
             return ConversationHandler.END
     else:
@@ -787,6 +788,7 @@ def select_notification_period(update, context):
             if re.match(time_pattern, parsed_time):
                 if parsed_unit.upper() in available_units and user_unit == 'H':
                     user_unit = 'hours' if user_number > 1 else 'hour'
+                    context.args.clear()
                     notification_job = schedule.every(user_number).hours.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
                     server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
                     notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]
@@ -806,6 +808,7 @@ def select_notification_period(update, context):
                     return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
                 elif parsed_unit.upper() in available_units and user_unit == 'D':
                     user_unit = 'days' if user_number > 1 else 'day'
+                    context.args.clear()
                     notification_job = schedule.every(user_number).days.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
                     server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
                     notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]

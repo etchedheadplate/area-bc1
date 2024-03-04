@@ -93,8 +93,8 @@ def draw_network(days=config.days['network']):
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
-    # Set rolling avearge to 2% of plot interval:
-    rolling_average = math.ceil(days * 0.02)
+    # Set rolling avearge to 10% of plot interval:
+    rolling_average = math.ceil(days * 0.1)
 
     # Creation of plot axes:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
@@ -111,7 +111,7 @@ def draw_network(days=config.days['network']):
     ax3 = ax1.twinx()
 
     # Set axes lines to change width depending on days period:
-    linewidth_trx_per_block = 12 - days * 0.01
+    linewidth_trx_per_block = 14 - days * 0.01
     if linewidth_trx_per_block < 8:
         linewidth_trx_per_block = 8
     linewidth_hashrate = 8 - days * 0.01
@@ -125,8 +125,8 @@ def draw_network(days=config.days['network']):
     # Set axes left and right borders to first and last date of period. Bottom
     # and top borders are set to 95% of plot values for better scaling.
     ax1.set_xlim(axis_date.iloc[0], axis_date.iloc[-1])  
-#    ax1.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
-#    ax2.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
+#    ax1.set_ylim(min(axis_trx_per_block) * 0.95, max(axis_trx_per_block) * 1.05)
+#    ax2.set_ylim(min(axis_hashrate) * 0.95, max(axis_hashrate) * 1.05)
     ax3.set_ylim(min(axis_price) * 0.95, max(axis_price) * 1.05)
 
     # Set axes text format:
@@ -328,11 +328,11 @@ def write_network(days=1):
                 f'24h Sent: {BTC_SENT}\n' \
                 f'24h Price: {BTC_PRICE}\n'
             info_transactions = \
-                f'Transactions: {TRANSACTIONS_MADE}\n' \
-                f'24h Avg: {TRANSACTIONS_BLOCK}/block\n' \
+                f'Blockchain: {BLOCKCHAIN_SIZE_NOW}\n' \
+                f'24h Trx: {TRANSACTIONS_MADE}\n' \
+                f'24h Avg: {TRANSACTIONS_BLOCK} trx/block\n' \
                 f'24h Cost: {TRANSACTIONS_COST}/trx\n'
             info_network = \
-                f'Blockchain Size: {BLOCKCHAIN_SIZE_NOW}\n' \
                 f'Current Target: {DIFFICULTY}\n' \
                 f'Retarget: {RETARGET_IN} blocks\n' \
                 f'Hashrate: {HASHRATE} TH/s\n'
@@ -369,7 +369,7 @@ def write_network(days=1):
 
 if __name__ == '__main__':
 
-    days = [-1, 0, 1, 2, 90, 400, 1000, 'max']
+    days = [-1, 0, 1, 2, 90, 180, 400, 1000, 'max']
     for day in days:
         draw_network(day)
         write_network(day)

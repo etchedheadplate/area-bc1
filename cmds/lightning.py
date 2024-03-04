@@ -353,7 +353,7 @@ def write_lightning(days=1):
 
         CAPACITY_NOW = format_amount(chart_capacity[now] / 100_000_000)
         CAPACITY_PAST = format_amount(chart_capacity[past] / 100_000_000)
-        CAPACITY_PAST_CHANGE = format_amount(chart_capacity[now] - chart_capacity[past])
+        CAPACITY_PAST_CHANGE = format_amount((chart_capacity[now] - chart_capacity[past]) / 100_000_000)
         CAPACITY_PAST_CHANGE_PERCENTAGE = format_percentage(calculate_percentage_change(chart_capacity[past], chart_capacity[now]))
 
         NODES_NOW = format_amount(chart_nodes[now])
@@ -401,7 +401,7 @@ def write_lightning(days=1):
 
 if __name__ == '__main__':
 
-    days = [-1, 0, 1, 2, 90, 'max']
+    days = [-1, 0, 1, 2, 30, 90, 180, 400, 'max']
     for day in days:
         draw_lightning(day)
         write_lightning(day)

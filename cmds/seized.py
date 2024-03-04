@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 import json
 import math
@@ -11,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
@@ -247,6 +249,7 @@ def write_seized(days=1):
     markdown_file = seized_chart_file_path + f'seized_days_{days}.md'
 
     # Parse chart to separate values:
+    LAST_UPDATED = f'UTC {datetime.utcfromtimestamp(os.path.getctime(seized_chart_file)).strftime("%Y-%m-%d %H:%M")}'
 
     TIME_NOW = seized_date[now][:10]
     TIME_PAST = seized_date[past][:10]
@@ -286,8 +289,8 @@ def write_seized(days=1):
         info_ATH = \
             f'ATH BTC: {ATH_BALANCE_BTC_DATE} ({ATH_BALANCE_BTC})\n' \
             f'ATH USD: {ATH_BALANCE_USD_DATE} ({ATH_BALANCE_USD})\n'
-        info_update = f'Last updated {TIME_NOW}\n'
-        Info_links = f'[Methology & additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
+        info_update = f'{LAST_UPDATED}\n'
+        Info_links = f'[Methology & Additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
             f'[More Countries & Companies](https://bitcointreasuries.net/)'
         
         # Write text to Markdown file:
@@ -301,7 +304,7 @@ def write_seized(days=1):
         info_balance_usd = \
             f'USD: {BALANCE_USD_PAST_AMOUNT} --> {BALANCE_USD_NOW_AMOUNT}\n' \
             f'{days}d: {BALANCE_USD_PAST_CHANGE_PERCENTAGE} ({BALANCE_USD_PAST_CHANGE})\n'
-        Info_links = f'[Methology & additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
+        Info_links = f'[Methology & Additional Stats](https://dune.com/21co/us-gov-bitcoin-holdings)\n' \
             f'[More Countries & Companies](https://bitcointreasuries.net/)'
         
         # Write text to Markdown file:

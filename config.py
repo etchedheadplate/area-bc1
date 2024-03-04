@@ -24,7 +24,7 @@ charts = {
             'params': {
                 'api_key': f'{dune_api_token}'
                 },
-            'parsed': False,
+           'parsed': False,
             'subdict': False
         },
         'file': {
@@ -338,11 +338,11 @@ updates = {
     },
     # API Dune.com:
     'etfs': { # chart + image + markdown
-        'minutes': 719,
+        'minutes': 1439,
         'seconds': 29
     },
     'seized': { # chart + image + markdown
-        'minutes': 1439,
+        'minutes': 4297,
         'seconds': 3
     }
 }

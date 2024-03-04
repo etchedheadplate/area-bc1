@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 import json
 import numpy as np
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FuncFormatter
 from matplotlib import font_manager
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
@@ -275,6 +277,8 @@ def write_etfs(days=1):
     markdown_file = etfs_chart_file_path + f'etfs_days_{days}.md'
 
     # Parse chart to separate values:
+    LAST_UPDATED = f'UTC {datetime.utcfromtimestamp(os.path.getctime(etfs_chart_file)).strftime("%Y-%m-%d %H:%M")}'
+
     TIME_NOW = holdings_btc_df['time'][now][:10]
     TIME_PAST = holdings_btc_df['time'][past][:10]
 
@@ -312,7 +316,7 @@ def write_etfs(days=1):
         info_ath = \
             f'ATH BTC: {HOLDINGS_BTC_ATH_DATE} ({HOLDINGS_BTC_ATH})\n' \
             f'ATH USD: {HOLDINGS_USD_ATH_DATE} ({HOLDINGS_USD_ATH})\n'
-        info_update = f'Last updated {TIME_NOW}\n'
+        info_update = f'{LAST_UPDATED}\n'
         Info_links = f'[Source & Additional Stats](https://dune.com/hildobby/btc-etfs)'
         
         # Write text to Markdown file:
