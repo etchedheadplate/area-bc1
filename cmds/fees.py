@@ -126,7 +126,7 @@ def draw_fees():
 
         image.save(fees_file)
         
-        main_logger.info(f'[image] recommended fees drawn')
+        main_logger.info(f'{fees_file} drawn')
 
         return fees_file
 

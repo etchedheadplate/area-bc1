@@ -63,7 +63,7 @@ def write_news():
                 markdown.write(f'{news_count}. [{name}]({link}) | {source}\n\n')
         markdown.write(f'\nPowered by [Coinqueror.io](https://coinqueror.io/)')
 
-    main_logger.info(f'[markdown] news text written')
+    main_logger.info(f'{news_file} written')
 
     return news_file
 

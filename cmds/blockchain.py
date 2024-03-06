@@ -132,7 +132,7 @@ def explore_address(address):
             address_text_color = address_params.get('text_color')
             address_draw.text(address_position, address_text, font=address_font, fill=address_text_color)
     address_image.save(address_image_file)
-    main_logger.info(f'[image] address {address} image drawn')
+    main_logger.info(f'{address_image_file} drawn')
 
     # Creation of address markdown file:
     with open (address_markdown_file, 'w') as address_markdown:
@@ -148,7 +148,7 @@ def explore_address(address):
             f'[blockchain.com](https://www.blockchain.com/explorer/addresses/btc/{address})\n' \
             f'[mempool.space](https://mempool.space/address/{address})'
         address_markdown.write(f'```Address\n{address_text}\n{address_transactions}```{address_explorers}')
-        main_logger.info(f'[markdown] address {address} text written')
+        main_logger.info(f'{address_markdown_file} written')
 
     return address_image_file, address_markdown_file
 
@@ -238,7 +238,7 @@ def explore_block(block):
             block_text_color = block_params.get('text_color')
             block_draw.text(block_position, block_text, font=block_font, fill=block_text_color)
     block_image.save(block_image_file)
-    main_logger.info(f'[image] block {block} image drawn')
+    main_logger.info(f'{block_image_file} drawn')
 
     # Creation of block markdown file:
     with open (block_markdown_file, 'w') as block_markdown:
@@ -251,7 +251,7 @@ def explore_block(block):
             f'[blockchain.com](https://www.blockchain.com/explorer/blocks/btc/{block})\n' \
             f'[mempool.space](https://mempool.space/block/{BLOCK_HASH})'
         block_markdown.write(f'```Block\n{block_text}```{block_explorers}')
-        main_logger.info(f'[markdown] block {block} text written')
+        main_logger.info(f'{block_markdown_file} written')
     
     return block_image_file, block_markdown_file
 
@@ -392,7 +392,7 @@ def explore_transaction(transaction_hash):
             transaction_text_color = transaction_params.get('text_color')
             transaction_draw.text(transaction_position, transaction_text, font=transaction_font, fill=transaction_text_color)
     transaction_image.save(transaction_image_file)
-    main_logger.info(f'[image] transaction {transaction_hash} image drawn')
+    main_logger.info(f'{transaction_image_file} drawn')
 
     # Creation of transaction markdown file:
     with open (transaction_markdown_file, 'w') as transaction_markdown:
@@ -412,7 +412,7 @@ def explore_transaction(transaction_hash):
             f'[blockchain.com](https://www.blockchain.com/explorer/transactions/btc/{transaction_hash})\n' \
             f'[mempool.space](https://mempool.space/tx/{transaction_hash})'
         transaction_markdown.write(f'```Transaction\n{transaction_text}\n{transaction_inputs}\n{transaction_outputs}```{transaction_explorers}')
-        main_logger.info(f'[markdown] transaction {transaction_hash} text written')
+        main_logger.info(f'{transaction_markdown_file} written')
     
     return transaction_image_file, transaction_markdown_file
 

@@ -227,7 +227,7 @@ def draw_network(days=config.days['network']):
     title_buffer.close()
     plot_buffer.close()
 
-    main_logger.info(f'[image] network (days {days}) plot drawn')
+    main_logger.info(f'{plot_file} drawn')
 
     return plot_file
 
@@ -360,7 +360,7 @@ def write_network(days=1):
             with open (markdown_file, 'w') as markdown:
                 markdown.write(f'```Network\n{info_period}\n{info_trx_per_block}\n{info_hashrate}\n{info_blockchain_size}\n{info_price}```')
 
-    main_logger.info(f'[markdown] network (days {days}) text written')
+    main_logger.info(f'{markdown_file} written')
 
     return markdown_file
 

@@ -51,7 +51,7 @@ def start(update, context):
     else:
         not_welcome_message = f'You could get here only through chatting with bot in private or in groups. Strange 🤔'
         update.message.reply_text(not_welcome_message, reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /start command processed')
+    main_logger.info('/start processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -67,12 +67,12 @@ def about(update, context):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /about command processed')
+    main_logger.info('/about processed')
     return ConversationHandler.END
 
 @error_handler_common
 def cancel(update, context):
-    main_logger.info('[bot] /cancel command processed')
+    main_logger.info('/cancel processed')
     return start(update, context)
 
 
@@ -113,7 +113,7 @@ def market(update, context, days=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /market command processed')
+    main_logger.info('/market processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -156,7 +156,7 @@ def network(update, context, days=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] network command processed')
+    main_logger.info('network processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -199,7 +199,7 @@ def lightning(update, context, days=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /lightning command processed')
+    main_logger.info('/lightning processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -242,7 +242,8 @@ def etfs(update, context, days=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /etfs command processed')
+    main_logger.info('/etfs processed')
+    return ConversationHandler.END
 
 @error_handler_common
 def seized(update, context, days=False):
@@ -284,7 +285,8 @@ def seized(update, context, days=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /seized command processed')
+    main_logger.info('/seized processed')
+    return ConversationHandler.END
 
 
 # Data functions (commands) to explore blockchain:
@@ -319,7 +321,7 @@ def address(update, context, data=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /address command processed')
+    main_logger.info('/address processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -352,7 +354,7 @@ def block(update, context, data=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /block command processed')
+    main_logger.info('/block processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -385,7 +387,7 @@ def transaction(update, context, data=False):
                                    caption=text_caption,
                                    parse_mode=ParseMode.MARKDOWN,
                                    reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /transaction command processed')
+    main_logger.info('/transaction processed')
     return ConversationHandler.END
 
 
@@ -400,7 +402,7 @@ def fees(update, context):
                                 photo=img_data,
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /fees command processed')
+    main_logger.info('/fees processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -412,7 +414,7 @@ def exchanges(update, context):
                                 photo=img_data,
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /exchanges command processed')
+    main_logger.info('/exchanges processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -424,7 +426,7 @@ def pools(update, context):
                                 photo=img_data,
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply_markup=ReplyKeyboardRemove())
-    main_logger.info('[bot] /pools command processed')
+    main_logger.info('/pools processed')
     return ConversationHandler.END
 
 @error_handler_common
@@ -433,7 +435,7 @@ def news(update, context):
     with open(news_text, 'r') as text_file:
         news_message = text_file.read()
         context.bot.send_message(chat_id=update.effective_chat.id, text=news_message, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-    main_logger.info('[bot] /news command processed')
+    main_logger.info('/news processed')
     return ConversationHandler.END
 
 
@@ -451,13 +453,13 @@ def blockchain(update, context):
         select_blockchain_command_keyboard = [['Address', 'Block'], ['Transaction', '🗿 Cancel']]
         blockchain_command_message = 'Please select blockchain data to explore:'
         update.message.reply_text(blockchain_command_message, reply_markup=ReplyKeyboardMarkup(select_blockchain_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
-        main_logger.info('[bot] /blockchain command processed')
+        main_logger.info('/blockchain processed')
         return SELECTING_BLOCKCHAIN_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
         if context.args:
             context.chat_data['chat_blockchain_command'] = update.message.text.split(' ')
             if len(context.chat_data['chat_blockchain_command']) >= 3:
-                main_logger.info('[bot] /blockchain command processed')
+                main_logger.info('/blockchain processed')
                 return select_blockchain_command(update, context)
             else:
                 pass
@@ -479,13 +481,13 @@ def history(update, context):
         select_history_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', '🗿 Cancel']]
         history_command_message = 'You can get data for custom history period. Bot will show you plot and key metrics change. Please select data:'
         update.message.reply_text(history_command_message, reply_markup=ReplyKeyboardMarkup(select_history_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
-        main_logger.info('[bot] /history command processed')
+        main_logger.info('/history processed')
         return SELECTING_HISTORY_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
         if context.args:
             context.chat_data['chat_history_command'] = update.message.text.split(' ')
             if len(context.chat_data['chat_history_command']) >= 3:
-                main_logger.info('[bot] /history command processed')
+                main_logger.info('/history processed')
                 return select_history_command(update, context)
             else:
                 pass
@@ -507,7 +509,7 @@ def notifications(update, context):
         select_notification_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'News'], ['Pools', 'CEX', 'Fees'], ['⚙️ Manage', '🗿 Cancel']]
         notifications_command_message = 'You can setup bot to send you regular notifications. Please choose data to be sent:'
         update.message.reply_text(notifications_command_message, reply_markup=ReplyKeyboardMarkup(select_notification_command_keyboard, resize_keyboard=True, one_time_keyboard=True))
-        main_logger.info('[bot] /notification command processed')
+        main_logger.info('/notification processed')
         return SELECTING_NOTIFICATION_COMMAND
     elif chat_type == 'group' or chat_type == 'supergroup':
         user_id = update.effective_user.id
@@ -516,7 +518,7 @@ def notifications(update, context):
         if chat_member.status == 'administrator' or chat_member.status == 'creator':
             if context.args:
                 context.chat_data['chat_notification'] = update.message.text.split(' ')
-                main_logger.info('[bot] /notification command processed')
+                main_logger.info('/notification processed')
                 return select_notification_command(update, context)
             else:
                 notification_hint = 'src/text/hint_group_notifications.md'
@@ -546,6 +548,7 @@ def select_blockchain_command(update, context):
     
     # Command parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_BLOCKCHAIN_COMMAND state')
         selected_blockchain_command_name = update.message.text
         select_blockchain_command_keyboard = [['Address', 'Block'], ['Transaction', '🗿 Cancel']]
         if selected_blockchain_command_name in set(config.keyboard['blockchain']):
@@ -554,9 +557,10 @@ def select_blockchain_command(update, context):
             with open(select_blockchain_period_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
-            main_logger.info('[bot] entering SELECTING_BLOCKCHAIN_DATA state')
+            main_logger.info('exit SELECTING_BLOCKCHAIN_COMMAND state')
             return SELECTING_BLOCKCHAIN_DATA
         elif selected_blockchain_command_name == '🗿 Cancel':
+            main_logger.info('exit SELECTING_BLOCKCHAIN_COMMAND state')
             return cancel(update, context)
         else:
             error_wrong_command_message = f'Wrong input, please select data to explore:'
@@ -583,6 +587,7 @@ def select_blockchain_data(update, context):
 
     # Data parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_BLOCKCHAIN_DATA state')
         selected_blockchain_data = update.message.text.split(' ')[0]
         selected_blockchain_command = context.chat_data['selected_blockchain_command']
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -598,6 +603,7 @@ def select_blockchain_data(update, context):
     
     blockchain_function = globals().get(selected_blockchain_command)
     blockchain_command = blockchain_function(update, context, data=selected_blockchain_data)
+    main_logger.info('exit SELECTING_BLOCKCHAIN_DATA state')
     return blockchain_command
 
 @error_handler_common
@@ -606,6 +612,7 @@ def select_history_command(update, context):
 
     # Command parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_HISTORY_COMMAND state')
         selected_history_command_name = update.message.text
         select_history_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', '🗿 Cancel']]
         select_history_date_keyboard = [['7 days', '30 days', '90 days'], ['365 days', 'All-Time', '↩️ Go Back']]
@@ -615,9 +622,10 @@ def select_history_command(update, context):
             with open(select_history_period_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, resize_keyboard=True, one_time_keyboard=True))
-            main_logger.info('[bot] entering SELECTING_HISTORY_PERIOD state')
+            main_logger.info('exit SELECTING_HISTORY_COMMAND state')
             return SELECTING_HISTORY_PERIOD
         elif selected_history_command_name == '🗿 Cancel':
+            main_logger.info('exit SELECTING_HISTORY_COMMAND state')
             return cancel(update, context)
         else:
             error_wrong_command_message = f'Wrong input, please select data to view:'
@@ -644,9 +652,11 @@ def select_history_period(update, context):
 
     # Period parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_HISTORY_PERIOD state')
         select_history_date_keyboard = [['7 days', '30 days', '90 days'], ['365 days', 'All-Time', '↩️ Go Back']]
         selected_period = update.message.text
         if selected_period == '↩️ Go Back':
+            main_logger.info('exit SELECTING_HISTORY_PERIOD state')
             return history(update, context)
         else:
             selected_history_command = context.chat_data['selected_history_command']
@@ -655,7 +665,6 @@ def select_history_period(update, context):
             if selected_history_period == 'error':
                 error_wrong_period = f'Wrong input, please follow example:'
                 update.message.reply_text(error_wrong_period, reply_markup=ReplyKeyboardMarkup(select_history_date_keyboard, resize_keyboard=True, one_time_keyboard=True))
-                main_logger.info('[bot] entering SELECTING_HISTORY_PERIOD state')
                 return SELECTING_HISTORY_PERIOD
     elif chat_type == 'group' or chat_type == 'supergroup':
         selected_period = 'max' if selected_period == 'All-Time' else context.chat_data['chat_history_command'][2]
@@ -667,6 +676,7 @@ def select_history_period(update, context):
     
     history_function = globals().get(selected_history_command)
     history_command = history_function(update, context, days=selected_history_period)
+    main_logger.info('exit SELECTING_HISTORY_PERIOD state')
     return history_command
 
 @error_handler_common
@@ -675,6 +685,7 @@ def select_notification_command(update, context):
 
     # Command parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_NOTIFICATION_COMMAND state')
         selected_notification_command_name = update.message.text
         select_notification_command_keyboard = [['Market', 'Network', 'Lightning'], ['ETFs', 'Seized', 'News'], ['Pools', 'CEX', 'Fees'], ['⚙️ Manage', '🗿 Cancel']]
         select_notification_period_keyboard = [['1 hour', '3 hours', '6 hours'], ['1 day', '7 days', '↩️ Go Back']]
@@ -703,24 +714,22 @@ def select_notification_command(update, context):
                 update.message.reply_text(error_notification_exists)
                 return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
             elif chat_type == 'group' or chat_type == 'supergroup':
-                main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
                 return select_notification_period(update, context)
             else:
                 select_notification_message = 'src/text/hint_nested_notifications.md'
             with open(select_notification_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
-            main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
+            main_logger.info('exit SELECTING_NOTIFICATION_COMMAND state')
             return SELECTING_NOTIFICATION_PERIOD
         elif chat_type == 'group' or chat_type == 'supergroup':
-            main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
             return select_notification_period(update, context)
         else:
             select_notification_message = 'src/text/hint_nested_notifications.md'
             with open(select_notification_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
                 update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_notification_period_keyboard, resize_keyboard=True, one_time_keyboard=True))
-            main_logger.info('[bot] entering SELECTING_NOTIFICATION_PERIOD state')
+            main_logger.info('exit SELECTING_NOTIFICATION_COMMAND state')
             return SELECTING_NOTIFICATION_PERIOD
     elif selected_notification_command_name == '⚙️ Manage' or selected_notification_command_name == 'manage':
         if 'scheduled_notifications' in context.chat_data.keys():
@@ -735,12 +744,12 @@ def select_notification_command(update, context):
                 return ConversationHandler.END
             else:
                 update.message.reply_text(manage_remove_message, reply_markup=ReplyKeyboardMarkup(manage_notification_keyboard, resize_keyboard=True, one_time_keyboard=True))
-                main_logger.info('[bot] entering REMOVING_NOTIFICATION state')
+                main_logger.info('exit SELECTING_NOTIFICATION_COMMAND state')
                 return REMOVING_NOTIFICATION
         else:
             error_no_notifications_message = 'You have no notifications'
             update.message.reply_text(error_no_notifications_message)
-            main_logger.info('[bot] notifications schedule cleared')
+            main_logger.info('notifications schedule cleared')
             return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
     elif selected_notification_command_name == '🗿 Cancel':
         return cancel(update, context) if chat_type == 'private' else ConversationHandler.END
@@ -762,6 +771,7 @@ def select_notification_period(update, context):
 
     # Period parsed diffirently for private and group chats:
     if chat_type == 'private':
+        main_logger.info('enter SELECTING_NOTIFICATION_PERIOD state')
         selected_period = update.message.text
         selected_notification_command_name = context.chat_data['selected_notification_command_name']
         select_notification_period_keyboard = [['1 hour', '3 hours', '6 hours'], ['1 day', '7 days', '↩️ Go Back']]
@@ -788,7 +798,8 @@ def select_notification_period(update, context):
             if re.match(time_pattern, parsed_time):
                 if parsed_unit.upper() in available_units and user_unit == 'H':
                     user_unit = 'hours' if user_number > 1 else 'hour'
-                    context.args.clear()
+                    if chat_type == 'group' or chat_type == 'supergroup':
+                        context.args.clear()
                     notification_job = schedule.every(user_number).hours.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
                     server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
                     notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]
@@ -804,11 +815,13 @@ def select_notification_period(update, context):
                     update.message.reply_text(notification_set_message)
                     user_id = update.effective_user.id
                     chat_id = update.effective_chat.id
-                    main_logger.info(f'[bot] notification for {selected_notification_command_name} set by user {user_id} in chat {chat_id}')
+                    main_logger.info('exit SELECTING_NOTIFICATION_PERIOD state')
+                    main_logger.info(f'notification for {selected_notification_command_name} set by user {user_id} in chat {chat_id}')
                     return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
                 elif parsed_unit.upper() in available_units and user_unit == 'D':
                     user_unit = 'days' if user_number > 1 else 'day'
-                    context.args.clear()
+                    if chat_type == 'group' or chat_type == 'supergroup':
+                        context.args.clear()
                     notification_job = schedule.every(user_number).days.at(parsed_time).do(functools.partial(user_command, update=update, context=context))
                     server_utc = dt.datetime.utcnow() - dt.datetime.now() + dt.timedelta(seconds=1) - dt.timedelta(microseconds=dt.datetime.utcnow().microsecond)
                     notification_next_run_utc = str(notification_job.next_run + server_utc)[:19]
@@ -824,7 +837,8 @@ def select_notification_period(update, context):
                     update.message.reply_text(notification_set_message)
                     user_id = update.effective_user.id
                     chat_id = update.effective_chat.id
-                    main_logger.info(f'[bot] notification for {selected_notification_command_name} set by user {user_id} in chat {chat_id}')
+                    main_logger.info(f'notification for {selected_notification_command_name} set by user {user_id} in chat {chat_id}')
+                    main_logger.info('exit SELECTING_NOTIFICATION_PERIOD state')
                     return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
                 elif chat_type == 'private':
                     notification_wrong_unit = 'Period must be in days or hours'
@@ -861,6 +875,7 @@ def select_notification_period(update, context):
 def remove_notification(update, context):
     chat_type = update.effective_chat.type
     if chat_type == 'private':
+        main_logger.info('enter REMOVING_NOTIFICATION state')
         remove_notification_number = update.message.text
         manage_notification_keyboard = [['🗑 Remove All', '↩️ Go Back']]
     elif chat_type == 'group' or chat_type == 'supergroup':
@@ -877,8 +892,10 @@ def remove_notification(update, context):
             update.message.reply_text(remove_notification_message)
             if len(context.chat_data['notification_jobs']) == 0:
                 context.chat_data.pop('notification_jobs')
+                main_logger.info('exit REMOVING_NOTIFICATION state')
                 return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
             else:
+                main_logger.info('exit REMOVING_NOTIFICATION state')
                 return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
         elif remove_notification_number == '🗑 Remove All' or remove_notification_number == 'all':
             remove_notification_message = 'You will no longer recieve any notifications.'
@@ -887,8 +904,10 @@ def remove_notification(update, context):
             context.chat_data.pop('notification_jobs')
             context.chat_data.pop('scheduled_notifications')
             update.message.reply_text(remove_notification_message)
+            main_logger.info('exit REMOVING_NOTIFICATION state')
             return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
         elif remove_notification_number == '↩️ Go Back':
+            main_logger.info('exit REMOVING_NOTIFICATION state')
             return notifications(update, context) if chat_type == 'private' else ConversationHandler.END
         elif chat_type == 'private':
             error_wrong_notification_number = f'Please send number from 1 to {len(context.chat_data["scheduled_notifications"])}:'
@@ -950,7 +969,7 @@ def start_bot():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     dispatcher.add_handler(handler)
-    main_logger.info('[bot] area bc1 started')
+    main_logger.info(f'{config.bot_name} started')
     updater_thread = threading.Thread(target=updater.start_polling)
     updater_thread.start()
 

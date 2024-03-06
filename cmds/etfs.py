@@ -237,7 +237,7 @@ def draw_etfs(days=config.days['etfs']):
     title_buffer.close()
     areas_buffer.close()
     
-    main_logger.info(f'[image] etfs (days {days}) plot drawn')
+    main_logger.info(f'{plot_file} drawn')
 
     return plot_file
 
@@ -336,7 +336,7 @@ def write_etfs(days=1):
         with open (markdown_file, 'w') as markdown:
             markdown.write(f'```ETFs\n{info_period}\n{info_holdings_btc}\n{info_holdings_usd}```{Info_links}')
     
-    main_logger.info(f'[markdown] etfs (days {days}) text written')
+    main_logger.info(f'{markdown_file} written')
 
     return markdown_file
 

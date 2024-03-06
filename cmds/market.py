@@ -263,7 +263,7 @@ def draw_market(days=config.days['market']):
     title_buffer.close()
     plot_buffer.close()
 
-    main_logger.info(f'[image] market (days {days}) plot drawn')
+    main_logger.info(f'{plot_file} drawn')
 
     return plot_file
 
@@ -490,7 +490,7 @@ def write_market(days=1):
                 with open (markdown_file, 'w') as markdown:
                     markdown.write(f'```Market\n{info_period}\n{info_price}\n{info_total_volume}\n{info_limitations}\n{info_market_cap}```')
 
-    main_logger.info(f'[markdown] market (days {days}) text written')
+    main_logger.info(f'{markdown_file} written')
 
     return markdown_file
 

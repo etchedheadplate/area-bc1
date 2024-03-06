@@ -128,7 +128,7 @@ def draw_pools():
     miners_buffer.close()
     diagram_buffer.close()
 
-    main_logger.info(f'[image] pools diagram drawn')
+    main_logger.info(f'{diagram_file} drawn')
 
     return diagram_file
 

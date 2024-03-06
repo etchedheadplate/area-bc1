@@ -252,7 +252,7 @@ def draw_lightning(days=config.days['lightning']):
     title_buffer.close()
     plot_buffer.close()
     
-    main_logger.info(f'[image] lightning (days {days}) plot drawn')
+    main_logger.info(f'{plot_file} drawn')
 
     return plot_file
 
@@ -392,7 +392,7 @@ def write_lightning(days=1):
             with open (markdown_file, 'w') as markdown:
                 markdown.write(f'```Lightning\n{info_period}\n{info_channels}\n{info_capacity}\n{info_nodes}```')
 
-        main_logger.info(f'[markdown] lightning (days {days}) text written')
+        main_logger.info(f'{markdown_file} written')
 
         return markdown_file
 
