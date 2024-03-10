@@ -369,7 +369,7 @@ def write_network(days=1):
 
 if __name__ == '__main__':
 
-    days = [-1, 0, 1, 2, 90, 180, 400, 1000, 'max']
+    days = [-1, 0, 1, 2, 14, 30, 90, 180, 400, 1000, 'max']
     for day in days:
         draw_network(day)
         write_network(day)

@@ -635,9 +635,9 @@ images = {
 
 days = {
     'etfs': 'max',
-    'lightning': 90,
+    'lightning': 30,
     'market': 1,
-    'network': 180,
+    'network': 30,
     'seized': 'max'
 }
 

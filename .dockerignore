@@ -1,0 +1,20 @@
+# flyctl launch added from .gitignore
+**/*.pyc
+**/*.pyo
+**/*.csv
+**/*.jpg
+**/*.psd
+**/*.log
+**/*.json
+**/*.DS_Store
+**/__pycache__
+**/db
+**/src/image/donate
+**/src/image/logo
+**/src/image/mpv
+**/src/image/telegram
+**/src/image/welcome
+**/tests
+**/venv
+**/tests.py
+fly.toml

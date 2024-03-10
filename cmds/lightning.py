@@ -93,8 +93,8 @@ def draw_lightning(days=config.days['lightning']):
     background_coordinates = plot_background[f'{background}']['coordinates']
     background_colors = plot_background[f'{background}']['colors']
 
-    # Set rolling avearge to 2% of plot interval:
-    rolling_average = math.ceil(days * 0.02)
+    # Set rolling avearge to 10% of plot interval:
+    rolling_average = math.ceil(days * 0.1)
 
     # Creation of plot axes:
     axis_date = plot_df['date'][plot_index_first:plot_index_last]
@@ -401,7 +401,7 @@ def write_lightning(days=1):
 
 if __name__ == '__main__':
 
-    days = [-1, 0, 1, 2, 30, 90, 180, 400, 'max']
+    days = [-1, 0, 1, 2, 14, 30, 90, 180, 400, 'max']
     for day in days:
         draw_lightning(day)
         write_lightning(day)
