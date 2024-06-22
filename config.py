@@ -349,7 +349,7 @@ updates = {
 }
 
 
-# Dictionaries for creation of images:
+# Dictionary for creation of images:
 images = {
     'address': {
         'path': 'db/blockchain/address/',
@@ -633,12 +633,13 @@ images = {
     },
 }
 
+# Dictionary with default period of days for plots:
 days = {
-    'etfs': 'max',
+    'etfs': 90,
     'lightning': 30,
     'market': 1,
     'network': 30,
-    'seized': 'max'
+    'seized': 365
 }
 
 # Dictionary for connecting user messgaes with bot commands:
