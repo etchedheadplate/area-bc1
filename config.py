@@ -113,27 +113,38 @@ charts = {
     },
     'market_days_max': {
         'api': {
-            'base': 'https://api.coingecko.com/api/v3/',
-            'endpoints': [f'coins/{currency_crypto}/market_chart'],
+            'base': 'https://api.blockchain.info/',
+            'endpoints': [
+                'charts/market-price',
+                'charts/trade-volume',
+#                'charts/market-cap'
+                ],
             'extention': 'json',
             'params': {
-                    'vs_currency': f'{currency_vs}',
-                    'days': 'max',
-                    'interval': '',
-                    'precision': '2'
+                'timespan': '6years',
+                'rollingAverage': '1days',
+                'start': '',
+                'format': 'json'
                 },
-            'parsed': 'list',
-            'subdict': False
+            'parsed': 'dict',
+            'subdict': 'values'
         },
         'file': {
             'path': f'db/market/{currency_pair}/',
             'name': 'market_days_max.csv',
             'columns': {
-                f'coins/{currency_crypto}/market_chart': {
-                    'prices': 'price',
-                    'market_caps': 'market_cap',
-                    'total_volumes': 'total_volume'
-                }
+                'charts/market-price': {
+                    'x': 'date',
+                    'y': 'price'
+                },
+                'charts/trade-volume': {
+                    'x': 'date',
+                    'y': 'total_volume'
+                },
+#                'charts/market-cap': {
+#                    'x': 'date',
+#                    'y': 'market_cap'
+#                }
             }
         }
     },
@@ -510,7 +521,8 @@ images = {
                 'range': (-float('inf'), 0),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#ffd60a', (1900, 65), (1900, 105)),
+                    'api_day': ('#ffd60a', (1900, 65), (1900, 105)),
+                    'api_history': ('#CACACA', (1900, 65), (1900, 105)),
                     'metric': ('#e5383b', (1900, 155), (1900, 195))
                 }
             },
@@ -519,7 +531,8 @@ images = {
                 'range': (0, float('inf')),
                 'coordinates': (25, 5),
                 'colors': {
-                    'api': ('#ffd60a', (1900, 805), (1900, 845)),
+                    'api_day': ('#ffd60a', (1900, 805), (1900, 845)),
+                    'api_history': ('#CACACA', (1900, 805), (1900, 845)),
                     'metric': ('#2BD713', (1900, 895), (1900, 935))
                     
                 }
