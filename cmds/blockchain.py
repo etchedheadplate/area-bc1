@@ -175,7 +175,7 @@ def explore_block(block):
     BLOCK_HASH = block_response['hash']
     BLOCK_MERKLE = block_response['mrkl_root']
     BLOCK_BITS = block_response['bits']
-    BLOCK_NOUNCE = block_response['nonce']
+    BLOCK_NONCE = block_response['nonce']
     BLOCK_TRANSACTIONS_COUNT = format_quantity(block_response['n_tx'])
     BLOCK_SIZE = format_quantity(block_response['size'])
     BLOCK_WEIGHT = format_quantity(block_response['weight'])
@@ -244,7 +244,7 @@ def explore_block(block):
     with open (block_markdown_file, 'w') as block_markdown:
         block_text = f'Height: {BLOCK}\n' \
             f'Bits: {BLOCK_BITS}\n' \
-            f'Nounce: {BLOCK_NOUNCE}\n' \
+            f'Nonce: {BLOCK_NONCE}\n' \
             f'\nHash: {BLOCK_HASH}\n' \
             f'\nMerkle: {BLOCK_MERKLE}\n'
         block_explorers = f'[blockstream.info](https://blockstream.info/block/{BLOCK_HASH})\n' \
