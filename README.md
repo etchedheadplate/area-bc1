@@ -16,7 +16,7 @@ pip3 install -r requirements.txt
 python3 bot.py
 ```
 
-# Known issues:
+# Known Issues:
 1. Some problems related to API data providers inconsistency:
     - Custom plot periods start date might not be precise because some API providers might not have history data for some days.
     - Lightning plot might miss data for some days from one update to another (self-corrects with database updates every ~2 hours).
