@@ -18,9 +18,9 @@ python3 bot.py
 
 # Known issues:
 1. Some problems related to API data providers inconsistency:
-- Custom plot periods start date might not be precise because some API providers might not have history data for some days.
-- Lightning plot might miss data for some days from one update to another (self-corrects with database updates every ~2 hours).
-- CEX diagram might miss some exchanges from one update to another (self-corrects with database updates every ~15 minutes).
+    - Custom plot periods start date might not be precise because some API providers might not have history data for some days.
+    - Lightning plot might miss data for some days from one update to another (self-corrects with database updates every ~2 hours).
+    - CEX diagram might miss some exchanges from one update to another (self-corrects with database updates every ~15 minutes).
 2. Functions for plot image generation use diffirent linewidth and rolling average for better user presentation, namely pandas `.rolling` method. Due to this method's behavior plot lines might not fully connect to plot borders.
 3. User notifications are saved only in bot runtime and not stored in separate database for privacy reasons. In case of VPS instance imperfect uptime bot will be re-launched, and user should set notifications again manually.
 
