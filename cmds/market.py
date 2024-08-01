@@ -233,7 +233,7 @@ def draw_market(days=config.days['market']):
     title_font = plot['font']
 
     # Current and history charts have diffirent API providers:
-    if days == 1:
+    if days <= 90:
         title_list = [
                 [{'text': 'coingecko.com', 'position': background_colors['api_day'][1], 'font_size': 36, 'text_color': background_colors['api_day'][0]},
                 {'text': f'{config.currency_pair} market trade', 'position': background_colors['api_day'][2], 'font_size': 25, 'text_color': background_colors['api_day'][0]}],
@@ -287,13 +287,14 @@ def write_market(days=1):
     snapshot = config.snapshots['market']
     snapshot_file_path = snapshot['file']['path']
     snapshot_file_name = snapshot['file']['name']
+    snapshot_subdict = snapshot['file']['subdict']
     snapshot_file = snapshot_file_path + snapshot_file_name
 
     if days == 1:
         markdown_file = snapshot_file_path + f'market_days_{days}.md'
 
         with open (snapshot_file, 'r') as json_file:
-            snapshot_data = json.load(json_file)
+            snapshot_data = json.load(json_file)[f'{snapshot_subdict}']
 
             # Parse snapshot to separate values:
             LAST_UPDATED = format_utc(snapshot_data['last_updated'])
@@ -367,7 +368,7 @@ def write_market(days=1):
         chart_total_volume = chart_data['total_volume'][chart_data_index_first : chart_data_index_last]
 
         with open (snapshot_file, 'r') as json_file:
-            snapshot_data = json.load(json_file)
+            snapshot_data = json.load(json_file)[f'{snapshot_subdict}']
 
             # Parse snapshot and chart to separate values:
             SNAPSHOT_DATE = format_utc(snapshot_data['last_updated'])[:-9]
@@ -428,7 +429,7 @@ def write_market(days=1):
 
 if __name__ == '__main__':
     
-    days = [0, 1, 2, 30, 90, 'max']
+    days = [0, 1, 2, 30, 89, 90, 91, 'max']
     for day in days:
         draw_market(day)
         write_market(day)
@@ -439,3 +440,4 @@ if __name__ == '__main__':
         day = convert_date_to_days(date)
         draw_market(day)
         write_market(day)
+        

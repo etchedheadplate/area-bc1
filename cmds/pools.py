@@ -1,6 +1,7 @@
 import io
 import os
 import sys
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
@@ -11,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.append('.')
 import config
-from tools import error_handler_common
+from tools import error_handler_common, format_quantity
 from logger import main_logger
 
 
@@ -19,7 +20,7 @@ from logger import main_logger
 '''
 Functions related to creation of diagram for Mining Pools database.
 
-Diagram based on chart values.
+Diagram based on snapshot values.
 '''
 
 
@@ -28,12 +29,13 @@ def draw_pools():
     # Draws Pools diagram with properties specified in user configuration.
     
     # User configuration related variables:
-    chart = config.charts['pools']
-    chart_file_path = chart['file']['path']
-    chart_file_name = chart['file']['name']
-    chart_file = chart_file_path + chart_file_name
-    chart_time_till = datetime.utcfromtimestamp(os.path.getctime(chart_file)).strftime('%Y-%m-%d')
-    chart_time_from = (datetime.utcfromtimestamp(os.path.getctime(chart_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
+    snapshot = config.snapshots['pools']
+    snapshot_file_path = snapshot['file']['path']
+    snapshot_file_name = snapshot['file']['name']
+    snapshot_subdict = snapshot['file']['subdict']
+    snapshot_file = snapshot_file_path + snapshot_file_name
+    snapshot_time_till = datetime.utcfromtimestamp(os.path.getctime(snapshot_file)).strftime('%Y-%m-%d')
+    snapshot_time_from = (datetime.utcfromtimestamp(os.path.getctime(snapshot_file)) - timedelta(days=7)).strftime('%Y-%m-%d')
 
     # Diagram-related variables:
     diagram = config.images['pools']
@@ -45,11 +47,21 @@ def draw_pools():
     background_coordinates = diagram['backgrounds']['coordinates']
     background_colors = diagram['backgrounds']['colors']
     
-    # Creation of diagram DataFrame and calculation of additional column:
-    diagram_df = pd.read_csv(chart_file).sort_values(by='mined', ascending=False)
-    
-    # Calculation of additional column:
-    diagram_df['percent'] = (diagram_df['mined'] / diagram_df['mined'].sum()) * 100
+    # Creation of diagram DataFrame and calculation of additional % column:
+    with open(snapshot_file, 'r') as file:
+        pools_raw_data = json.load(file)[f'{snapshot_subdict}']
+
+    pools_block_count = sum(pool['blockCount'] for pool in pools_raw_data)
+
+    pools_data = [
+        {
+            'pool': pool['name'],
+            'mined': pool['blockCount'],
+            'percent': (pool['blockCount'] / pools_block_count) * 100
+        }
+        for pool in pools_raw_data
+    ]
+    diagram_df = pd.DataFrame(pools_data).sort_values(by='mined', ascending=False)
 
     # Diagram DataFrame modified to top pools slices + other pools slice:
     diagram_slices = 5
@@ -81,20 +93,20 @@ def draw_pools():
     # Miners-related variables:
     miners_font = diagram['font']
     miners_list = [
-            [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
-             {'text': 'mining pools hashrate', 'position': background_colors['api'][2], 'font_size': 25, 'text_color': background_colors['api'][0]},
-             {'text': f'from: {chart_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
-             {'text': f'till: {chart_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
+            [{'text': 'mempool.space', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
+             {'text': 'mining pools shares', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]},
+             {'text': f'from: {snapshot_time_from}', 'position': background_colors['period'][1], 'font_size': 30, 'text_color': background_colors['period'][0]},
+             {'text': f'till: {snapshot_time_till}', 'position': background_colors['period'][2], 'font_size': 30, 'text_color': background_colors['period'][0]}],
             
-            [{'text': 'BTC mined:', 'position': (1735, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
+            [{'text': 'blocks:', 'position': (1735, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']},
              {'text': 'mining pool:', 'position': (1960, 125), 'font_size': 30, 'text_color': diagram_colors['percentage']}],
 
-            [{'text': f'{diagram_df["mined"].iloc[0]}', 'position': (1735, 185), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
-            {'text': f'{diagram_df["mined"].iloc[1]}', 'position': (1735, 295), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
-            {'text': f'{diagram_df["mined"].iloc[2]}', 'position': (1735, 405), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
-            {'text': f'{diagram_df["mined"].iloc[3]}', 'position': (1735, 515), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
-            {'text': f'{diagram_df["mined"].iloc[4]}', 'position': (1735, 625), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
-            {'text': f'{diagram_df["mined"].iloc[5]}', 'position': (1735, 735), 'font_size': 70, 'text_color': diagram_colors['bitcoin']}],
+            [{'text': f'{format_quantity(diagram_df["mined"].iloc[0])}', 'position': (1735, 185), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
+            {'text': f'{format_quantity(diagram_df["mined"].iloc[1])}', 'position': (1735, 295), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
+            {'text': f'{format_quantity(diagram_df["mined"].iloc[2])}', 'position': (1735, 405), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
+            {'text': f'{format_quantity(diagram_df["mined"].iloc[3])}', 'position': (1735, 515), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
+            {'text': f'{format_quantity(diagram_df["mined"].iloc[4])}', 'position': (1735, 625), 'font_size': 70, 'text_color': diagram_colors['bitcoin']},
+            {'text': f'{format_quantity(diagram_df["mined"].iloc[5])}', 'position': (1735, 735), 'font_size': 70, 'text_color': diagram_colors['bitcoin']}],
 
             [{'text': diagram_df['pool'].iloc[0], 'position': (1960, 185), 'font_size': 70, 'text_color': diagram_colors['slices'][0]},
             {'text': diagram_df['pool'].iloc[1], 'position': (1960, 295), 'font_size': 70, 'text_color': diagram_colors['slices'][1]},
@@ -138,7 +150,4 @@ def draw_pools():
 if __name__ == '__main__':
 
     draw_pools()
-
-
-
-
+    
