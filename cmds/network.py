@@ -162,7 +162,7 @@ def draw_network(days=config.days['network']):
     ax3.fill_between(axis_date, axis_price, color=plot_colors['price'], alpha=0.8)
 
     # Set plot legend proxies and actual legend:
-    legend_proxy_trx_per_block = Line2D([0], [0], label=f'TRX Per Block')
+    legend_proxy_trx_per_block = Line2D([0], [0], label=f'TXs/Block')
     legend_proxy_hashrate = Line2D([0], [0], label='Hashrate, TH/s')
     legend_proxy_price = Line2D([0], [0], label=f'Price, {config.currency_vs_ticker}')
 
@@ -199,7 +199,7 @@ def draw_network(days=config.days['network']):
             [{'text': 'blockchain.com', 'position': background_colors['api'][1], 'font_size': 36, 'text_color': background_colors['api'][0]},
             {'text': f'network performance', 'position': background_colors['api'][2], 'font_size': 26, 'text_color': background_colors['api'][0]}],
 
-            [{'text': f'TRX per Block {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
+            [{'text': f'TXs/Block {plot_key_metric_movement_format}', 'position': background_colors['metric'][1], 'font_size': 36, 'text_color': background_colors['metric'][0]},
             {'text': f'{plot_time_from} - {plot_time_till}', 'position': background_colors['metric'][2], 'font_size': 24, 'text_color': background_colors['metric'][0]}]
     ]
     
@@ -329,9 +329,9 @@ def write_network(days=1):
                 f'24h Price: {BTC_PRICE}\n'
             info_transactions = \
                 f'Blockchain: {BLOCKCHAIN_SIZE_NOW}\n' \
-                f'24h Trx: {TRANSACTIONS_MADE}\n' \
-                f'24h Avg: {TRANSACTIONS_BLOCK} trx/block\n' \
-                f'24h Cost: {TRANSACTIONS_COST}/trx\n'
+                f'24h Tx: {TRANSACTIONS_MADE}\n' \
+                f'24h Avg: {TRANSACTIONS_BLOCK} tx/block\n' \
+                f'24h Cost: {TRANSACTIONS_COST}/tx\n'
             info_network = \
                 f'Current Target: {DIFFICULTY}\n' \
                 f'Retarget: {RETARGET_IN} blocks\n' \
@@ -344,7 +344,7 @@ def write_network(days=1):
         else:
             info_period = f'{TIME_PAST} --> {TIME_NOW}\n'
             info_trx_per_block = \
-                f'Avg trx/block: {TRX_PER_BLOCK_PAST} --> {TRX_PER_BLOCK_NOW}\n' \
+                f'Avg tx/block: {TRX_PER_BLOCK_PAST} --> {TRX_PER_BLOCK_NOW}\n' \
                 f'{days}d: {TRX_PER_BLOCK_PAST_CHANGE_PERCENTAGE} ({TRX_PER_BLOCK_PAST_CHANGE}/block)\n'
             info_hashrate = \
                 f'Hashrate: {HASHRATE_PAST} TH/s --> {HASHRATE_NOW} TH/s\n' \

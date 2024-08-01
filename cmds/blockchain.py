@@ -44,6 +44,7 @@ def explore_address(address):
     market_current = config.snapshots['market']
     market_current_file_path = market_current['file']['path']
     market_current_file_name = market_current['file']['name']
+    market_current_file_subdict = market_current['file']['subdict']
     market_current_file = market_current_file_path + market_current_file_name
 
     # Creation of key address variables:
@@ -51,7 +52,7 @@ def explore_address(address):
 
     if os.path.exists(market_current_file):
         with open (market_current_file, 'r') as file:
-            market_current_data = json.load(file)
+            market_current_data = json.load(file)[f'{market_current_file_subdict}']
             market_current_price = market_current_data['current_price'][f'{config.currency_vs}']
         ADDRESS_FIAT_CURRENT_PRICE = format_currency(market_current_price, config.currency_vs_ticker, decimal=2)
         ADDRESS_FIAT_BALANCE = format_currency(market_current_price / 100_000_000 * address_response['final_balance'], config.currency_vs_ticker, decimal=2)
@@ -158,37 +159,38 @@ def explore_block(block):
     
     block_base = 'https://blockchain.info/'
     block_endpoint = f'block-height/{block}'
-    block_response = get_api_data(block_base, block_endpoint).json()
+    block_response = get_api_data(block_base, block_endpoint)
+    block_json = block_response.json()
     block_path = 'db/blockchain/block/'
     block_markdown_file = block_path + f'block_{block}.md'
     
-    if 'error' in block_response.keys():
+    if 'error' in block_json.keys():
         return False
     
-    block_response = block_response['blocks'][0]
+    block_json = block_json['blocks'][0]
 
     if not os.path.isdir(block_path):
         os.makedirs(block_path, exist_ok=True)
     
     # Creation of key block variables:
     BLOCK = format_quantity(int(block))
-    BLOCK_HASH = block_response['hash']
-    BLOCK_MERKLE = block_response['mrkl_root']
-    BLOCK_BITS = block_response['bits']
-    BLOCK_NONCE = block_response['nonce']
-    BLOCK_TRANSACTIONS_COUNT = format_quantity(block_response['n_tx'])
-    BLOCK_SIZE = format_quantity(block_response['size'])
-    BLOCK_WEIGHT = format_quantity(block_response['weight'])
+    BLOCK_HASH = block_json['hash']
+    BLOCK_MERKLE = block_json['mrkl_root']
+    BLOCK_BITS = block_json['bits']
+    BLOCK_NONCE = block_json['nonce']
+    BLOCK_TRANSACTIONS_COUNT = format_quantity(block_json['n_tx'])
+    BLOCK_SIZE = format_quantity(block_json['size'])
+    BLOCK_WEIGHT = format_quantity(block_json['weight'])
     BLOCK_LATEST = get_api_data(block_base, 'latestblock').json()['height']
     BLOCK_DEPTH = format_quantity(BLOCK_LATEST - int(block))
 
     BLOCK_DATE_CURRENT = datetime.utcnow().timestamp()
-    BLOCK_DATE_MINED = convert_timestamp_to_utc(block_response['time'])
-    BLOCK_DATE_AGE = (datetime.utcfromtimestamp(BLOCK_DATE_CURRENT) - datetime.utcfromtimestamp(block_response['time'])).days
+    BLOCK_DATE_MINED = convert_timestamp_to_utc(block_json['time'])
+    BLOCK_DATE_AGE = (datetime.utcfromtimestamp(BLOCK_DATE_CURRENT) - datetime.utcfromtimestamp(block_json['time'])).days
     
-    BLOCK_CRYPTO_FEE = format_currency(block_response['fee'])
+    BLOCK_CRYPTO_FEE = format_currency(block_json['fee'])
     BLOCK_CRYPTO_AMOUNT = 0
-    for block_transaction in block_response['tx']:
+    for block_transaction in block_json['tx']:
         for block_output in block_transaction['out']:
             BLOCK_CRYPTO_AMOUNT = BLOCK_CRYPTO_AMOUNT + block_output['value']
     BLOCK_CRYPTO_AMOUNT = format_currency(BLOCK_CRYPTO_AMOUNT / 100_000_000)
@@ -360,9 +362,9 @@ def explore_transaction(transaction_hash):
         [{'text': f'{TRANSACTION_CRYPTO_FEE}', 'position': (100, 500), 'font_size': 50, 'text_color': transaction_image_colors['titles_crypto']},
         {'text': f'Fee, sats', 'position': (100, 555), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
         {'text': f'{TRANSACTION_FIAT_AMOUNT}', 'position': (100, 650), 'font_size': 50, 'text_color': transaction_image_colors['titles_fiat']},
-        {'text': f'{config.currency_vs_ticker} transfered', 'position': (100, 705), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
+        {'text': f'{config.currency_vs_ticker}, current price', 'position': (100, 705), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
         {'text': f'{TRANSACTION_FIAT_FEE}', 'position': (100, 800), 'font_size': 50, 'text_color': transaction_image_colors['titles_fiat']},
-        {'text': f'Fee, {config.currency_vs_ticker}', 'position': (100, 855), 'font_size': 30, 'text_color': transaction_image_colors['titles']}],
+        {'text': f'Fee, current price', 'position': (100, 855), 'font_size': 30, 'text_color': transaction_image_colors['titles']}],
 
         [{'text': f'{TRANSACTION_HEIGHT}', 'position': (575, 500), 'font_size': 50, 'text_color': transaction_image_colors['titles_other']},
         {'text': f'Height', 'position': (575, 555), 'font_size': 30, 'text_color': transaction_image_colors['titles']},
