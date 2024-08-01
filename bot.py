@@ -546,17 +546,18 @@ Not accessible to user within bot interface.
 def select_blockchain_command(update, context):
     chat_type = update.effective_chat.type
     
-    # Command parsed diffirently for private and group chats:
+    # Command parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_BLOCKCHAIN_COMMAND state')
         selected_blockchain_command_name = update.message.text
         select_blockchain_command_keyboard = [['Address', 'Block'], ['Transaction', '🗿 Cancel']]
+        select_blockchain_data_keyboard = [['↩️ Go Back', '🗿 Cancel']]
         if selected_blockchain_command_name in set(config.keyboard['blockchain']):
             context.chat_data['selected_blockchain_command'] = config.keyboard['blockchain'][f'{selected_blockchain_command_name}']
-            select_blockchain_period_message = 'src/text/hint_nested_blockchain.md'
-            with open(select_blockchain_period_message, 'r') as hint_text:
+            select_blockchain_command_message = f'src/text/hint_nested_{selected_blockchain_command_name.lower()}.md'
+            with open(select_blockchain_command_message, 'r') as hint_text:
                 hint_text = hint_text.read()          
-                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
+                update.message.reply_text(hint_text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(select_blockchain_data_keyboard, resize_keyboard=True, one_time_keyboard=True))
             main_logger.info('exit SELECTING_BLOCKCHAIN_COMMAND state')
             return SELECTING_BLOCKCHAIN_DATA
         elif selected_blockchain_command_name == '🗿 Cancel':
@@ -585,11 +586,18 @@ def select_blockchain_command(update, context):
 def select_blockchain_data(update, context):
     chat_type = update.effective_chat.type
 
-    # Data parsed diffirently for private and group chats:
+    # Data parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_BLOCKCHAIN_DATA state')
+        selected_blockchain_command_name = update.message.text
         selected_blockchain_data = update.message.text.split(' ')[0]
         selected_blockchain_command = context.chat_data['selected_blockchain_command']
+        if selected_blockchain_command_name == '↩️ Go Back':
+            main_logger.info('exit SELECTING_BLOCKCHAIN_DATA state')
+            return blockchain(update, context)
+        elif selected_blockchain_command_name == '🗿 Cancel':
+            main_logger.info('exit SELECTING_BLOCKCHAIN_DATA state')
+            return cancel(update, context)
     elif chat_type == 'group' or chat_type == 'supergroup':
         selected_blockchain_data = context.chat_data['chat_blockchain_command'][2]
         if selected_blockchain_data == '↩️ Go Back':
@@ -610,7 +618,7 @@ def select_blockchain_data(update, context):
 def select_history_command(update, context):
     chat_type = update.effective_chat.type
 
-    # Command parsed diffirently for private and group chats:
+    # Command parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_HISTORY_COMMAND state')
         selected_history_command_name = update.message.text
@@ -650,7 +658,7 @@ def select_history_command(update, context):
 def select_history_period(update, context):
     chat_type = update.effective_chat.type
 
-    # Period parsed diffirently for private and group chats:
+    # Period parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_HISTORY_PERIOD state')
         select_history_date_keyboard = [['7 days', '30 days', '90 days'], ['365 days', 'All-Time', '↩️ Go Back']]
@@ -683,7 +691,7 @@ def select_history_period(update, context):
 def select_notification_command(update, context):
     chat_type = update.effective_chat.type
 
-    # Command parsed diffirently for private and group chats:
+    # Command parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_NOTIFICATION_COMMAND state')
         selected_notification_command_name = update.message.text
@@ -769,7 +777,7 @@ def select_notification_command(update, context):
 def select_notification_period(update, context):
     chat_type = update.effective_chat.type
 
-    # Period parsed diffirently for private and group chats:
+    # Period parsed differently  for private and group chats:
     if chat_type == 'private':
         main_logger.info('enter SELECTING_NOTIFICATION_PERIOD state')
         selected_period = update.message.text
