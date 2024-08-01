@@ -151,3 +151,4 @@ def draw_exchanges():
 if __name__ == '__main__':
 
     draw_exchanges()
+    

@@ -380,3 +380,4 @@ if __name__ == '__main__':
         day = convert_date_to_days(date)
         draw_network(day)
         write_network(day)
+        

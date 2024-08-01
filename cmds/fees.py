@@ -42,6 +42,7 @@ def draw_fees():
     market = config.snapshots['market']
     market_file_path = market['file']['path']
     market_file_name = market['file']['name']
+    market_file_subdict = market['file']['subdict']
     market_file = market_file_path + market_file_name
 
     # Draw recommended fees with data from Fees and Market snapshots:
@@ -58,7 +59,7 @@ def draw_fees():
         # Calculate and format currency fees from virtual bytes and current price:
         if os.path.exists(market_file):
             with open (market_file, 'r') as file:
-                market_data = json.load(file)
+                market_data = json.load(file)[f'{market_file_subdict}']
                 market_price = market_data['current_price'][f'{config.currency_vs}']
 
             # Transaction size assumed to be 140vB (average native SegWit):
@@ -81,7 +82,7 @@ def draw_fees():
         # Set text, position, size and color parameters:
         fees_list = [
             [{'text': 'mempool.space', 'position': fees_background_colors['api'][1], 'font_size': 36, 'text_color': fees_background_colors['api'][0]},
-            {'text': f'recommended TRX fees', 'position': fees_background_colors['api'][2], 'font_size': 24, 'text_color': fees_background_colors['api'][0]},
+            {'text': f'recommended TX fees', 'position': fees_background_colors['api'][2], 'font_size': 24, 'text_color': fees_background_colors['api'][0]},
             {'text': f'{config.currency_crypto_ticker} Price: {market_price}', 'position': fees_background_colors['metric'][1], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]},
             {'text': f'{fees_datetime}', 'position': fees_background_colors['metric'][2], 'font_size': 30, 'text_color': fees_background_colors['metric'][0]}],
               
@@ -136,3 +137,4 @@ def draw_fees():
 if __name__ == '__main__':
 
     draw_fees()
+    
