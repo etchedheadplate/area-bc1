@@ -17,23 +17,23 @@ currency_pair = currency_crypto_ticker + currency_vs_ticker
 
 # Dictionaries for managing databases:
 charts = {
-    'etfs': {
-        'api': {
-            'base': 'https://api.dune.com/api/v1/',
-            'endpoints': ['query/3400598/results/csv'],
-            'extention': 'csv',
-            'params': {
-                'api_key': f'{dune_api_token}'
-                },
-           'parsed': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/etfs/',
-            'name': 'etfs.csv',
-            'columns': False
-        }
-    },
+#    'etfs': {
+#        'api': {
+#            'base': 'https://api.dune.com/api/v1/',
+#            'endpoints': ['query/3400598/results/csv'],
+#            'extention': 'csv',
+#            'params': {
+#                'api_key': f'{dune_api_token}'
+#                },
+#           'parsed': False,
+#            'subdict': False
+#        },
+#        'file': {
+#            'path': 'db/etfs/',
+#            'name': 'etfs.csv',
+#            'columns': False
+#        }
+#    },
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
@@ -191,86 +191,69 @@ charts = {
             }
         }
     },
-    'pools': {
-        'api': {
-            'base': 'https://api.blockchain.info/',
-            'endpoints': ['pools'],
-            'extention': 'json',
-            'params': {
-                'timespan': '7days'
-                },
-            'parsed': 'dict',
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/pools/',
-            'name': 'pools.csv',
-            'columns': ['pool', 'mined']
-        }
-    },
-    'seized': {
-        'api': {
-            'base': 'https://api.dune.com/api/v1/',
-            'endpoints': ['query/2220209/results/csv'],
-            'extention': 'csv',
-            'params': {
-                'api_key': f'{dune_api_token}'
-                },
-            'parsed': False,
-            'subdict': False
-        },
-        'file': {
-            'path': 'db/seized/',
-            'name': 'seized.csv',
-            'columns': False
-        }
-    }
+#    'seized': {
+#        'api': {
+#            'base': 'https://api.dune.com/api/v1/',
+#            'endpoints': ['query/2220209/results/csv'],
+#            'extention': 'csv',
+#            'params': {
+#                'api_key': f'{dune_api_token}'
+#                },
+#            'parsed': False,
+#            'subdict': False
+#        },
+#        'file': {
+#            'path': 'db/seized/',
+#            'name': 'seized.csv',
+#            'columns': False
+#        }
+#    }
 }
 
 snapshots = {
     'exchanges': {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
-            'endpoints': ('exchanges'),
+            'endpoint': 'exchanges',
             'extention': 'json',
-            'params': False,
-            'subdict': False
+            'params': False
         },
         'file': {
             'path': f'db/exchanges/',
             'name': 'exchanges.json',
+            'subdict': False
         }
     },
     'fees': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoints': ('fees/recommended'),
+            'endpoint': 'fees/recommended',
             'extention': 'json',
-            'params': False,
-            'subdict': False
+            'params': False
         },
         'file': {
             'path': 'db/fees/',
             'name': 'fees.json',
+            'subdict': False
         }
     },
     'lightning': {
         'api': {
             'base': 'https://mempool.space/api/v1/',
-            'endpoints': ('lightning/statistics/latest'),
+            'endpoint': 'lightning/statistics/latest',
             'extention': 'json',
-            'params': False,
-            'subdict': False
+            'params': False
         },
         'file': {
             'path': 'db/lightning/',
             'name': 'lightning.json',
+            'subdict': False
         }
     },
     'market': {
         'api': {
             'base': 'https://api.coingecko.com/api/v3/',
-            'endpoints': (f'coins/{currency_crypto}'),
+            'endpoint': f'coins/{currency_crypto}',
             'extention': 'json',
             'params': {
                     'localization': 'false',
@@ -278,40 +261,53 @@ snapshots = {
                     'market_data': 'true',
                     'community_data': 'false',
                     'developer_data': 'false'
-                },
-            'subdict': 'market_data'
+                }
         },
         'file': {
             'path': f'db/market/{currency_pair}/',
             'name': 'market.json',
+            'subdict': 'market_data'
         }
     },
     'network': {
         'api': {
             'base': 'https://api.blockchain.info/',
             'extention': 'json',
-            'endpoints': ('stats'),
-            'params': False,
-            'subdict': ''
+            'endpoint': 'stats',
+            'params': False
         },
         'file': {
             'path': 'db/network/',
             'name': 'network.json',
+            'subdict': ''
+        }
+    },
+    'pools': {
+        'api': {
+            'base': 'https://mempool.space/api/v1/',
+            'extention': 'json',
+            'endpoint': 'mining/pools/1w',
+            'params': False
+        },
+        'file': {
+            'path': 'db/pools/',
+            'name': 'pools.json',
+            'subdict': 'pools'
         }
     }
 }
 
-delay = 15
+delay = 15 # seconds
 
 updates = {
-    # Most of the numbers are primes to minimize chance of rate limit risk between diffirent databases with
+    # Most of the numbers are primes to minimize chance of requests overlap between diffirent databases with
     # same API. Charts and snapshots within same database updated with {delay} for the this reason also.
 
     # Databases are updated every {minutes} at :{seconds}, if current time is 13:12:00, {minutes} = 179 and
     # {seconds} = 11, then update will be at 16:11:11, 19:10:11, 22:09:11, 01:08:11, etc.
 
-    # {seconds} -> chart -> + {delay} seconds -> snapshot -> + {delay} seconds -> image -> markdown.
-    # Overal scheme should not exceed 59 seconds, {seconds} should be set accordingly.
+    # Overal scheme looks like this: {seconds} -> chart -> {delay} -> snapshot -> {delay} -> image -> markdown.
+    # Overal scheme time should not exceed 59 seconds, so {delay} and {seconds} value should be set accordingly.
 
     # API mempool.space:
     'fees': { # snapshot + image
@@ -321,6 +317,10 @@ updates = {
     'lightning': { # chart + snapshot + image + markdown
         'minutes': 113,
         'seconds': 5
+    },
+    'pools': { # chart + image 
+        'minutes': 179,
+        'seconds': 37
     },
     # API CoinGecko:
     'exchanges': { # snapshot + image
@@ -335,18 +335,14 @@ updates = {
         'minutes': 13,
         'seconds': 29
     },
+    # API Blockchain.com:
     'market_days_max': { # chart
         'minutes': 599,
         'seconds': 43
     },
-    # API Blockchain.com:
     'network': { # chart + snapshot + image + markdown
         'minutes': 113,
         'seconds': 11
-    },
-    'pools': { # chart + image 
-        'minutes': 179,
-        'seconds': 37
     },
     # API Dune.com:
     'etfs': { # chart + image + markdown
@@ -582,8 +578,8 @@ images = {
             'path': 'src/image/backgrounds/pools.png',
             'coordinates': (680, -15),
             'colors': {
-                'api': ('#CACACA', (100, 65), (100, 105)),
-                'period': ('#00a5cf', (455, 65), (455, 100))
+                'api': ('#bc3a51', (100, 65), (100, 105)),
+                'period': ('#CACACA', (455, 65), (455, 102))
             }
         }
     },
@@ -652,7 +648,7 @@ days = {
     'lightning': 30,
     'market': 1,
     'network': 30,
-    'seized': 365
+    'seized': 730
 }
 
 # Dictionary for connecting user messgaes with bot commands:
