@@ -16,7 +16,7 @@ pip3 install -r requirements.txt
 python3 bot.py
 ```
 
-# Known Issues:
+# Known issues:
 1. Some problems related to API data providers inconsistency:
     - Custom plot periods start date might not be precise because some API providers might not have history data for some days.
     - Lightning plot might miss data for some days from one update to another (self-corrects with database updates every ~2 hours).
@@ -28,8 +28,8 @@ python3 bot.py
 ### Sources
 This bot is powered by:
 - [CoinGecko.com](https://www.coingecko.com/) API - Market, CEX
-- [Mempool.Space](https://mempool.space/) API - Fees, Lightning
-- [Blockchain.com](https://www.blockchain.com/) API - Blockchain, Market, Network, Pools
+- [Mempool.Space](https://mempool.space/) API - Fees, Lightning, Pools
+- [Blockchain.com](https://www.blockchain.com/) API - Blockchain, Market, Network
 - [Coinqueror.io](https://coinqueror.io/) Data Scraping - News
 - [Dune.com](https://dune.com/) API - ETFs, Seized
 ### Limitations
