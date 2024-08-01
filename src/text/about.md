@@ -1,0 +1,7 @@
+You can check out source code, report a bug or give feedback at [GitHub](https://github.com/etchedheadplate/area-bc1). Stars are much appreciated.
+
+If you were approached by Visitors, you can report the incident by QRs above or by addresses below:
+
+Bitcoin: `bc1q2pnr0m4dsqn5wclykzc3zjpu6trwm7ghh5rlxt`
+
+Lightning: `lnbc1pjav6lcpp5645u3y4q0czjy5h9psszg5augycvn9ae9cs8h5vrp03yfc6grywssp5zq05lce30yspdnt8eqk7qpupxjxuymtttz92qxzae9lav5kh8xssdqqcqzynxq8zals8sq9qlzqqqqqqqqqqqqqqqqqqqqqqqqqq9scqrzjq0kw7e6mu3ytv90xzajzgpcxw0hc9p8ql5va30sx9fkttvfs5zsdzzmhzyqq3zqqqyqqqqlgqqqqqeqqjqyyygrm6rgzvpsyjkxqfzr52c0g0qvdvd5nuhhzt5cljwtekvrpjr80jze8faecj5r5ht479sk9rjeygml8pfywsedfa7ruk52vetmwgq3rselj`
