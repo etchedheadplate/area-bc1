@@ -1,17 +1,30 @@
+# File extentions:
 *.pyc
 *.pyo
 *.csv
 *.psd
 *.jpg
+*.png
 *.log
+*.ttf
 *.json
 *.DS_Store
+api/*.py
+db/**/*.md
+
+# Directories:
 __pycache__/
-api/
-db/
-log/
-src/
-tests/
+src/image/donate
+src/image/logo
+src/image/mpv
+src/image/telegram
+src/image/welcome
 venv/
+
+# Test enviroment:
+log/
+tests/
 tests.py
+
+# Deployment configs:
 fly.toml
