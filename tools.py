@@ -9,7 +9,7 @@ import importlib
 import functools
 import pandas as pd
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from currency_symbols import CurrencySymbols
 from memory_profiler import profile
 
@@ -102,10 +102,12 @@ def make_chart_data(database):
                 response_columns = pd.DataFrame(list(response.items()), columns=file_columns)
             else:
                 main_logger.warning(f'unknown type of config param file_columns for {database}: {type(file_columns)}')
+            time.sleep(5) # 5 seconds between API callsrequests to comply with API limits in case of multiple endpoints
         response_columns.to_csv(file, index=False)
     elif api_extention == 'csv':
         for api_endpoint in api_endpoints:
             response = get_api_data(api_base, api_endpoint, api_params)
+            time.sleep(5) # 5 seconds between API callsrequests to comply with API limits in case of multiple endpoints
             with open(file, 'wb') as response_file:
                 response_file.write(response.content)
     else:
@@ -120,9 +122,8 @@ def make_snapshot_data(database):
 
     # User configuration related variables:
     api_base = snapshot['api']['base']
-    api_endpoints = snapshot['api']['endpoints']
+    api_endpoint = snapshot['api']['endpoint']
     api_params = snapshot['api']['params']
-    api_subdict = snapshot['api']['subdict']
 
     file_path = snapshot['file']['path']
     file_name = snapshot['file']['name']
@@ -133,8 +134,8 @@ def make_snapshot_data(database):
         os.makedirs(file_path, exist_ok=True)
 
     # Call to API and creation JSON file based on response data:
-    response = get_api_data(api_base, api_endpoints, api_params)
-    response = response.json()[api_subdict] if api_subdict else response.json()
+    response = get_api_data(api_base, api_endpoint, api_params)
+    response = response.json()
     with open(file, 'w') as json_file:
         json.dump(response, json_file)
     
@@ -415,6 +416,15 @@ def convert_date_to_days(date):
         datetime_now_utc = datetime.utcnow()
         days = (datetime_now_utc - datetime_past).days
         return days
+    
+def convert_utc_to_server_timezone(user_time_in_utc):
+    # Converts user-provided 'HH:MM' UTC +0 input string to server timezone
+    # (e.g. if server timezone is UTC +09:00, then '19:52' --> '04:52')
+    server_timezone = datetime.now().astimezone().tzinfo
+    server_utc_offset = server_timezone.utcoffset(datetime.utcnow()).total_seconds() / 3600
+    user_utc_time = datetime.strptime(user_time_in_utc, "%H:%M")
+    server_time = user_utc_time + timedelta(hours=server_utc_offset)
+    return server_time.strftime("%H:%M")
 
 @error_handler_common
 def calculate_percentage_change(old, new):
